@@ -1,0 +1,81 @@
+import { useState, useMemo } from "react";
+import { createFileRoute } from "@tanstack/react-router";
+import { Navbar } from "@/components/Navbar";
+import { MapView } from "@/components/MapView";
+import { BusinessCard } from "@/components/BusinessCard";
+import { FilterBar } from "@/components/FilterBar";
+import { DEMO_BUSINESSES, type DemoBusiness } from "@/lib/mock-businesses";
+import { COUNTRY_LIST, INDUSTRY_LIST } from "@/lib/constants";
+import { Eye } from "lucide-react";
+
+export const Route = createFileRoute("/explore")({
+  component: ExplorePage,
+  head: () => ({
+    meta: [
+      { title: "Khám phá doanh nghiệp — GlobalBiz.Connect" },
+      { name: "description", content: "Bản đồ doanh nghiệp toàn cầu với bộ lọc theo quốc gia và ngành nghề." },
+    ],
+  }),
+});
+
+function ExplorePage() {
+  const [selected, setSelected] = useState<DemoBusiness | null>(null);
+  const [country, setCountry] = useState("all");
+  const [industry, setIndustry] = useState("all");
+  const [search, setSearch] = useState("");
+
+  const filtered = useMemo(() => DEMO_BUSINESSES.filter((b) => {
+    if (country !== "all" && b.country_code !== country) return false;
+    if (industry !== "all" && b.industry_slug !== industry) return false;
+    if (search && !b.name.toLowerCase().includes(search.toLowerCase())) return false;
+    return true;
+  }), [country, industry, search]);
+
+  return (
+    <div className="min-h-screen bg-background">
+      <Navbar />
+      <div className="pt-16 h-screen flex flex-col lg:flex-row">
+        {/* Sidebar with filter + list */}
+        <aside className="w-full lg:w-96 flex-shrink-0 border-r border-border bg-card flex flex-col">
+          <div className="p-4 border-b border-border">
+            <h1 className="font-display text-2xl font-bold mb-1">Khám phá</h1>
+            <p className="text-sm text-muted-foreground mb-3">
+              {filtered.length} doanh nghiệp được hiển thị
+            </p>
+            <FilterBar
+              countries={COUNTRY_LIST} industries={INDUSTRY_LIST}
+              country={country} industry={industry} search={search}
+              onCountry={setCountry} onIndustry={setIndustry} onSearch={setSearch}
+            />
+          </div>
+          <div className="flex-1 overflow-y-auto p-3 space-y-2">
+            {filtered.map((b) => (
+              <button
+                key={b.id}
+                onClick={() => setSelected(b)}
+                className="w-full text-left p-3 rounded-2xl bg-background hover:bg-accent transition-smooth border border-border/40 hover:border-primary/40 hover:shadow-soft flex gap-3 items-center"
+              >
+                <div className={b.icon_tier === "premium" ? "ring-premium flex-shrink-0" : "flex-shrink-0"}>
+                  <img src={b.logo_url} alt="" className="w-12 h-12 rounded-full bg-white object-cover" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="font-semibold text-sm truncate">{b.name}</p>
+                  <p className="text-xs text-muted-foreground truncate">{b.country_name} · {b.industry}</p>
+                  <p className="text-xs text-muted-foreground flex items-center gap-1 mt-0.5">
+                    <Eye className="w-3 h-3" /> {b.views_count.toLocaleString()}
+                  </p>
+                </div>
+              </button>
+            ))}
+          </div>
+        </aside>
+
+        {/* Map */}
+        <main className="flex-1 relative">
+          <MapView businesses={filtered} onSelect={setSelected} />
+        </main>
+      </div>
+      {selected && <BusinessCard business={selected} onClose={() => setSelected(null)} />}
+    </div>
+  );
+}

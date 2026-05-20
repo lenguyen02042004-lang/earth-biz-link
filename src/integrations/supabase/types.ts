@@ -14,16 +14,479 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      business_gallery: {
+        Row: {
+          business_id: string
+          created_at: string
+          id: string
+          image_url: string
+          order_index: number
+        }
+        Insert: {
+          business_id: string
+          created_at?: string
+          id?: string
+          image_url: string
+          order_index?: number
+        }
+        Update: {
+          business_id?: string
+          created_at?: string
+          id?: string
+          image_url?: string
+          order_index?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "business_gallery_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "businesses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      business_socials: {
+        Row: {
+          business_id: string
+          created_at: string
+          id: string
+          platform: string
+          url: string
+        }
+        Insert: {
+          business_id: string
+          created_at?: string
+          id?: string
+          platform: string
+          url: string
+        }
+        Update: {
+          business_id?: string
+          created_at?: string
+          id?: string
+          platform?: string
+          url?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "business_socials_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "businesses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      businesses: {
+        Row: {
+          address: string | null
+          banner_url: string | null
+          country_code: string | null
+          created_at: string
+          email: string | null
+          followers_count: number
+          icon_tier: Database["public"]["Enums"]["icon_tier"]
+          id: string
+          industry_id: string | null
+          lat: number | null
+          lng: number | null
+          logo_url: string | null
+          name: string
+          owner_id: string
+          phone: string | null
+          premium_until: string | null
+          province: string | null
+          short_intro: string | null
+          slug: string
+          status: Database["public"]["Enums"]["business_status"]
+          updated_at: string
+          views_count: number
+          website: string | null
+        }
+        Insert: {
+          address?: string | null
+          banner_url?: string | null
+          country_code?: string | null
+          created_at?: string
+          email?: string | null
+          followers_count?: number
+          icon_tier?: Database["public"]["Enums"]["icon_tier"]
+          id?: string
+          industry_id?: string | null
+          lat?: number | null
+          lng?: number | null
+          logo_url?: string | null
+          name: string
+          owner_id: string
+          phone?: string | null
+          premium_until?: string | null
+          province?: string | null
+          short_intro?: string | null
+          slug: string
+          status?: Database["public"]["Enums"]["business_status"]
+          updated_at?: string
+          views_count?: number
+          website?: string | null
+        }
+        Update: {
+          address?: string | null
+          banner_url?: string | null
+          country_code?: string | null
+          created_at?: string
+          email?: string | null
+          followers_count?: number
+          icon_tier?: Database["public"]["Enums"]["icon_tier"]
+          id?: string
+          industry_id?: string | null
+          lat?: number | null
+          lng?: number | null
+          logo_url?: string | null
+          name?: string
+          owner_id?: string
+          phone?: string | null
+          premium_until?: string | null
+          province?: string | null
+          short_intro?: string | null
+          slug?: string
+          status?: Database["public"]["Enums"]["business_status"]
+          updated_at?: string
+          views_count?: number
+          website?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "businesses_country_code_fkey"
+            columns: ["country_code"]
+            isOneToOne: false
+            referencedRelation: "countries"
+            referencedColumns: ["code"]
+          },
+          {
+            foreignKeyName: "businesses_industry_id_fkey"
+            columns: ["industry_id"]
+            isOneToOne: false
+            referencedRelation: "industries"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      connect_messages: {
+        Row: {
+          body: string | null
+          created_at: string
+          from_business_id: string
+          id: string
+          read_at: string | null
+          subject: string | null
+          to_business_id: string
+        }
+        Insert: {
+          body?: string | null
+          created_at?: string
+          from_business_id: string
+          id?: string
+          read_at?: string | null
+          subject?: string | null
+          to_business_id: string
+        }
+        Update: {
+          body?: string | null
+          created_at?: string
+          from_business_id?: string
+          id?: string
+          read_at?: string | null
+          subject?: string | null
+          to_business_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "connect_messages_from_business_id_fkey"
+            columns: ["from_business_id"]
+            isOneToOne: false
+            referencedRelation: "businesses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "connect_messages_to_business_id_fkey"
+            columns: ["to_business_id"]
+            isOneToOne: false
+            referencedRelation: "businesses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      countries: {
+        Row: {
+          code: string
+          created_at: string
+          flag: string | null
+          name: string
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          flag?: string | null
+          name: string
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          flag?: string | null
+          name?: string
+        }
+        Relationships: []
+      }
+      follows: {
+        Row: {
+          business_id: string
+          created_at: string
+          follower_id: string
+          id: string
+        }
+        Insert: {
+          business_id: string
+          created_at?: string
+          follower_id: string
+          id?: string
+        }
+        Update: {
+          business_id?: string
+          created_at?: string
+          follower_id?: string
+          id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "follows_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "businesses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      industries: {
+        Row: {
+          created_at: string
+          icon: string | null
+          id: string
+          name: string
+          slug: string
+        }
+        Insert: {
+          created_at?: string
+          icon?: string | null
+          id?: string
+          name: string
+          slug: string
+        }
+        Update: {
+          created_at?: string
+          icon?: string | null
+          id?: string
+          name?: string
+          slug?: string
+        }
+        Relationships: []
+      }
+      message_quotas: {
+        Row: {
+          bonus_credits: number
+          business_id: string
+          created_at: string
+          id: string
+          period_year: number
+          updated_at: string
+          used_count: number
+        }
+        Insert: {
+          bonus_credits?: number
+          business_id: string
+          created_at?: string
+          id?: string
+          period_year: number
+          updated_at?: string
+          used_count?: number
+        }
+        Update: {
+          bonus_credits?: number
+          business_id?: string
+          created_at?: string
+          id?: string
+          period_year?: number
+          updated_at?: string
+          used_count?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "message_quotas_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "businesses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      payments_log: {
+        Row: {
+          amount: number
+          business_id: string | null
+          created_at: string
+          currency: string
+          id: string
+          provider: Database["public"]["Enums"]["payment_provider"]
+          provider_payment_id: string | null
+          status: string
+          type: Database["public"]["Enums"]["payment_type"]
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          business_id?: string | null
+          created_at?: string
+          currency?: string
+          id?: string
+          provider: Database["public"]["Enums"]["payment_provider"]
+          provider_payment_id?: string | null
+          status?: string
+          type: Database["public"]["Enums"]["payment_type"]
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          business_id?: string | null
+          created_at?: string
+          currency?: string
+          id?: string
+          provider?: Database["public"]["Enums"]["payment_provider"]
+          provider_payment_id?: string | null
+          status?: string
+          type?: Database["public"]["Enums"]["payment_type"]
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payments_log_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "businesses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          created_at: string
+          display_name: string | null
+          email: string | null
+          id: string
+          updated_at: string
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string
+          display_name?: string | null
+          email?: string | null
+          id: string
+          updated_at?: string
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string
+          display_name?: string | null
+          email?: string | null
+          id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      subscriptions: {
+        Row: {
+          business_id: string | null
+          created_at: string
+          current_period_end: string | null
+          id: string
+          provider: Database["public"]["Enums"]["payment_provider"]
+          provider_subscription_id: string | null
+          status: Database["public"]["Enums"]["subscription_status"]
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          business_id?: string | null
+          created_at?: string
+          current_period_end?: string | null
+          id?: string
+          provider: Database["public"]["Enums"]["payment_provider"]
+          provider_subscription_id?: string | null
+          status?: Database["public"]["Enums"]["subscription_status"]
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          business_id?: string | null
+          created_at?: string
+          current_period_end?: string | null
+          id?: string
+          provider?: Database["public"]["Enums"]["payment_provider"]
+          provider_subscription_id?: string | null
+          status?: Database["public"]["Enums"]["subscription_status"]
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "subscriptions_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "businesses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_roles: {
+        Row: {
+          created_at: string
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "admin" | "user"
+      business_status: "draft" | "public"
+      icon_tier: "standard" | "premium"
+      payment_provider: "stripe" | "paypal"
+      payment_type: "membership" | "extra_quota" | "icon_premium"
+      subscription_status: "active" | "canceled" | "past_due" | "incomplete"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +613,13 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["admin", "user"],
+      business_status: ["draft", "public"],
+      icon_tier: ["standard", "premium"],
+      payment_provider: ["stripe", "paypal"],
+      payment_type: ["membership", "extra_quota", "icon_premium"],
+      subscription_status: ["active", "canceled", "past_due", "incomplete"],
+    },
   },
 } as const
