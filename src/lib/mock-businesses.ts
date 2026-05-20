@@ -36,7 +36,7 @@ const PINK_GRADIENTS = [
 export const DEMO_BUSINESSES: DemoBusiness[] = [
   {
     id: "1", slug: "nova-tech-vn", name: "Nova Tech Vietnam",
-    logo_url: "https://api.dicebear.com/7.x/shapes/svg?seed=nova&backgroundColor=ff2d87",
+    logo_url: "https://api.dicebear.com/7.x/shapes/svg?seed=nova&backgroundColor=c8102e",
     banner_url: PINK_GRADIENTS[0],
     short_intro: "Giải pháp công nghệ AI hàng đầu cho doanh nghiệp Đông Nam Á.",
     address: "Tòa nhà Bitexco, Quận 1", country_code: "VN", country_name: "Việt Nam", province: "TP. Hồ Chí Minh",
@@ -47,7 +47,7 @@ export const DEMO_BUSINESSES: DemoBusiness[] = [
   },
   {
     id: "2", slug: "sakura-trading", name: "Sakura Trading Co.",
-    logo_url: "https://api.dicebear.com/7.x/shapes/svg?seed=sakura&backgroundColor=ff6ec4",
+    logo_url: "https://api.dicebear.com/7.x/shapes/svg?seed=sakura&backgroundColor=ff3b5c",
     banner_url: PINK_GRADIENTS[1],
     short_intro: "Xuất nhập khẩu thực phẩm cao cấp từ Nhật Bản ra thế giới.",
     address: "Shibuya City, 1-2-3", country_code: "JP", country_name: "Nhật Bản", province: "Tokyo",
@@ -58,7 +58,7 @@ export const DEMO_BUSINESSES: DemoBusiness[] = [
   },
   {
     id: "3", slug: "lion-finance-sg", name: "Lion Finance Singapore",
-    logo_url: "https://api.dicebear.com/7.x/shapes/svg?seed=lion&backgroundColor=ffa3ff",
+    logo_url: "https://api.dicebear.com/7.x/shapes/svg?seed=lion&backgroundColor=8b0000",
     banner_url: PINK_GRADIENTS[2],
     short_intro: "Tư vấn đầu tư & quản lý tài sản cho doanh nhân quốc tế.",
     address: "Marina Bay Financial Centre", country_code: "SG", country_name: "Singapore", province: "Singapore",
@@ -69,7 +69,7 @@ export const DEMO_BUSINESSES: DemoBusiness[] = [
   },
   {
     id: "4", slug: "stellar-design-nyc", name: "Stellar Design Studio",
-    logo_url: "https://api.dicebear.com/7.x/shapes/svg?seed=stellar&backgroundColor=ff2d87",
+    logo_url: "https://api.dicebear.com/7.x/shapes/svg?seed=stellar&backgroundColor=c8102e",
     banner_url: PINK_GRADIENTS[3],
     short_intro: "Studio thiết kế thương hiệu cao cấp tại New York.",
     address: "245 5th Ave, Manhattan", country_code: "US", country_name: "Hoa Kỳ", province: "New York",
@@ -80,7 +80,7 @@ export const DEMO_BUSINESSES: DemoBusiness[] = [
   },
   {
     id: "5", slug: "alpine-luxury-ch", name: "Alpine Luxury Hotels",
-    logo_url: "https://api.dicebear.com/7.x/shapes/svg?seed=alpine&backgroundColor=ff6ec4",
+    logo_url: "https://api.dicebear.com/7.x/shapes/svg?seed=alpine&backgroundColor=ff3b5c",
     banner_url: PINK_GRADIENTS[4],
     short_intro: "Chuỗi khách sạn 5 sao tại các điểm đến danh tiếng châu Âu.",
     address: "Bahnhofstrasse 12", country_code: "CH", country_name: "Thụy Sĩ", province: "Zurich",
@@ -91,7 +91,7 @@ export const DEMO_BUSINESSES: DemoBusiness[] = [
   },
   {
     id: "6", slug: "thames-legal", name: "Thames Legal Advisors",
-    logo_url: "https://api.dicebear.com/7.x/shapes/svg?seed=thames&backgroundColor=ffa3ff",
+    logo_url: "https://api.dicebear.com/7.x/shapes/svg?seed=thames&backgroundColor=8b0000",
     banner_url: PINK_GRADIENTS[0],
     short_intro: "Hãng luật quốc tế chuyên về M&A và đầu tư xuyên biên giới.",
     address: "1 Canary Wharf", country_code: "GB", country_name: "Vương quốc Anh", province: "London",
@@ -102,7 +102,7 @@ export const DEMO_BUSINESSES: DemoBusiness[] = [
   },
   {
     id: "7", slug: "kanga-build-au", name: "Kanga Construction",
-    logo_url: "https://api.dicebear.com/7.x/shapes/svg?seed=kanga&backgroundColor=ff2d87",
+    logo_url: "https://api.dicebear.com/7.x/shapes/svg?seed=kanga&backgroundColor=c8102e",
     banner_url: PINK_GRADIENTS[1],
     short_intro: "Nhà thầu xây dựng dân dụng và công nghiệp tại Úc.",
     address: "George Street, Sydney CBD", country_code: "AU", country_name: "Úc", province: "Sydney",
@@ -113,7 +113,7 @@ export const DEMO_BUSINESSES: DemoBusiness[] = [
   },
   {
     id: "8", slug: "samba-coffee-br", name: "Samba Coffee Roasters",
-    logo_url: "https://api.dicebear.com/7.x/shapes/svg?seed=samba&backgroundColor=ff6ec4",
+    logo_url: "https://api.dicebear.com/7.x/shapes/svg?seed=samba&backgroundColor=ff3b5c",
     banner_url: PINK_GRADIENTS[2],
     short_intro: "Cà phê đặc sản Brazil — rang xay thủ công cho thị trường toàn cầu.",
     address: "Av. Paulista, 1500", country_code: "BR", country_name: "Brazil", province: "São Paulo",
@@ -124,7 +124,7 @@ export const DEMO_BUSINESSES: DemoBusiness[] = [
   },
   {
     id: "9", slug: "desert-pearl-ae", name: "Desert Pearl Real Estate",
-    logo_url: "https://api.dicebear.com/7.x/shapes/svg?seed=desert&backgroundColor=ffa3ff",
+    logo_url: "https://api.dicebear.com/7.x/shapes/svg?seed=desert&backgroundColor=8b0000",
     banner_url: PINK_GRADIENTS[3],
     short_intro: "Bất động sản hạng sang tại Dubai và Trung Đông.",
     address: "Sheikh Zayed Road", country_code: "AE", country_name: "UAE", province: "Dubai",
@@ -135,7 +135,7 @@ export const DEMO_BUSINESSES: DemoBusiness[] = [
   },
   {
     id: "10", slug: "kimchi-fashion-kr", name: "Kimchi Fashion House",
-    logo_url: "https://api.dicebear.com/7.x/shapes/svg?seed=kimchi&backgroundColor=ff2d87",
+    logo_url: "https://api.dicebear.com/7.x/shapes/svg?seed=kimchi&backgroundColor=c8102e",
     banner_url: PINK_GRADIENTS[4],
     short_intro: "Thương hiệu thời trang K-style xuất khẩu toàn cầu.",
     address: "Gangnam-gu, Apgujeong", country_code: "KR", country_name: "Hàn Quốc", province: "Seoul",
