@@ -23,7 +23,7 @@ export function BusinessCard({ business, onClose }: Props) {
     if (profileUrl) {
       QRCode.toDataURL(profileUrl, {
         margin: 1,
-        color: { dark: "#ff2d87", light: "#ffffff" },
+        color: { dark: "#c8102e", light: "#ffffff" },
         width: 240,
       }).then(setQrUrl);
     }

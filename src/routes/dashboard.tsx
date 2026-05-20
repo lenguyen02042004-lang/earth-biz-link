@@ -30,7 +30,7 @@ function Dashboard() {
       <div className="pt-24 px-4 sm:px-6 lg:px-8 max-w-6xl mx-auto pb-12">
         <div className="mb-8 animate-fade-up">
           <h1 className="text-3xl font-display font-bold">
-            Chào {profile?.display_name ?? user?.email?.split("@")[0]} 👋
+            Xin chào, {profile?.display_name ?? user?.email?.split("@")[0]}
           </h1>
           <p className="text-muted-foreground mt-1">Quản lý danh thiếp doanh nghiệp và kết nối của bạn</p>
         </div>

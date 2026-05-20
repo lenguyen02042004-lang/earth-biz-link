@@ -46,7 +46,7 @@ export function Globe3D({ onSelect, businesses = DEMO_BUSINESSES }: Props) {
     lat: b.lat,
     lng: b.lng,
     name: b.name,
-    color: b.icon_tier === "premium" ? "#ff2d87" : "#ff6ec4",
+    color: b.icon_tier === "premium" ? "#ff3b5c" : "#c8102e",
     size: b.icon_tier === "premium" ? 0.9 : 0.6,
     business: b,
   }));
@@ -61,14 +61,14 @@ export function Globe3D({ onSelect, businesses = DEMO_BUSINESSES }: Props) {
           backgroundColor="rgba(0,0,0,0)"
           globeImageUrl="https://unpkg.com/three-globe/example/img/earth-night.jpg"
           bumpImageUrl="https://unpkg.com/three-globe/example/img/earth-topology.png"
-          atmosphereColor="#ff6ec4"
+          atmosphereColor="#ff3b5c"
           atmosphereAltitude={0.18}
           pointsData={points}
           pointAltitude={0.02}
           pointRadius="size"
           pointColor="color"
           pointLabel={(d: any) => `
-            <div style="background:rgba(255,255,255,0.95);color:#222;padding:8px 12px;border-radius:10px;font-family:Inter,sans-serif;font-size:13px;font-weight:600;box-shadow:0 8px 20px -8px rgba(255,45,135,0.5)">
+            <div style="background:rgba(255,255,255,0.96);color:#222;padding:8px 12px;border-radius:10px;font-family:Inter,sans-serif;font-size:13px;font-weight:600;box-shadow:0 8px 20px -8px rgba(200,16,46,0.55)">
               ${d.name}
             </div>`}
           onPointClick={(d: any) => onSelect(d.business)}
