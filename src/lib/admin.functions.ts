@@ -18,7 +18,7 @@ const BizRow = z.object({
   logo_url: z.string().url().optional().nullable(),
   banner_url: z.string().url().optional().nullable(),
   industry_slug: z.string().optional().nullable(),
-  status: z.enum(["draft", "public", "hidden"]).optional().default("draft"),
+  status: z.enum(["draft", "public"]).optional().default("draft"),
   icon_tier: z.enum(["standard", "premium"]).optional().default("standard"),
 });
 

@@ -1,5 +1,5 @@
 import { Link } from "@tanstack/react-router";
-import { Globe2, Sparkles, LogIn, LayoutDashboard, LogOut, Settings } from "lucide-react";
+import { Globe2, Sparkles, LogIn, LayoutDashboard, LogOut, Settings, Inbox } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/use-auth";
 import { supabase } from "@/integrations/supabase/client";
@@ -40,6 +40,11 @@ export function Navbar() {
               <Link to="/dashboard">
                 <Button variant="ghost" size="sm" className="gap-2">
                   <LayoutDashboard className="w-4 h-4" /> <span className="hidden sm:inline">Bảng điều khiển</span>
+                </Button>
+              </Link>
+              <Link to="/inbox">
+                <Button variant="ghost" size="icon" title="Hộp thư">
+                  <Inbox className="w-4 h-4" />
                 </Button>
               </Link>
               <Link to="/settings">
