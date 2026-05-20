@@ -16,11 +16,11 @@ export const Route = createFileRoute("/dashboard")({
 
 function Dashboard() {
   const { user } = useAuth();
-  const [profile, setProfile] = useState<{ display_name?: string; email?: string } | null>(null);
+  const [profile, setProfile] = useState<{ display_name: string | null; email: string | null } | null>(null);
 
   useEffect(() => {
     if (!user) return;
-    supabase.from("profiles").select("*").eq("id", user.id).single()
+    supabase.from("profiles").select("display_name, email").eq("id", user.id).single()
       .then(({ data }) => setProfile(data));
   }, [user]);
 
