@@ -1,5 +1,5 @@
 import { Link } from "@tanstack/react-router";
-import { Globe2, Sparkles, LogIn, LayoutDashboard, LogOut } from "lucide-react";
+import { Globe2, Sparkles, LogIn, LayoutDashboard, LogOut, Settings } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/use-auth";
 import { supabase } from "@/integrations/supabase/client";
@@ -39,14 +39,19 @@ export function Navbar() {
             <>
               <Link to="/dashboard">
                 <Button variant="ghost" size="sm" className="gap-2">
-                  <LayoutDashboard className="w-4 h-4" /> Bảng điều khiển
+                  <LayoutDashboard className="w-4 h-4" /> <span className="hidden sm:inline">Bảng điều khiển</span>
+                </Button>
+              </Link>
+              <Link to="/settings">
+                <Button variant="ghost" size="icon" title="Cài đặt">
+                  <Settings className="w-4 h-4" />
                 </Button>
               </Link>
               <Button
-                size="sm"
+                size="icon"
                 variant="ghost"
                 onClick={() => supabase.auth.signOut()}
-                className="gap-2"
+                title="Đăng xuất"
               >
                 <LogOut className="w-4 h-4" />
               </Button>
