@@ -3,7 +3,7 @@ import { Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
 
 interface Props {
-  countries: { code: string; name: string; flag: string }[];
+  countries: { code: string; name: string }[];
   industries: { slug: string; name: string }[];
   country: string;
   industry: string;
@@ -30,7 +30,12 @@ export function FilterBar({ countries, industries, country, industry, search, on
         <SelectContent className="max-h-72">
           <SelectItem value="all">Tất cả quốc gia</SelectItem>
           {countries.map((c) => (
-            <SelectItem key={c.code} value={c.code}>{c.flag} {c.name}</SelectItem>
+            <SelectItem key={c.code} value={c.code}>
+              <span className="inline-flex items-center gap-2">
+                <span className="text-[10px] font-mono font-bold px-1.5 py-0.5 rounded bg-muted text-muted-foreground">{c.code}</span>
+                {c.name}
+              </span>
+            </SelectItem>
           ))}
         </SelectContent>
       </Select>

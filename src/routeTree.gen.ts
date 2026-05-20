@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as SignupRouteImport } from './routes/signup'
+import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as PricingRouteImport } from './routes/pricing'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as ExploreRouteImport } from './routes/explore'
@@ -21,6 +22,11 @@ import { Route as BSlugRouteImport } from './routes/b.$slug'
 const SignupRoute = SignupRouteImport.update({
   id: '/signup',
   path: '/signup',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SettingsRoute = SettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PricingRoute = PricingRouteImport.update({
@@ -65,6 +71,7 @@ export interface FileRoutesByFullPath {
   '/explore': typeof ExploreRoute
   '/login': typeof LoginRoute
   '/pricing': typeof PricingRoute
+  '/settings': typeof SettingsRoute
   '/signup': typeof SignupRoute
   '/b/$slug': typeof BSlugRoute
   '/business/edit': typeof BusinessEditRoute
@@ -75,6 +82,7 @@ export interface FileRoutesByTo {
   '/explore': typeof ExploreRoute
   '/login': typeof LoginRoute
   '/pricing': typeof PricingRoute
+  '/settings': typeof SettingsRoute
   '/signup': typeof SignupRoute
   '/b/$slug': typeof BSlugRoute
   '/business/edit': typeof BusinessEditRoute
@@ -86,6 +94,7 @@ export interface FileRoutesById {
   '/explore': typeof ExploreRoute
   '/login': typeof LoginRoute
   '/pricing': typeof PricingRoute
+  '/settings': typeof SettingsRoute
   '/signup': typeof SignupRoute
   '/b/$slug': typeof BSlugRoute
   '/business/edit': typeof BusinessEditRoute
@@ -98,6 +107,7 @@ export interface FileRouteTypes {
     | '/explore'
     | '/login'
     | '/pricing'
+    | '/settings'
     | '/signup'
     | '/b/$slug'
     | '/business/edit'
@@ -108,6 +118,7 @@ export interface FileRouteTypes {
     | '/explore'
     | '/login'
     | '/pricing'
+    | '/settings'
     | '/signup'
     | '/b/$slug'
     | '/business/edit'
@@ -118,6 +129,7 @@ export interface FileRouteTypes {
     | '/explore'
     | '/login'
     | '/pricing'
+    | '/settings'
     | '/signup'
     | '/b/$slug'
     | '/business/edit'
@@ -129,6 +141,7 @@ export interface RootRouteChildren {
   ExploreRoute: typeof ExploreRoute
   LoginRoute: typeof LoginRoute
   PricingRoute: typeof PricingRoute
+  SettingsRoute: typeof SettingsRoute
   SignupRoute: typeof SignupRoute
   BSlugRoute: typeof BSlugRoute
   BusinessEditRoute: typeof BusinessEditRoute
@@ -141,6 +154,13 @@ declare module '@tanstack/react-router' {
       path: '/signup'
       fullPath: '/signup'
       preLoaderRoute: typeof SignupRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/settings': {
+      id: '/settings'
+      path: '/settings'
+      fullPath: '/settings'
+      preLoaderRoute: typeof SettingsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/pricing': {
@@ -201,6 +221,7 @@ const rootRouteChildren: RootRouteChildren = {
   ExploreRoute: ExploreRoute,
   LoginRoute: LoginRoute,
   PricingRoute: PricingRoute,
+  SettingsRoute: SettingsRoute,
   SignupRoute: SignupRoute,
   BSlugRoute: BSlugRoute,
   BusinessEditRoute: BusinessEditRoute,

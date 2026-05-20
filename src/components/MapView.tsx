@@ -34,11 +34,11 @@ export function MapView({ onSelect, businesses = DEMO_BUSINESSES }: Props) {
       const isPremium = b.icon_tier === "premium";
       const size = isPremium ? 56 : 44;
       const ringClass = isPremium
-        ? "background:conic-gradient(from 0deg,#ff2d87,#ff6ec4,#ffa3ff,#ff2d87);padding:3px;animation:spin 8s linear infinite;"
-        : "background:white;padding:2px;border:2px solid #ff6ec4;";
+        ? "background:conic-gradient(from 0deg,#8b0000,#c8102e,#ff3b5c,#8b0000);padding:3px;animation:spin 8s linear infinite;"
+        : "background:white;padding:2px;border:2px solid #c8102e;";
 
       const html = `
-        <div style="width:${size}px;height:${size}px;border-radius:9999px;${ringClass};box-shadow:0 8px 20px -6px rgba(255,45,135,0.5);transition:transform .3s">
+        <div style="width:${size}px;height:${size}px;border-radius:9999px;${ringClass};box-shadow:0 8px 20px -6px rgba(200,16,46,0.55);transition:transform .3s">
           <img src="${b.logo_url}" alt="${b.name}"
                style="width:100%;height:100%;border-radius:9999px;background:white;object-fit:cover;display:block" />
         </div>`;

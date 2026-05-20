@@ -75,7 +75,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { name: "viewport", content: "width=device-width, initial-scale=1" },
       { title: "GlobalBiz.Connect — Bản đồ doanh nghiệp toàn cầu" },
       { name: "description", content: "Kết nối doanh nghiệp toàn cầu qua bản đồ tương tác 3D. Quảng bá thương hiệu, mở rộng giao thương quốc tế chỉ từ $5/năm." },
-      { name: "theme-color", content: "#ff2d87" },
+      { name: "theme-color", content: "#c8102e" },
       { property: "og:type", content: "website" },
       { property: "og:title", content: "GlobalBiz.Connect" },
       { property: "og:description", content: "Bản đồ doanh nghiệp toàn cầu" },
