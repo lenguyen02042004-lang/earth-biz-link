@@ -1,11 +1,12 @@
 import { useEffect, useState } from "react";
 import QRCode from "qrcode";
 import {
-  MapPin, Phone, Mail, Globe, Eye, Share2, Heart, QrCode, X, Sparkles,
+  MapPin, Phone, Mail, Globe, Eye, Share2, Heart, QrCode, X, Sparkles, Send,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { SocialIconList } from "./SocialIconList";
+import { SendCardDialog } from "./SendCardDialog";
 import type { DemoBusiness } from "@/lib/mock-businesses";
 import { toast } from "sonner";
 
@@ -17,6 +18,7 @@ interface Props {
 export function BusinessCard({ business, onClose }: Props) {
   const [qrUrl, setQrUrl] = useState<string>("");
   const [showQR, setShowQR] = useState(false);
+  const [showSend, setShowSend] = useState(false);
   const profileUrl = typeof window !== "undefined" ? `${window.location.origin}/b/${business.slug}` : "";
 
   useEffect(() => {
@@ -148,8 +150,11 @@ export function BusinessCard({ business, onClose }: Props) {
 
           {/* Actions */}
           <div className="flex gap-2">
-            <Button className="flex-1 bg-gradient-vivid hover:opacity-90 text-white border-0 shadow-pink">
-              <Heart className="w-4 h-4 mr-1.5" /> Theo dõi
+            <Button onClick={() => setShowSend(true)} className="flex-1 bg-gradient-vivid hover:opacity-90 text-white border-0 shadow-pink">
+              <Send className="w-4 h-4 mr-1.5" /> Gửi danh thiếp
+            </Button>
+            <Button variant="outline" size="icon" title="Theo dõi">
+              <Heart className="w-4 h-4" />
             </Button>
             <Button variant="outline" size="icon" onClick={() => setShowQR(v => !v)} title="QR Code">
               <QrCode className="w-4 h-4" />
@@ -160,6 +165,9 @@ export function BusinessCard({ business, onClose }: Props) {
           </div>
         </div>
       </div>
+      {showSend && (
+        <SendCardDialog toBusinessId={business.id} toBusinessName={business.name} onClose={() => setShowSend(false)} />
+      )}
     </div>
   );
 }

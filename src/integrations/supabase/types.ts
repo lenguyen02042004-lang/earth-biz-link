@@ -479,6 +479,16 @@ export type Database = {
         }
         Returns: boolean
       }
+      is_admin: { Args: never; Returns: boolean }
+      send_card_visit: {
+        Args: {
+          _body: string
+          _from_business: string
+          _subject: string
+          _to_business: string
+        }
+        Returns: string
+      }
     }
     Enums: {
       app_role: "admin" | "user"
