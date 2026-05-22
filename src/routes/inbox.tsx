@@ -90,23 +90,47 @@ function InboxPage() {
             const peer = isIncoming ? m.from : m.to;
             const unread = isIncoming && !m.read_at;
             return (
-              <button
+              <div
                 key={m.id}
                 onClick={() => { if (unread) mark.mutate(m.id); }}
                 className={`w-full text-left p-4 rounded-2xl border transition-smooth flex gap-3 items-start ${unread ? "bg-primary/5 border-primary/40" : "bg-card border-border"}`}
               >
-                {peer?.logo_url && <img src={peer.logo_url} alt="" className="w-12 h-12 rounded-full object-cover bg-white" />}
+                {peer?.logo_url && <img src={peer.logo_url} alt="" className="w-12 h-12 rounded-full object-cover bg-white shrink-0" />}
                 <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 mb-1">
+                  <div className="flex items-center gap-2 mb-1 flex-wrap">
                     {isIncoming ? <Mail className="w-4 h-4 text-primary" /> : <Send className="w-4 h-4 text-muted-foreground" />}
-                    <span className="font-semibold">{peer?.name ?? "—"}</span>
+                    <span className="font-semibold truncate">{peer?.name ?? "—"}</span>
                     {unread && <Badge className="bg-primary">Mới</Badge>}
                     <span className="text-xs text-muted-foreground ml-auto">{formatDistanceToNow(new Date(m.created_at), { addSuffix: true })}</span>
                   </div>
                   <p className="font-medium text-sm">{m.subject}</p>
                   <p className="text-sm text-muted-foreground line-clamp-2 mt-1">{m.body}</p>
+                  {isIncoming && peer && (
+                    <div className="flex gap-2 mt-2.5">
+                      <Button size="sm" variant="outline" className="h-8 gap-1.5"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          downloadVCard({
+                            id: peer.id, name: peer.name, slug: peer.slug,
+                            logo_url: peer.logo_url ?? "", banner_url: "",
+                            industry: "", short_intro: "",
+                            phone: peer.phone ?? "", email: peer.email ?? "", website: peer.website ?? "",
+                            address: peer.address ?? "", province: peer.province ?? "",
+                            country_code: peer.country_code ?? "", country_name: peer.country_code ?? "",
+                            socials: {}, gallery: [], icon_tier: "standard",
+                            views_count: 0, followers_count: 0, lat: 0, lng: 0,
+                          } as any, typeof window !== "undefined" ? `${window.location.origin}/b/${peer.slug}` : undefined);
+                          toast.success("Đã lưu danh bạ (.vcf)");
+                        }}>
+                        <UserPlus className="w-3.5 h-3.5" /> Lưu danh bạ
+                      </Button>
+                      <Button size="sm" variant="ghost" className="h-8" asChild>
+                        <Link to="/b/$slug" params={{ slug: peer.slug }}>Xem card</Link>
+                      </Button>
+                    </div>
+                  )}
                 </div>
-              </button>
+              </div>
             );
           })}
         </div>
