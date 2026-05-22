@@ -75,7 +75,7 @@ export const getMyQuota = createServerFn({ method: "GET" })
       .from("subscriptions")
       .select("status, current_period_end")
       .eq("user_id", context.userId)
-      .in("status", ["active", "trialing"])
+      .eq("status", "active")
       .order("current_period_end", { ascending: false })
       .limit(1)
       .maybeSingle();
