@@ -1,11 +1,14 @@
 import { Link } from "@tanstack/react-router";
 import { Globe2, Sparkles, LogIn, LayoutDashboard, LogOut, Settings, Inbox } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/use-auth";
 import { supabase } from "@/integrations/supabase/client";
+import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 
 export function Navbar() {
   const { user, loading } = useAuth();
+  const { t } = useTranslation();
 
   return (
     <header className="fixed top-0 left-0 right-0 z-50 glass border-b border-border/40">
