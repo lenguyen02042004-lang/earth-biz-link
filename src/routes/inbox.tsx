@@ -7,8 +7,10 @@ import { getInbox, markMessageRead, getMyBusinesses, getMyQuota } from "@/lib/me
 import { Navbar } from "@/components/Navbar";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Inbox, Send, MailOpen, Mail } from "lucide-react";
+import { Inbox, Send, Mail, UserPlus } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
+import { downloadVCard } from "@/lib/vcard";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/inbox")({
   beforeLoad: async () => {
