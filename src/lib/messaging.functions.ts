@@ -40,7 +40,7 @@ export const getInbox = createServerFn({ method: "GET" })
     const ids = Array.from(new Set(messages?.flatMap((m) => [m.from_business_id, m.to_business_id]) ?? []));
     const { data: bizes } = await supabase
       .from("businesses")
-      .select("id, name, logo_url, slug")
+      .select("id, name, logo_url, slug, phone, email, website, address, province, country_code")
       .in("id", ids);
     const map = new Map((bizes ?? []).map((b) => [b.id, b]));
     return { messages: (messages ?? []).map((m) => ({ ...m, from: map.get(m.from_business_id), to: map.get(m.to_business_id) })) };
@@ -69,9 +69,26 @@ export const getMyQuota = createServerFn({ method: "GET" })
       .eq("business_id", data.business_id)
       .eq("period_year", year)
       .maybeSingle();
+
+    // Tier-based base limit: Member (active sub) = 1000, Free = 100
+    const { data: sub } = await context.supabase
+      .from("subscriptions")
+      .select("status, current_period_end")
+      .eq("user_id", context.userId)
+      .eq("status", "active")
+      .order("current_period_end", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    const isMember = !!sub && (!sub.current_period_end || new Date(sub.current_period_end) > new Date());
+    const base = isMember ? 1000 : 100;
     const used = row?.used_count ?? 0;
     const bonus = row?.bonus_credits ?? 0;
-    return { used, bonus, limit: 1000 + bonus, remaining: 1000 + bonus - used };
+    const limit = base + bonus;
+    return {
+      used, bonus, limit, remaining: limit - used,
+      tier: isMember ? ("member" as const) : ("free" as const),
+    };
   });
 
 export const getMyBusinesses = createServerFn({ method: "GET" })
