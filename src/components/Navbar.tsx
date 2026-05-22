@@ -27,31 +27,33 @@ export function Navbar() {
 
         <nav className="hidden md:flex items-center gap-6 text-sm font-medium">
           <Link to="/" activeProps={{ className: "text-primary" }} className="hover:text-primary transition-smooth">
-            Bản đồ
+            {t("nav.map")}
           </Link>
           <Link to="/explore" activeProps={{ className: "text-primary" }} className="hover:text-primary transition-smooth">
-            Khám phá
+            {t("nav.explore")}
           </Link>
           <Link to="/pricing" activeProps={{ className: "text-primary" }} className="hover:text-primary transition-smooth">
-            Bảng giá
+            {t("nav.pricing")}
           </Link>
         </nav>
 
-        <div className="flex items-center gap-2">
+
+        <div className="flex items-center gap-1">
+          <LanguageSwitcher />
           {!loading && user ? (
             <>
               <Link to="/dashboard">
                 <Button variant="ghost" size="sm" className="gap-2">
-                  <LayoutDashboard className="w-4 h-4" /> <span className="hidden sm:inline">Bảng điều khiển</span>
+                  <LayoutDashboard className="w-4 h-4" /> <span className="hidden sm:inline">{t("nav.dashboard")}</span>
                 </Button>
               </Link>
               <Link to="/inbox">
-                <Button variant="ghost" size="icon" title="Hộp thư">
+                <Button variant="ghost" size="icon" title={t("nav.inbox")}>
                   <Inbox className="w-4 h-4" />
                 </Button>
               </Link>
               <Link to="/settings">
-                <Button variant="ghost" size="icon" title="Cài đặt">
+                <Button variant="ghost" size="icon" title={t("nav.settings")}>
                   <Settings className="w-4 h-4" />
                 </Button>
               </Link>
@@ -59,7 +61,7 @@ export function Navbar() {
                 size="icon"
                 variant="ghost"
                 onClick={() => supabase.auth.signOut()}
-                title="Đăng xuất"
+                title={t("nav.logout")}
               >
                 <LogOut className="w-4 h-4" />
               </Button>
@@ -68,7 +70,7 @@ export function Navbar() {
             <>
               <Link to="/login">
                 <Button variant="ghost" size="sm" className="gap-2">
-                  <LogIn className="w-4 h-4" /> Đăng nhập
+                  <LogIn className="w-4 h-4" /> {t("nav.login")}
                 </Button>
               </Link>
               <Link to="/signup">
@@ -76,12 +78,13 @@ export function Navbar() {
                   size="sm"
                   className="gap-2 bg-gradient-vivid hover:opacity-90 text-white border-0 shadow-pink"
                 >
-                  <Sparkles className="w-4 h-4" /> Bắt đầu miễn phí
+                  <Sparkles className="w-4 h-4" /> {t("nav.signup")}
                 </Button>
               </Link>
             </>
           ) : null}
         </div>
+
       </div>
     </header>
   );
