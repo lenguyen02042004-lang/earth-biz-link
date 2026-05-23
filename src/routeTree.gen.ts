@@ -18,6 +18,7 @@ import { Route as ExploreRouteImport } from './routes/explore'
 import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as BusinessStatsRouteImport } from './routes/business.stats'
 import { Route as BusinessEditRouteImport } from './routes/business.edit'
 import { Route as BSlugRouteImport } from './routes/b.$slug'
 
@@ -66,6 +67,11 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const BusinessStatsRoute = BusinessStatsRouteImport.update({
+  id: '/business/stats',
+  path: '/business/stats',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const BusinessEditRoute = BusinessEditRouteImport.update({
   id: '/business/edit',
   path: '/business/edit',
@@ -89,6 +95,7 @@ export interface FileRoutesByFullPath {
   '/signup': typeof SignupRoute
   '/b/$slug': typeof BSlugRoute
   '/business/edit': typeof BusinessEditRoute
+  '/business/stats': typeof BusinessStatsRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -102,6 +109,7 @@ export interface FileRoutesByTo {
   '/signup': typeof SignupRoute
   '/b/$slug': typeof BSlugRoute
   '/business/edit': typeof BusinessEditRoute
+  '/business/stats': typeof BusinessStatsRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -116,6 +124,7 @@ export interface FileRoutesById {
   '/signup': typeof SignupRoute
   '/b/$slug': typeof BSlugRoute
   '/business/edit': typeof BusinessEditRoute
+  '/business/stats': typeof BusinessStatsRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -131,6 +140,7 @@ export interface FileRouteTypes {
     | '/signup'
     | '/b/$slug'
     | '/business/edit'
+    | '/business/stats'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -144,6 +154,7 @@ export interface FileRouteTypes {
     | '/signup'
     | '/b/$slug'
     | '/business/edit'
+    | '/business/stats'
   id:
     | '__root__'
     | '/'
@@ -157,6 +168,7 @@ export interface FileRouteTypes {
     | '/signup'
     | '/b/$slug'
     | '/business/edit'
+    | '/business/stats'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -171,6 +183,7 @@ export interface RootRouteChildren {
   SignupRoute: typeof SignupRoute
   BSlugRoute: typeof BSlugRoute
   BusinessEditRoute: typeof BusinessEditRoute
+  BusinessStatsRoute: typeof BusinessStatsRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -238,6 +251,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/business/stats': {
+      id: '/business/stats'
+      path: '/business/stats'
+      fullPath: '/business/stats'
+      preLoaderRoute: typeof BusinessStatsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/business/edit': {
       id: '/business/edit'
       path: '/business/edit'
@@ -267,6 +287,7 @@ const rootRouteChildren: RootRouteChildren = {
   SignupRoute: SignupRoute,
   BSlugRoute: BSlugRoute,
   BusinessEditRoute: BusinessEditRoute,
+  BusinessStatsRoute: BusinessStatsRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
