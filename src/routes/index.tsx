@@ -45,6 +45,13 @@ function HomePage() {
   const [search, setSearch] = useState("");
   const [mounted, setMounted] = useState(false);
   const { user, loading } = useAuth();
+  const navigate = useNavigate();
+
+  const { data: stats } = useQuery({
+    queryKey: ["public-stats"],
+    queryFn: () => getPublicStats(),
+    staleTime: 60_000,
+  });
 
   useEffect(() => setMounted(true), []);
 
