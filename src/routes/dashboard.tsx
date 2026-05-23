@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
-import { Sparkles, Mail, Eye, Send, Plus, Pencil, Globe2, Loader2, MapPin } from "lucide-react";
+import { Sparkles, Mail, Eye, Send, Plus, Pencil, Globe2, Loader2, MapPin, BarChart3 } from "lucide-react";
 import { useEffect, useState } from "react";
 
 export const Route = createFileRoute("/dashboard")({
