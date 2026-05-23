@@ -102,3 +102,92 @@ export const getMyBusinesses = createServerFn({ method: "GET" })
     if (error) throw new Error(error.message);
     return { businesses: data ?? [] };
   });
+
+export const getBusinessStats = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input) => z.object({ business_id: z.string().uuid() }).parse(input))
+  .handler(async ({ data, context }) => {
+    const { supabase } = context;
+    const businessId = data.business_id;
+
+    // Verify ownership
+    const { data: biz, error: bizErr } = await supabase
+      .from("businesses")
+      .select("id, name, slug, logo_url, views_count, followers_count, owner_id")
+      .eq("id", businessId)
+      .single();
+    if (bizErr || !biz || biz.owner_id !== context.userId) {
+      throw new Error("Not authorized");
+    }
+
+    const [{ count: sentCount }, { count: receivedCount }, { count: unreadCount }] = await Promise.all([
+      supabase.from("connect_messages").select("*", { count: "exact", head: true }).eq("from_business_id", businessId),
+      supabase.from("connect_messages").select("*", { count: "exact", head: true }).eq("to_business_id", businessId),
+      supabase.from("connect_messages").select("*", { count: "exact", head: true }).eq("to_business_id", businessId).is("read_at", null),
+    ]);
+
+    // Recent history (last 50 connections, both directions)
+    const { data: history } = await supabase
+      .from("connect_messages")
+      .select("id, subject, created_at, read_at, from_business_id, to_business_id")
+      .or(`from_business_id.eq.${businessId},to_business_id.eq.${businessId}`)
+      .order("created_at", { ascending: false })
+      .limit(50);
+
+    const partnerIds = Array.from(
+      new Set((history ?? []).map((m) => (m.from_business_id === businessId ? m.to_business_id : m.from_business_id)))
+    );
+    const { data: partners } = partnerIds.length
+      ? await supabase.from("businesses").select("id, name, slug, logo_url").in("id", partnerIds)
+      : { data: [] as Array<{ id: string; name: string; slug: string; logo_url: string | null }> };
+    const partnerMap = new Map((partners ?? []).map((p) => [p.id, p]));
+
+    // Aggregate by day for last 30 days (sent)
+    const since = new Date();
+    since.setDate(since.getDate() - 29);
+    const { data: recent } = await supabase
+      .from("connect_messages")
+      .select("created_at, from_business_id")
+      .or(`from_business_id.eq.${businessId},to_business_id.eq.${businessId}`)
+      .gte("created_at", since.toISOString());
+
+    const byDay: Record<string, { sent: number; received: number }> = {};
+    for (let i = 0; i < 30; i++) {
+      const d = new Date(since);
+      d.setDate(since.getDate() + i);
+      byDay[d.toISOString().slice(0, 10)] = { sent: 0, received: 0 };
+    }
+    for (const m of recent ?? []) {
+      const key = m.created_at.slice(0, 10);
+      if (!byDay[key]) continue;
+      if (m.from_business_id === businessId) byDay[key].sent++;
+      else byDay[key].received++;
+    }
+    const timeline = Object.entries(byDay).map(([date, v]) => ({ date, ...v }));
+
+    return {
+      business: {
+        id: biz.id, name: biz.name, slug: biz.slug, logo_url: biz.logo_url,
+        views_count: biz.views_count, followers_count: biz.followers_count,
+      },
+      counts: {
+        sent: sentCount ?? 0,
+        received: receivedCount ?? 0,
+        unread: unreadCount ?? 0,
+      },
+      timeline,
+      history: (history ?? []).map((m) => {
+        const isOutgoing = m.from_business_id === businessId;
+        const partnerId = isOutgoing ? m.to_business_id : m.from_business_id;
+        return {
+          id: m.id,
+          subject: m.subject,
+          created_at: m.created_at,
+          read_at: m.read_at,
+          direction: isOutgoing ? ("out" as const) : ("in" as const),
+          partner: partnerMap.get(partnerId) ?? null,
+        };
+      }),
+    };
+  });
+
