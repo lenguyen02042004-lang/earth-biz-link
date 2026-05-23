@@ -226,6 +226,44 @@ function HomePage() {
             </div>
           </div>
 
+          {/* Live network stats */}
+          <div className="mt-8 grid grid-cols-2 sm:grid-cols-3 gap-3 animate-fade-up" style={{ animationDelay: "0.05s" }}>
+            <div className="rounded-2xl bg-white/10 backdrop-blur-md border border-white/15 p-4 flex items-center gap-3">
+              <div className="w-11 h-11 rounded-xl bg-gradient-vivid flex items-center justify-center shadow-pink">
+                <Users className="w-5 h-5 text-white" />
+              </div>
+              <div>
+                <div className="text-xl font-bold text-white tabular-nums">
+                  {(stats?.businesses ?? DEMO_BUSINESSES.length).toLocaleString()}
+                </div>
+                <div className="text-xs text-white/60 uppercase tracking-wide">Doanh nghiệp</div>
+              </div>
+            </div>
+            <div className="rounded-2xl bg-white/10 backdrop-blur-md border border-white/15 p-4 flex items-center gap-3">
+              <div className="w-11 h-11 rounded-xl bg-gradient-vivid flex items-center justify-center shadow-pink">
+                <Send className="w-5 h-5 text-white" />
+              </div>
+              <div>
+                <div className="text-xl font-bold text-white tabular-nums">
+                  {(stats?.connections ?? 0).toLocaleString()}
+                </div>
+                <div className="text-xs text-white/60 uppercase tracking-wide">Lượt kết nối card</div>
+              </div>
+            </div>
+            <div className="rounded-2xl bg-white/10 backdrop-blur-md border border-white/15 p-4 flex items-center gap-3 col-span-2 sm:col-span-1">
+              <div className="w-11 h-11 rounded-xl bg-gradient-vivid flex items-center justify-center shadow-pink">
+                <Globe2 className="w-5 h-5 text-white" />
+              </div>
+              <div>
+                <div className="text-xl font-bold text-white tabular-nums">
+                  {COUNTRY_LIST.length}+
+                </div>
+                <div className="text-xs text-white/60 uppercase tracking-wide">Quốc gia</div>
+              </div>
+            </div>
+          </div>
+
+
           {/* Industries grid */}
           <div className="mt-10 animate-fade-up" style={{ animationDelay: "0.1s" }}>
             <div className="flex items-center justify-between mb-4">
