@@ -1,5 +1,6 @@
 import { useState, useMemo } from "react";
 import { createFileRoute } from "@tanstack/react-router";
+import { z } from "zod";
 import { Navbar } from "@/components/Navbar";
 import { MapView } from "@/components/MapView";
 import { BusinessCard } from "@/components/BusinessCard";
@@ -8,8 +9,15 @@ import { DEMO_BUSINESSES, type DemoBusiness } from "@/lib/mock-businesses";
 import { COUNTRY_LIST, INDUSTRY_LIST } from "@/lib/constants";
 import { Eye } from "lucide-react";
 
+const exploreSearchSchema = z.object({
+  industry: z.string().optional(),
+  country: z.string().optional(),
+  q: z.string().optional(),
+});
+
 export const Route = createFileRoute("/explore")({
   component: ExplorePage,
+  validateSearch: (s) => exploreSearchSchema.parse(s),
   head: () => ({
     meta: [
       { title: "Khám phá doanh nghiệp — GlobalBiz.Connect" },
@@ -19,10 +27,11 @@ export const Route = createFileRoute("/explore")({
 });
 
 function ExplorePage() {
+  const sp = Route.useSearch();
   const [selected, setSelected] = useState<DemoBusiness | null>(null);
-  const [country, setCountry] = useState("all");
-  const [industry, setIndustry] = useState("all");
-  const [search, setSearch] = useState("");
+  const [country, setCountry] = useState(sp.country ?? "all");
+  const [industry, setIndustry] = useState(sp.industry ?? "all");
+  const [search, setSearch] = useState(sp.q ?? "");
 
   const filtered = useMemo(() => DEMO_BUSINESSES.filter((b) => {
     if (country !== "all" && b.country_code !== country) return false;
