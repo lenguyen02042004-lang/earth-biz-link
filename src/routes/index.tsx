@@ -1,14 +1,16 @@
 import { useState, useMemo, useEffect } from "react";
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { useQuery } from "@tanstack/react-query";
 import { Globe3D } from "@/components/Globe3D";
 import { BusinessCard } from "@/components/BusinessCard";
 import { DEMO_BUSINESSES, type DemoBusiness } from "@/lib/mock-businesses";
 import { INDUSTRY_LIST, COUNTRY_LIST } from "@/lib/constants";
+import { getPublicStats } from "@/lib/stats.functions";
 import {
   Search, Globe2, LogIn, Sparkles, LayoutDashboard, LogOut, ChevronDown,
   Cpu, Landmark, Building2, Factory, ShoppingBag, Plane, GraduationCap,
   HeartPulse, UtensilsCrossed, Truck, Wheat, Zap, Megaphone, Scale,
-  HardHat, Shirt, Music, Car, MoreHorizontal,
+  HardHat, Shirt, Music, Car, MoreHorizontal, Send, Users,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -43,6 +45,13 @@ function HomePage() {
   const [search, setSearch] = useState("");
   const [mounted, setMounted] = useState(false);
   const { user, loading } = useAuth();
+  const navigate = useNavigate();
+
+  const { data: stats } = useQuery({
+    queryKey: ["public-stats"],
+    queryFn: () => getPublicStats(),
+    staleTime: 60_000,
+  });
 
   useEffect(() => setMounted(true), []);
 
@@ -217,6 +226,44 @@ function HomePage() {
             </div>
           </div>
 
+          {/* Live network stats */}
+          <div className="mt-8 grid grid-cols-2 sm:grid-cols-3 gap-3 animate-fade-up" style={{ animationDelay: "0.05s" }}>
+            <div className="rounded-2xl bg-white/10 backdrop-blur-md border border-white/15 p-4 flex items-center gap-3">
+              <div className="w-11 h-11 rounded-xl bg-gradient-vivid flex items-center justify-center shadow-pink">
+                <Users className="w-5 h-5 text-white" />
+              </div>
+              <div>
+                <div className="text-xl font-bold text-white tabular-nums">
+                  {(stats?.businesses ?? DEMO_BUSINESSES.length).toLocaleString()}
+                </div>
+                <div className="text-xs text-white/60 uppercase tracking-wide">Doanh nghiệp</div>
+              </div>
+            </div>
+            <div className="rounded-2xl bg-white/10 backdrop-blur-md border border-white/15 p-4 flex items-center gap-3">
+              <div className="w-11 h-11 rounded-xl bg-gradient-vivid flex items-center justify-center shadow-pink">
+                <Send className="w-5 h-5 text-white" />
+              </div>
+              <div>
+                <div className="text-xl font-bold text-white tabular-nums">
+                  {(stats?.connections ?? 0).toLocaleString()}
+                </div>
+                <div className="text-xs text-white/60 uppercase tracking-wide">Lượt kết nối card</div>
+              </div>
+            </div>
+            <div className="rounded-2xl bg-white/10 backdrop-blur-md border border-white/15 p-4 flex items-center gap-3 col-span-2 sm:col-span-1">
+              <div className="w-11 h-11 rounded-xl bg-gradient-vivid flex items-center justify-center shadow-pink">
+                <Globe2 className="w-5 h-5 text-white" />
+              </div>
+              <div>
+                <div className="text-xl font-bold text-white tabular-nums">
+                  {COUNTRY_LIST.length}+
+                </div>
+                <div className="text-xs text-white/60 uppercase tracking-wide">Quốc gia</div>
+              </div>
+            </div>
+          </div>
+
+
           {/* Industries grid */}
           <div className="mt-10 animate-fade-up" style={{ animationDelay: "0.1s" }}>
             <div className="flex items-center justify-between mb-4">
@@ -241,7 +288,7 @@ function HomePage() {
                 return (
                   <button
                     key={ind.slug}
-                    onClick={() => setIndustry(active ? "all" : ind.slug)}
+                    onClick={() => navigate({ to: "/explore", search: { industry: ind.slug } })}
                     className={`group relative flex flex-col items-center justify-center gap-2 p-4 rounded-2xl border transition-smooth ${
                       active
                         ? "bg-gradient-vivid border-transparent text-white shadow-pink scale-[1.03]"
