@@ -56,11 +56,16 @@ function Dashboard() {
             </h1>
             <p className="text-muted-foreground mt-1">Quản lý danh thiếp doanh nghiệp và kết nối của bạn</p>
           </div>
-          <Link to="/business/edit">
-            <Button className="gap-2 bg-gradient-vivid text-white border-0 shadow-pink">
-              <Plus className="w-4 h-4" /> Tạo danh thiếp mới
-            </Button>
-          </Link>
+          <div className="flex gap-2">
+            <Link to="/business/stats">
+              <Button variant="outline" className="gap-2"><BarChart3 className="w-4 h-4" /> Thống kê</Button>
+            </Link>
+            <Link to="/business/edit">
+              <Button className="gap-2 bg-gradient-vivid text-white border-0 shadow-pink">
+                <Plus className="w-4 h-4" /> Tạo danh thiếp mới
+              </Button>
+            </Link>
+          </div>
         </div>
 
         {/* Quick stats */}
