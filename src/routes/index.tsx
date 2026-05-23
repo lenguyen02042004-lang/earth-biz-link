@@ -250,7 +250,7 @@ function HomePage() {
                 return (
                   <button
                     key={ind.slug}
-                    onClick={() => setIndustry(active ? "all" : ind.slug)}
+                    onClick={() => navigate({ to: "/explore", search: { industry: ind.slug } })}
                     className={`group relative flex flex-col items-center justify-center gap-2 p-4 rounded-2xl border transition-smooth ${
                       active
                         ? "bg-gradient-vivid border-transparent text-white shadow-pink scale-[1.03]"
