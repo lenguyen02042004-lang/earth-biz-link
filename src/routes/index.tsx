@@ -1,14 +1,16 @@
 import { useState, useMemo, useEffect } from "react";
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { useQuery } from "@tanstack/react-query";
 import { Globe3D } from "@/components/Globe3D";
 import { BusinessCard } from "@/components/BusinessCard";
 import { DEMO_BUSINESSES, type DemoBusiness } from "@/lib/mock-businesses";
 import { INDUSTRY_LIST, COUNTRY_LIST } from "@/lib/constants";
+import { getPublicStats } from "@/lib/stats.functions";
 import {
   Search, Globe2, LogIn, Sparkles, LayoutDashboard, LogOut, ChevronDown,
   Cpu, Landmark, Building2, Factory, ShoppingBag, Plane, GraduationCap,
   HeartPulse, UtensilsCrossed, Truck, Wheat, Zap, Megaphone, Scale,
-  HardHat, Shirt, Music, Car, MoreHorizontal,
+  HardHat, Shirt, Music, Car, MoreHorizontal, Send, Users,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
