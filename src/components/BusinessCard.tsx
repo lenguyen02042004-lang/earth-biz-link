@@ -7,6 +7,8 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { SocialIconList } from "./SocialIconList";
 import { SendCardDialog } from "./SendCardDialog";
+import { FollowButton } from "./FollowButton";
+import { formatCount } from "@/lib/format";
 import type { DemoBusiness } from "@/lib/mock-businesses";
 import { downloadVCard } from "@/lib/vcard";
 import { toast } from "sonner";
