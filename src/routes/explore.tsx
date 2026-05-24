@@ -5,8 +5,10 @@ import { Navbar } from "@/components/Navbar";
 import { MapView } from "@/components/MapView";
 import { BusinessCard } from "@/components/BusinessCard";
 import { FilterBar } from "@/components/FilterBar";
+import { FollowButton } from "@/components/FollowButton";
 import { DEMO_BUSINESSES, type DemoBusiness } from "@/lib/mock-businesses";
 import { COUNTRY_LIST, INDUSTRY_LIST } from "@/lib/constants";
+import { formatCount } from "@/lib/format";
 import { Eye } from "lucide-react";
 
 const exploreSearchSchema = z.object({
