@@ -198,9 +198,7 @@ export function BusinessCard({ business, onClose }: Props) {
           <Button onClick={handleSaveContact} variant="outline" className="h-10 gap-1.5" title="Lưu vào danh bạ">
             <UserPlus className="w-4 h-4" /> <span className="hidden sm:inline">Lưu danh bạ</span>
           </Button>
-          <Button variant="outline" size="icon" className="h-10 w-10" title="Theo dõi">
-            <Heart className="w-4 h-4" />
-          </Button>
+          <FollowButton businessId={business.id} variant="icon" />
           <Button variant="outline" size="icon" className="h-10 w-10" onClick={handleShare} title="Chia sẻ">
             <Share2 className="w-4 h-4" />
           </Button>
