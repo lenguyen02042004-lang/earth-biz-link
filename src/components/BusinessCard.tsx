@@ -106,7 +106,7 @@ export function BusinessCard({ business, onClose }: Props) {
               <h2 className="text-lg sm:text-2xl font-bold leading-tight mt-1 truncate">{business.name}</h2>
               <p className="text-[11px] sm:text-xs text-white/85 mt-0.5 line-clamp-2">{business.short_intro}</p>
               <div className="flex items-center gap-3 text-[10px] sm:text-xs text-white/80 mt-1.5">
-                <span className="flex items-center gap-1"><Eye className="w-3 h-3" />{business.views_count.toLocaleString()}</span>
+                <span className="flex items-center gap-1"><Eye className="w-3 h-3" />{formatCount(business.views_count)}</span>
                 <span className="truncate">{business.province}, {business.country_name}</span>
               </div>
             </div>
