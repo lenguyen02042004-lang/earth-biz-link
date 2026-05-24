@@ -61,10 +61,13 @@ function ExplorePage() {
           </div>
           <div className="flex-1 overflow-y-auto p-3 space-y-2">
             {filtered.map((b) => (
-              <button
+              <div
                 key={b.id}
                 onClick={() => setSelected(b)}
-                className="w-full text-left p-3 rounded-2xl bg-background hover:bg-accent transition-smooth border border-border/40 hover:border-primary/40 hover:shadow-soft flex gap-3 items-center"
+                role="button"
+                tabIndex={0}
+                onKeyDown={(e) => { if (e.key === "Enter") setSelected(b); }}
+                className="w-full text-left p-3 rounded-2xl bg-background hover:bg-accent transition-smooth border border-border/40 hover:border-primary/40 hover:shadow-soft flex gap-3 items-center cursor-pointer"
               >
                 <div className={b.icon_tier === "premium" ? "ring-premium flex-shrink-0" : "flex-shrink-0"}>
                   <img src={b.logo_url} alt="" className="w-12 h-12 rounded-full bg-white object-cover" />
@@ -73,10 +76,11 @@ function ExplorePage() {
                   <p className="font-semibold text-sm truncate">{b.name}</p>
                   <p className="text-xs text-muted-foreground truncate">{b.country_name} · {b.industry}</p>
                   <p className="text-xs text-muted-foreground flex items-center gap-1 mt-0.5">
-                    <Eye className="w-3 h-3" /> {b.views_count.toLocaleString()}
+                    <Eye className="w-3 h-3" /> {formatCount(b.views_count)}
                   </p>
                 </div>
-              </button>
+                <FollowButton businessId={b.id} variant="icon" className="shrink-0" />
+              </div>
             ))}
           </div>
         </aside>
