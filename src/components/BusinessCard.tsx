@@ -1,12 +1,14 @@
 import { useEffect, useState } from "react";
 import QRCode from "qrcode";
 import {
-  MapPin, Phone, Mail, Globe, Eye, Share2, Heart, X, Sparkles, Send, UserPlus, Building2,
+  MapPin, Phone, Mail, Globe, Eye, Share2, X, Sparkles, Send, UserPlus, Building2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { SocialIconList } from "./SocialIconList";
 import { SendCardDialog } from "./SendCardDialog";
+import { FollowButton } from "./FollowButton";
+import { formatCount } from "@/lib/format";
 import type { DemoBusiness } from "@/lib/mock-businesses";
 import { downloadVCard } from "@/lib/vcard";
 import { toast } from "sonner";
@@ -104,7 +106,7 @@ export function BusinessCard({ business, onClose }: Props) {
               <h2 className="text-lg sm:text-2xl font-bold leading-tight mt-1 truncate">{business.name}</h2>
               <p className="text-[11px] sm:text-xs text-white/85 mt-0.5 line-clamp-2">{business.short_intro}</p>
               <div className="flex items-center gap-3 text-[10px] sm:text-xs text-white/80 mt-1.5">
-                <span className="flex items-center gap-1"><Eye className="w-3 h-3" />{business.views_count.toLocaleString()}</span>
+                <span className="flex items-center gap-1"><Eye className="w-3 h-3" />{formatCount(business.views_count)}</span>
                 <span className="truncate">{business.province}, {business.country_name}</span>
               </div>
             </div>
@@ -196,9 +198,7 @@ export function BusinessCard({ business, onClose }: Props) {
           <Button onClick={handleSaveContact} variant="outline" className="h-10 gap-1.5" title="Lưu vào danh bạ">
             <UserPlus className="w-4 h-4" /> <span className="hidden sm:inline">Lưu danh bạ</span>
           </Button>
-          <Button variant="outline" size="icon" className="h-10 w-10" title="Theo dõi">
-            <Heart className="w-4 h-4" />
-          </Button>
+          <FollowButton businessId={business.id} variant="icon" />
           <Button variant="outline" size="icon" className="h-10 w-10" onClick={handleShare} title="Chia sẻ">
             <Share2 className="w-4 h-4" />
           </Button>
