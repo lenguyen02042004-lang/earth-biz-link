@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import QRCode from "qrcode";
 import {
-  MapPin, Phone, Mail, Globe, Eye, Share2, Heart, X, Sparkles, Send, UserPlus, Building2,
+  MapPin, Phone, Mail, Globe, Eye, Share2, X, Sparkles, Send, UserPlus, Building2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
