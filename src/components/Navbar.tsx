@@ -57,6 +57,11 @@ export function Navbar() {
                   <Heart className="w-4 h-4" />
                 </Button>
               </Link>
+              <Link to="/contacts">
+                <Button variant="ghost" size="icon" title="Danh bạ">
+                  <BookOpen className="w-4 h-4" />
+                </Button>
+              </Link>
               <Link to="/settings">
                 <Button variant="ghost" size="icon" title={t("nav.settings")}>
                   <Settings className="w-4 h-4" />
