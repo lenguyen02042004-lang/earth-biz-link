@@ -1,5 +1,5 @@
 import { Link } from "@tanstack/react-router";
-import { Globe2, Sparkles, LogIn, LayoutDashboard, LogOut, Settings, Inbox, Heart } from "lucide-react";
+import { Globe2, Sparkles, LogIn, LayoutDashboard, LogOut, Settings, Inbox, Heart, BookOpen } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/use-auth";
