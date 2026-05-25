@@ -15,6 +15,7 @@ import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as PricingRouteImport } from './routes/pricing'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as InboxRouteImport } from './routes/inbox'
+import { Route as FollowingRouteImport } from './routes/following'
 import { Route as ExploreRouteImport } from './routes/explore'
 import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as AdminRouteImport } from './routes/admin'
@@ -51,6 +52,11 @@ const LoginRoute = LoginRouteImport.update({
 const InboxRoute = InboxRouteImport.update({
   id: '/inbox',
   path: '/inbox',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const FollowingRoute = FollowingRouteImport.update({
+  id: '/following',
+  path: '/following',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ExploreRoute = ExploreRouteImport.update({
@@ -94,6 +100,7 @@ export interface FileRoutesByFullPath {
   '/admin': typeof AdminRoute
   '/dashboard': typeof DashboardRoute
   '/explore': typeof ExploreRoute
+  '/following': typeof FollowingRoute
   '/inbox': typeof InboxRoute
   '/login': typeof LoginRoute
   '/pricing': typeof PricingRoute
@@ -109,6 +116,7 @@ export interface FileRoutesByTo {
   '/admin': typeof AdminRoute
   '/dashboard': typeof DashboardRoute
   '/explore': typeof ExploreRoute
+  '/following': typeof FollowingRoute
   '/inbox': typeof InboxRoute
   '/login': typeof LoginRoute
   '/pricing': typeof PricingRoute
@@ -125,6 +133,7 @@ export interface FileRoutesById {
   '/admin': typeof AdminRoute
   '/dashboard': typeof DashboardRoute
   '/explore': typeof ExploreRoute
+  '/following': typeof FollowingRoute
   '/inbox': typeof InboxRoute
   '/login': typeof LoginRoute
   '/pricing': typeof PricingRoute
@@ -142,6 +151,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/dashboard'
     | '/explore'
+    | '/following'
     | '/inbox'
     | '/login'
     | '/pricing'
@@ -157,6 +167,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/dashboard'
     | '/explore'
+    | '/following'
     | '/inbox'
     | '/login'
     | '/pricing'
@@ -172,6 +183,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/dashboard'
     | '/explore'
+    | '/following'
     | '/inbox'
     | '/login'
     | '/pricing'
@@ -188,6 +200,7 @@ export interface RootRouteChildren {
   AdminRoute: typeof AdminRoute
   DashboardRoute: typeof DashboardRoute
   ExploreRoute: typeof ExploreRoute
+  FollowingRoute: typeof FollowingRoute
   InboxRoute: typeof InboxRoute
   LoginRoute: typeof LoginRoute
   PricingRoute: typeof PricingRoute
@@ -241,6 +254,13 @@ declare module '@tanstack/react-router' {
       path: '/inbox'
       fullPath: '/inbox'
       preLoaderRoute: typeof InboxRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/following': {
+      id: '/following'
+      path: '/following'
+      fullPath: '/following'
+      preLoaderRoute: typeof FollowingRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/explore': {
@@ -300,6 +320,7 @@ const rootRouteChildren: RootRouteChildren = {
   AdminRoute: AdminRoute,
   DashboardRoute: DashboardRoute,
   ExploreRoute: ExploreRoute,
+  FollowingRoute: FollowingRoute,
   InboxRoute: InboxRoute,
   LoginRoute: LoginRoute,
   PricingRoute: PricingRoute,

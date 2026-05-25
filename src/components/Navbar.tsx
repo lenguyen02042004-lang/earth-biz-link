@@ -1,5 +1,5 @@
 import { Link } from "@tanstack/react-router";
-import { Globe2, Sparkles, LogIn, LayoutDashboard, LogOut, Settings, Inbox } from "lucide-react";
+import { Globe2, Sparkles, LogIn, LayoutDashboard, LogOut, Settings, Inbox, Heart } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/use-auth";
@@ -50,6 +50,11 @@ export function Navbar() {
               <Link to="/inbox">
                 <Button variant="ghost" size="icon" title={t("nav.inbox")}>
                   <Inbox className="w-4 h-4" />
+                </Button>
+              </Link>
+              <Link to="/following">
+                <Button variant="ghost" size="icon" title="Đang theo dõi">
+                  <Heart className="w-4 h-4" />
                 </Button>
               </Link>
               <Link to="/settings">
