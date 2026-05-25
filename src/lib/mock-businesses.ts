@@ -1,6 +1,13 @@
 // Demo data so the map shows businesses before users register.
 // Replace by querying the businesses table once data flows in.
 
+export type Certification = {
+  name: string;
+  issuer?: string;
+  year?: number;
+  icon?: string;
+};
+
 export type DemoBusiness = {
   id: string;
   slug: string;
@@ -8,6 +15,8 @@ export type DemoBusiness = {
   logo_url: string;
   banner_url: string;
   short_intro: string;
+  description?: string;
+  certifications?: Certification[];
   address: string;
   country_code: string;
   country_name: string;
@@ -24,6 +33,16 @@ export type DemoBusiness = {
   socials: Record<string, string>;
   gallery: string[];
 };
+
+// Default sample content so every demo card has rich detail
+export const DEFAULT_DESCRIPTION =
+  "Chúng tôi là doanh nghiệp tiên phong trong lĩnh vực của mình, cam kết mang lại giá trị bền vững cho khách hàng và đối tác thông qua chất lượng sản phẩm, dịch vụ chuyên nghiệp và đội ngũ nhân sự giàu kinh nghiệm. Hơn một thập kỷ phát triển, chúng tôi đã đồng hành cùng hàng nghìn doanh nghiệp trên khắp khu vực, không ngừng đổi mới và mở rộng quy mô để phục vụ thị trường toàn cầu.";
+
+export const DEFAULT_CERTIFICATIONS: Certification[] = [
+  { name: "ISO 9001:2015", issuer: "Bureau Veritas", year: 2022, icon: "🏅" },
+  { name: "Top 100 Doanh nghiệp uy tín", issuer: "Vietnam Report", year: 2024, icon: "🏆" },
+  { name: "Thương hiệu Quốc gia", issuer: "Bộ Công Thương", year: 2023, icon: "⭐" },
+];
 
 const PINK_GRADIENTS = [
   "https://images.unsplash.com/photo-1557804506-669a67965ba0?w=800&q=80",

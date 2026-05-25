@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
 import QRCode from "qrcode";
 import {
-  MapPin, Phone, Mail, Globe, Eye, Share2, X, Sparkles, Send, UserPlus, Building2,
+  MapPin, Phone, Mail, Globe, Eye, Share2, X, Sparkles, Send, BookmarkPlus, BookmarkCheck,
+  Building2, Award, FileText,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -9,8 +10,10 @@ import { SocialIconList } from "./SocialIconList";
 import { SendCardDialog } from "./SendCardDialog";
 import { FollowButton } from "./FollowButton";
 import { formatCount } from "@/lib/format";
+import { DEFAULT_DESCRIPTION, DEFAULT_CERTIFICATIONS } from "@/lib/mock-businesses";
 import type { DemoBusiness } from "@/lib/mock-businesses";
-import { downloadVCard } from "@/lib/vcard";
+import { saveBusinessContact, isContactSaved } from "@/lib/contacts";
+import { useNavigate } from "@tanstack/react-router";
 import { toast } from "sonner";
 
 interface Props {
@@ -21,7 +24,13 @@ interface Props {
 export function BusinessCard({ business, onClose }: Props) {
   const [qrUrl, setQrUrl] = useState<string>("");
   const [showSend, setShowSend] = useState(false);
+  const [saved, setSaved] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const navigate = useNavigate();
   const profileUrl = typeof window !== "undefined" ? `${window.location.origin}/b/${business.slug}` : "";
+
+  const description = business.description ?? DEFAULT_DESCRIPTION;
+  const certifications = business.certifications ?? DEFAULT_CERTIFICATIONS;
 
   useEffect(() => {
     if (profileUrl) {
@@ -39,6 +48,10 @@ export function BusinessCard({ business, onClose }: Props) {
     return () => { document.body.style.overflow = prev; };
   }, []);
 
+  useEffect(() => {
+    isContactSaved(business.id).then(setSaved);
+  }, [business.id]);
+
   const handleShare = async () => {
     if (navigator.share) {
       try { await navigator.share({ title: business.name, text: business.short_intro, url: profileUrl }); } catch {}
@@ -48,13 +61,27 @@ export function BusinessCard({ business, onClose }: Props) {
     }
   };
 
-  const handleSaveContact = () => {
-    downloadVCard(business, profileUrl);
-    toast.success("Đã lưu danh bạ (.vcf)");
+  const handleSaveContact = async () => {
+    if (saving) return;
+    setSaving(true);
+    const res = await saveBusinessContact(business);
+    setSaving(false);
+    if (!res.ok) {
+      if (res.reason === "auth") {
+        toast.error("Vui lòng đăng nhập để lưu danh bạ");
+        navigate({ to: "/login" });
+      } else {
+        toast.error(res.message || "Không lưu được danh bạ");
+      }
+      return;
+    }
+    setSaved(true);
+    toast.success("Đã lưu vào danh bạ của bạn", {
+      description: "Bạn có thể tra cứu sau tại trang Danh bạ.",
+      action: { label: "Mở danh bạ", onClick: () => navigate({ to: "/contacts" }) },
+    });
   };
 
-  const hasSocials = Object.keys(business.socials).length > 0;
-  const hasGallery = business.gallery.length > 0;
   const isPremium = business.icon_tier === "premium";
 
   return (
@@ -67,7 +94,6 @@ export function BusinessCard({ business, onClose }: Props) {
                    rounded-2xl sm:rounded-3xl bg-card shadow-glow border border-border/40
                    flex flex-col overflow-hidden"
       >
-        {/* Close */}
         <button
           onClick={onClose}
           aria-label="Đóng"
@@ -76,13 +102,12 @@ export function BusinessCard({ business, onClose }: Props) {
           <X className="w-4 h-4" />
         </button>
 
-        {/* ===== VISIT CARD HEADER (banner + logo + identity + small QR) ===== */}
+        {/* HEADER */}
         <div className="relative bg-gradient-vivid shrink-0">
           {business.banner_url && (
             <img src={business.banner_url} alt="" className="absolute inset-0 w-full h-full object-cover opacity-25" />
           )}
           <div className="relative px-4 sm:px-6 pt-4 pb-4 sm:pb-5 flex gap-3 sm:gap-4 items-start text-white">
-            {/* Logo */}
             <div className={`${isPremium ? "ring-premium" : ""} shrink-0`}>
               <img
                 src={business.logo_url}
@@ -91,7 +116,6 @@ export function BusinessCard({ business, onClose }: Props) {
               />
             </div>
 
-            {/* Identity */}
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-1.5 flex-wrap">
                 {isPremium && (
@@ -105,13 +129,22 @@ export function BusinessCard({ business, onClose }: Props) {
               </div>
               <h2 className="text-lg sm:text-2xl font-bold leading-tight mt-1 truncate">{business.name}</h2>
               <p className="text-[11px] sm:text-xs text-white/85 mt-0.5 line-clamp-2">{business.short_intro}</p>
+
               <div className="flex items-center gap-3 text-[10px] sm:text-xs text-white/80 mt-1.5">
                 <span className="flex items-center gap-1"><Eye className="w-3 h-3" />{formatCount(business.views_count)}</span>
                 <span className="truncate">{business.province}, {business.country_name}</span>
               </div>
+
+              {/* Follow button — vị trí nổi bật ngay dưới identity */}
+              <div className="mt-2.5">
+                <FollowButton
+                  businessId={business.id}
+                  variant="full"
+                  className="bg-white text-primary hover:bg-white/90 border-0 shadow-pink h-8"
+                />
+              </div>
             </div>
 
-            {/* Small QR — luôn hiển thị, kiểu visit card */}
             {qrUrl && (
               <a
                 href={profileUrl}
@@ -128,9 +161,8 @@ export function BusinessCard({ business, onClose }: Props) {
           </div>
         </div>
 
-        {/* ===== BODY — contact + socials + gallery ===== */}
-        <div className="flex-1 overflow-y-auto px-4 sm:px-6 py-4 space-y-4">
-          {/* Mobile QR (compact) */}
+        {/* BODY */}
+        <div className="flex-1 overflow-y-auto px-4 sm:px-6 py-4 space-y-5">
           {qrUrl && (
             <a href={profileUrl} target="_blank" rel="noopener noreferrer"
                className="sm:hidden flex items-center gap-3 p-3 rounded-xl bg-accent/40 border border-border">
@@ -169,14 +201,44 @@ export function BusinessCard({ business, onClose }: Props) {
             )}
           </div>
 
-          {hasSocials && (
+          {/* GIỚI THIỆU */}
+          <div>
+            <p className="flex items-center gap-1.5 text-[10px] sm:text-xs font-semibold tracking-wider text-muted-foreground mb-2">
+              <FileText className="w-3.5 h-3.5" /> GIỚI THIỆU
+            </p>
+            <p className="text-sm leading-relaxed text-foreground/85 whitespace-pre-line">{description}</p>
+          </div>
+
+          {/* CHỨNG NHẬN / DANH HIỆU */}
+          {certifications.length > 0 && (
+            <div>
+              <p className="flex items-center gap-1.5 text-[10px] sm:text-xs font-semibold tracking-wider text-muted-foreground mb-2">
+                <Award className="w-3.5 h-3.5" /> CHỨNG NHẬN & DANH HIỆU
+              </p>
+              <div className="grid sm:grid-cols-2 gap-2">
+                {certifications.map((c, i) => (
+                  <div key={i} className="flex items-start gap-2.5 p-2.5 rounded-lg bg-accent/40 border border-border/60">
+                    <div className="text-xl leading-none mt-0.5">{c.icon || "🏅"}</div>
+                    <div className="min-w-0">
+                      <p className="text-sm font-semibold leading-tight truncate">{c.name}</p>
+                      <p className="text-[11px] text-muted-foreground truncate">
+                        {[c.issuer, c.year].filter(Boolean).join(" · ")}
+                      </p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {Object.keys(business.socials).length > 0 && (
             <div>
               <p className="text-[10px] sm:text-xs font-semibold tracking-wider text-muted-foreground mb-1.5">KẾT NỐI</p>
               <SocialIconList socials={business.socials} size="sm" />
             </div>
           )}
 
-          {hasGallery && (
+          {business.gallery.length > 0 && (
             <div>
               <p className="text-[10px] sm:text-xs font-semibold tracking-wider text-muted-foreground mb-1.5">THƯ VIỆN</p>
               <div className="grid grid-cols-5 gap-1.5">
@@ -190,15 +252,21 @@ export function BusinessCard({ business, onClose }: Props) {
           )}
         </div>
 
-        {/* ===== Sticky action bar ===== */}
+        {/* Sticky action bar */}
         <div className="border-t border-border/40 bg-card/95 backdrop-blur px-3 sm:px-5 py-3 flex gap-2 shrink-0">
           <Button onClick={() => setShowSend(true)} className="flex-1 bg-gradient-vivid hover:opacity-90 text-white border-0 shadow-pink h-10">
             <Send className="w-4 h-4 mr-1.5" /> Gửi card
           </Button>
-          <Button onClick={handleSaveContact} variant="outline" className="h-10 gap-1.5" title="Lưu vào danh bạ">
-            <UserPlus className="w-4 h-4" /> <span className="hidden sm:inline">Lưu danh bạ</span>
+          <Button
+            onClick={handleSaveContact}
+            disabled={saving}
+            variant={saved ? "default" : "outline"}
+            className={`h-10 gap-1.5 ${saved ? "bg-primary text-primary-foreground" : ""}`}
+            title={saved ? "Đã lưu trong danh bạ" : "Lưu vào danh bạ để tra cứu sau"}
+          >
+            {saved ? <BookmarkCheck className="w-4 h-4" /> : <BookmarkPlus className="w-4 h-4" />}
+            <span className="hidden sm:inline">{saved ? "Đã lưu" : "Lưu danh bạ"}</span>
           </Button>
-          <FollowButton businessId={business.id} variant="icon" />
           <Button variant="outline" size="icon" className="h-10 w-10" onClick={handleShare} title="Chia sẻ">
             <Share2 className="w-4 h-4" />
           </Button>

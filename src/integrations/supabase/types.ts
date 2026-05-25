@@ -402,6 +402,60 @@ export type Database = {
         }
         Relationships: []
       }
+      saved_contacts: {
+        Row: {
+          business_id: string
+          business_name: string
+          business_slug: string | null
+          country_name: string | null
+          created_at: string
+          email: string | null
+          id: string
+          industry: string | null
+          logo_url: string | null
+          note: string | null
+          phone: string | null
+          province: string | null
+          updated_at: string
+          user_id: string
+          website: string | null
+        }
+        Insert: {
+          business_id: string
+          business_name: string
+          business_slug?: string | null
+          country_name?: string | null
+          created_at?: string
+          email?: string | null
+          id?: string
+          industry?: string | null
+          logo_url?: string | null
+          note?: string | null
+          phone?: string | null
+          province?: string | null
+          updated_at?: string
+          user_id: string
+          website?: string | null
+        }
+        Update: {
+          business_id?: string
+          business_name?: string
+          business_slug?: string | null
+          country_name?: string | null
+          created_at?: string
+          email?: string | null
+          id?: string
+          industry?: string | null
+          logo_url?: string | null
+          note?: string | null
+          phone?: string | null
+          province?: string | null
+          updated_at?: string
+          user_id?: string
+          website?: string | null
+        }
+        Relationships: []
+      }
       subscriptions: {
         Row: {
           business_id: string | null
