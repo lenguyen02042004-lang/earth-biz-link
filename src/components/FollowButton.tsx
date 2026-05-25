@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Heart } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
+import { formatCount } from "@/lib/format";
 import { toast } from "sonner";
 import { useNavigate } from "@tanstack/react-router";
 
@@ -14,28 +15,63 @@ interface Props {
   className?: string;
 }
 
-export function FollowButton({ businessId, initialCount = 0, variant = "full", className }: Props) {
-  const navigate = useNavigate();
-  const [following, setFollowing] = useState(false);
-  const [count, setCount] = useState(initialCount);
-  const [loading, setLoading] = useState(false);
-  const isRealBusiness = UUID_RE.test(businessId);
+// Stable pseudo-random count for mock (demo) businesses so UI doesn't show 0
+function mockSeedCount(id: string): number {
+  let h = 0;
+  for (let i = 0; i < id.length; i++) h = (h * 31 + id.charCodeAt(i)) >>> 0;
+  return (h % 4800) + 120;
+}
 
+export function FollowButton({ businessId, initialCount, variant = "full", className }: Props) {
+  const navigate = useNavigate();
+  const isRealBusiness = UUID_RE.test(businessId);
+  const [following, setFollowing] = useState(false);
+  const [count, setCount] = useState<number>(
+    initialCount ?? (isRealBusiness ? 0 : mockSeedCount(businessId))
+  );
+  const [loading, setLoading] = useState(false);
+
+  // Initial fetch: real follower count + whether current user follows
   useEffect(() => {
     if (!isRealBusiness) return;
     let active = true;
     (async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user || !active) return;
-      const { data } = await supabase
-        .from("follows")
-        .select("id")
-        .eq("business_id", businessId)
-        .eq("follower_id", user.id)
-        .maybeSingle();
-      if (active && data) setFollowing(true);
+      const [{ count: c }, { data: { user } }] = await Promise.all([
+        supabase.from("follows").select("*", { count: "exact", head: true }).eq("business_id", businessId),
+        supabase.auth.getUser(),
+      ]);
+      if (!active) return;
+      if (typeof c === "number") setCount(c);
+      if (user) {
+        const { data } = await supabase
+          .from("follows")
+          .select("id")
+          .eq("business_id", businessId)
+          .eq("follower_id", user.id)
+          .maybeSingle();
+        if (active) setFollowing(!!data);
+      }
     })();
     return () => { active = false; };
+  }, [businessId, isRealBusiness]);
+
+  // Realtime subscription — live count updates from other clients
+  useEffect(() => {
+    if (!isRealBusiness) return;
+    const channel = supabase
+      .channel(`follows:${businessId}`)
+      .on(
+        "postgres_changes",
+        { event: "INSERT", schema: "public", table: "follows", filter: `business_id=eq.${businessId}` },
+        () => setCount((c) => c + 1)
+      )
+      .on(
+        "postgres_changes",
+        { event: "DELETE", schema: "public", table: "follows", filter: `business_id=eq.${businessId}` },
+        () => setCount((c) => Math.max(0, c - 1))
+      )
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
   }, [businessId, isRealBusiness]);
 
   const handleToggle = async (e: React.MouseEvent) => {
@@ -51,45 +87,57 @@ export function FollowButton({ businessId, initialCount = 0, variant = "full", c
     }
 
     if (!isRealBusiness) {
-      // Mock business — just toggle UI
-      setFollowing((f) => !f);
-      setCount((c) => c + (following ? -1 : 1));
-      toast.success(following ? "Đã bỏ theo dõi" : "Đã theo dõi (demo)");
+      setFollowing((f) => {
+        setCount((c) => Math.max(0, c + (f ? -1 : 1)));
+        return !f;
+      });
       return;
     }
 
     setLoading(true);
-    if (following) {
+    // Optimistic
+    const wasFollowing = following;
+    setFollowing(!wasFollowing);
+    setCount((c) => Math.max(0, c + (wasFollowing ? -1 : 1)));
+
+    if (wasFollowing) {
       const { error } = await supabase
-        .from("follows")
-        .delete()
-        .eq("business_id", businessId)
-        .eq("follower_id", user.id);
-      if (!error) { setFollowing(false); setCount((c) => Math.max(0, c - 1)); }
-      else toast.error(error.message);
+        .from("follows").delete()
+        .eq("business_id", businessId).eq("follower_id", user.id);
+      if (error) {
+        setFollowing(true); setCount((c) => c + 1);
+        toast.error(error.message);
+      }
     } else {
       const { error } = await supabase
         .from("follows")
         .insert({ business_id: businessId, follower_id: user.id });
-      if (!error) { setFollowing(true); setCount((c) => c + 1); }
-      else toast.error(error.message);
+      if (error) {
+        setFollowing(false); setCount((c) => Math.max(0, c - 1));
+        toast.error(error.message);
+      }
     }
     setLoading(false);
   };
 
   if (variant === "icon") {
     return (
-      <Button
-        type="button"
-        size="icon"
-        variant={following ? "default" : "outline"}
-        onClick={handleToggle}
-        disabled={loading}
-        title={following ? "Bỏ theo dõi" : "Theo dõi"}
-        className={`h-10 w-10 ${following ? "bg-primary text-primary-foreground hover:bg-primary/90" : ""} ${className ?? ""}`}
-      >
-        <Heart className={`w-4 h-4 ${following ? "fill-current" : ""}`} />
-      </Button>
+      <div className={`inline-flex items-center gap-1.5 ${className ?? ""}`}>
+        <Button
+          type="button"
+          size="icon"
+          variant={following ? "default" : "outline"}
+          onClick={handleToggle}
+          disabled={loading}
+          title={following ? "Bỏ theo dõi" : "Theo dõi"}
+          className={`h-10 w-10 ${following ? "bg-primary text-primary-foreground hover:bg-primary/90" : ""}`}
+        >
+          <Heart className={`w-4 h-4 ${following ? "fill-current" : ""}`} />
+        </Button>
+        <span className="text-xs font-medium tabular-nums text-muted-foreground min-w-[1.5rem]">
+          {formatCount(count)}
+        </span>
+      </div>
     );
   }
 
@@ -106,7 +154,7 @@ export function FollowButton({ businessId, initialCount = 0, variant = "full", c
       <span className="text-xs font-medium">
         {following ? "Đang theo dõi" : "Theo dõi"}
       </span>
-      {count > 0 && <span className="text-xs opacity-75">· {count}</span>}
+      <span className="text-xs opacity-75 tabular-nums">· {formatCount(count)}</span>
     </Button>
   );
 }
