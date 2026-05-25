@@ -18,6 +18,7 @@ import { Route as InboxRouteImport } from './routes/inbox'
 import { Route as FollowingRouteImport } from './routes/following'
 import { Route as ExploreRouteImport } from './routes/explore'
 import { Route as DashboardRouteImport } from './routes/dashboard'
+import { Route as ContactsRouteImport } from './routes/contacts'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as BusinessStatsRouteImport } from './routes/business.stats'
@@ -69,6 +70,11 @@ const DashboardRoute = DashboardRouteImport.update({
   path: '/dashboard',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ContactsRoute = ContactsRouteImport.update({
+  id: '/contacts',
+  path: '/contacts',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AdminRoute = AdminRouteImport.update({
   id: '/admin',
   path: '/admin',
@@ -98,6 +104,7 @@ const BSlugRoute = BSlugRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/admin': typeof AdminRoute
+  '/contacts': typeof ContactsRoute
   '/dashboard': typeof DashboardRoute
   '/explore': typeof ExploreRoute
   '/following': typeof FollowingRoute
@@ -114,6 +121,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/admin': typeof AdminRoute
+  '/contacts': typeof ContactsRoute
   '/dashboard': typeof DashboardRoute
   '/explore': typeof ExploreRoute
   '/following': typeof FollowingRoute
@@ -131,6 +139,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/admin': typeof AdminRoute
+  '/contacts': typeof ContactsRoute
   '/dashboard': typeof DashboardRoute
   '/explore': typeof ExploreRoute
   '/following': typeof FollowingRoute
@@ -149,6 +158,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/admin'
+    | '/contacts'
     | '/dashboard'
     | '/explore'
     | '/following'
@@ -165,6 +175,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/admin'
+    | '/contacts'
     | '/dashboard'
     | '/explore'
     | '/following'
@@ -181,6 +192,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/admin'
+    | '/contacts'
     | '/dashboard'
     | '/explore'
     | '/following'
@@ -198,6 +210,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AdminRoute: typeof AdminRoute
+  ContactsRoute: typeof ContactsRoute
   DashboardRoute: typeof DashboardRoute
   ExploreRoute: typeof ExploreRoute
   FollowingRoute: typeof FollowingRoute
@@ -277,6 +290,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/contacts': {
+      id: '/contacts'
+      path: '/contacts'
+      fullPath: '/contacts'
+      preLoaderRoute: typeof ContactsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/admin': {
       id: '/admin'
       path: '/admin'
@@ -318,6 +338,7 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AdminRoute: AdminRoute,
+  ContactsRoute: ContactsRoute,
   DashboardRoute: DashboardRoute,
   ExploreRoute: ExploreRoute,
   FollowingRoute: FollowingRoute,
@@ -334,3 +355,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
