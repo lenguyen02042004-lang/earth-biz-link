@@ -82,8 +82,10 @@ export type Database = {
         Row: {
           address: string | null
           banner_url: string | null
+          certifications: Json
           country_code: string | null
           created_at: string
+          description: string | null
           email: string | null
           followers_count: number
           icon_tier: Database["public"]["Enums"]["icon_tier"]
@@ -107,8 +109,10 @@ export type Database = {
         Insert: {
           address?: string | null
           banner_url?: string | null
+          certifications?: Json
           country_code?: string | null
           created_at?: string
+          description?: string | null
           email?: string | null
           followers_count?: number
           icon_tier?: Database["public"]["Enums"]["icon_tier"]
@@ -132,8 +136,10 @@ export type Database = {
         Update: {
           address?: string | null
           banner_url?: string | null
+          certifications?: Json
           country_code?: string | null
           created_at?: string
+          description?: string | null
           email?: string | null
           followers_count?: number
           icon_tier?: Database["public"]["Enums"]["icon_tier"]
