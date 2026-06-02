@@ -1,10 +1,11 @@
 import { Link } from "@tanstack/react-router";
-import { Globe2, Sparkles, LogIn, LayoutDashboard, LogOut, Settings, Inbox, Heart, BookOpen } from "lucide-react";
+import { Globe2, Sparkles, LogIn, LayoutDashboard, LogOut, Settings, Heart, BookOpen } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/use-auth";
 import { supabase } from "@/integrations/supabase/client";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
+import { InboxBell } from "@/components/InboxBell";
 
 export function Navbar() {
   const { user, loading } = useAuth();
@@ -47,11 +48,7 @@ export function Navbar() {
                   <LayoutDashboard className="w-4 h-4" /> <span className="hidden sm:inline">{t("nav.dashboard")}</span>
                 </Button>
               </Link>
-              <Link to="/inbox">
-                <Button variant="ghost" size="icon" title={t("nav.inbox")}>
-                  <Inbox className="w-4 h-4" />
-                </Button>
-              </Link>
+              <InboxBell />
               <Link to="/following">
                 <Button variant="ghost" size="icon" title="Đang theo dõi">
                   <Heart className="w-4 h-4" />
