@@ -53,8 +53,8 @@ function Dashboard() {
             .select("id, slug, name, logo_url, status, icon_tier, country_code, province, views_count, followers_count")
             .eq("owner_id", user.id)
             .order("created_at", { ascending: false }),
-          supabase.from("saved_contacts").select("*", { count: "exact", head: true }).eq("owner_id", user.id),
-          supabase.from("follows").select("*", { count: "exact", head: true }).eq("user_id", user.id),
+          supabase.from("saved_contacts").select("*", { count: "exact", head: true }).eq("user_id", user.id),
+          supabase.from("follows").select("*", { count: "exact", head: true }).eq("follower_id", user.id),
         ]);
       if (cancelled) return;
       setProfile(prof);
