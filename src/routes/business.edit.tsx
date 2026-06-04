@@ -17,9 +17,11 @@ import { SOCIAL_PLATFORMS } from "@/lib/social-platforms";
 import { slugify } from "@/lib/upload";
 import { toast } from "sonner";
 import {
-  Save, Eye, Sparkles, Loader2, Plus, Trash2,
+  Save, Eye, Sparkles, Loader2, Plus, Trash2, ArrowLeft, ArrowRight,
   Building2, MapPin as MapPinIcon, Phone, Link2, Images, Award, FileText, CheckCircle2,
+  Mail, Globe as GlobeIcon,
 } from "lucide-react";
+import { SocialIconList } from "@/components/SocialIconList";
 
 type SearchParams = { id?: string };
 
