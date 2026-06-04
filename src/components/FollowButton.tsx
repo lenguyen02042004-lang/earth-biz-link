@@ -31,17 +31,19 @@ export function FollowButton({ businessId, initialCount, variant = "full", class
   );
   const [loading, setLoading] = useState(false);
 
-  // Initial fetch: real follower count + whether current user follows
+  // Initial fetch: real follower count (from businesses.followers_count, publicly readable)
+  // + whether current user follows. The follows table is now restricted, so the
+  // denormalized count on businesses (maintained by DB trigger) is what we read.
   useEffect(() => {
     if (!isRealBusiness) return;
     let active = true;
     (async () => {
-      const [{ count: c }, { data: { user } }] = await Promise.all([
-        supabase.from("follows").select("*", { count: "exact", head: true }).eq("business_id", businessId),
+      const [{ data: biz }, { data: { user } }] = await Promise.all([
+        supabase.from("businesses").select("followers_count").eq("id", businessId).maybeSingle(),
         supabase.auth.getUser(),
       ]);
       if (!active) return;
-      if (typeof c === "number") setCount(c);
+      if (biz && typeof biz.followers_count === "number") setCount(biz.followers_count);
       if (user) {
         const { data } = await supabase
           .from("follows")
