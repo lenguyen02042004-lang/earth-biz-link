@@ -213,3 +213,7 @@
 }
 .leaflet-popup-content { margin: 0; }
 .leaflet-popup-tip { background: white; }
+
+/* Hide horizontal scrollbar for tab nav */
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { scrollbar-width: none; -ms-overflow-style: none; }
