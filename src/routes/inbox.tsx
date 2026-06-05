@@ -133,17 +133,8 @@ function InboxPage() {
               </div>
             );
           })}
-        </div>
-      </main>
-    </div>
+      </>
+    </DashboardShell>
   );
 }
 
-function FullPage({ children }: { children: React.ReactNode }) {
-  return (
-    <div className="min-h-screen bg-background">
-      <Navbar />
-      <main className="container max-w-3xl pt-24 pb-12">{children}</main>
-    </div>
-  );
-}
