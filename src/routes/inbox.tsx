@@ -133,6 +133,7 @@ function InboxPage() {
               </div>
             );
           })}
+        </div>
       </>
     </DashboardShell>
   );
