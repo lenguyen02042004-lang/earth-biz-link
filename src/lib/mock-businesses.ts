@@ -54,7 +54,7 @@ const PINK_GRADIENTS = [
 
 export const DEMO_BUSINESSES: DemoBusiness[] = [
   {
-    id: "1", slug: "nova-tech-vn", name: "Nova Tech Vietnam",
+    id: "00000000-0000-0000-0000-000000000001", slug: "nova-tech-vn", name: "Nova Tech Vietnam",
     logo_url: "https://api.dicebear.com/7.x/shapes/svg?seed=nova&backgroundColor=c8102e",
     banner_url: PINK_GRADIENTS[0],
     short_intro: "Giải pháp công nghệ AI hàng đầu cho doanh nghiệp Đông Nam Á.",
@@ -65,7 +65,7 @@ export const DEMO_BUSINESSES: DemoBusiness[] = [
     gallery: PINK_GRADIENTS,
   },
   {
-    id: "2", slug: "sakura-trading", name: "Sakura Trading Co.",
+    id: "00000000-0000-0000-0000-000000000002", slug: "sakura-trading", name: "Sakura Trading Co.",
     logo_url: "https://api.dicebear.com/7.x/shapes/svg?seed=sakura&backgroundColor=ff3b5c",
     banner_url: PINK_GRADIENTS[1],
     short_intro: "Xuất nhập khẩu thực phẩm cao cấp từ Nhật Bản ra thế giới.",
@@ -76,7 +76,7 @@ export const DEMO_BUSINESSES: DemoBusiness[] = [
     gallery: PINK_GRADIENTS,
   },
   {
-    id: "3", slug: "lion-finance-sg", name: "Lion Finance Singapore",
+    id: "00000000-0000-0000-0000-000000000003", slug: "lion-finance-sg", name: "Lion Finance Singapore",
     logo_url: "https://api.dicebear.com/7.x/shapes/svg?seed=lion&backgroundColor=8b0000",
     banner_url: PINK_GRADIENTS[2],
     short_intro: "Tư vấn đầu tư & quản lý tài sản cho doanh nhân quốc tế.",
@@ -87,7 +87,7 @@ export const DEMO_BUSINESSES: DemoBusiness[] = [
     gallery: PINK_GRADIENTS,
   },
   {
-    id: "4", slug: "stellar-design-nyc", name: "Stellar Design Studio",
+    id: "00000000-0000-0000-0000-000000000004", slug: "stellar-design-nyc", name: "Stellar Design Studio",
     logo_url: "https://api.dicebear.com/7.x/shapes/svg?seed=stellar&backgroundColor=c8102e",
     banner_url: PINK_GRADIENTS[3],
     short_intro: "Studio thiết kế thương hiệu cao cấp tại New York.",
@@ -98,7 +98,7 @@ export const DEMO_BUSINESSES: DemoBusiness[] = [
     gallery: PINK_GRADIENTS,
   },
   {
-    id: "5", slug: "alpine-luxury-ch", name: "Alpine Luxury Hotels",
+    id: "00000000-0000-0000-0000-000000000005", slug: "alpine-luxury-ch", name: "Alpine Luxury Hotels",
     logo_url: "https://api.dicebear.com/7.x/shapes/svg?seed=alpine&backgroundColor=ff3b5c",
     banner_url: PINK_GRADIENTS[4],
     short_intro: "Chuỗi khách sạn 5 sao tại các điểm đến danh tiếng châu Âu.",
@@ -109,7 +109,7 @@ export const DEMO_BUSINESSES: DemoBusiness[] = [
     gallery: PINK_GRADIENTS,
   },
   {
-    id: "6", slug: "thames-legal", name: "Thames Legal Advisors",
+    id: "00000000-0000-0000-0000-000000000006", slug: "thames-legal", name: "Thames Legal Advisors",
     logo_url: "https://api.dicebear.com/7.x/shapes/svg?seed=thames&backgroundColor=8b0000",
     banner_url: PINK_GRADIENTS[0],
     short_intro: "Hãng luật quốc tế chuyên về M&A và đầu tư xuyên biên giới.",
@@ -120,7 +120,7 @@ export const DEMO_BUSINESSES: DemoBusiness[] = [
     gallery: PINK_GRADIENTS,
   },
   {
-    id: "7", slug: "kanga-build-au", name: "Kanga Construction",
+    id: "00000000-0000-0000-0000-000000000007", slug: "kanga-build-au", name: "Kanga Construction",
     logo_url: "https://api.dicebear.com/7.x/shapes/svg?seed=kanga&backgroundColor=c8102e",
     banner_url: PINK_GRADIENTS[1],
     short_intro: "Nhà thầu xây dựng dân dụng và công nghiệp tại Úc.",
@@ -131,7 +131,7 @@ export const DEMO_BUSINESSES: DemoBusiness[] = [
     gallery: PINK_GRADIENTS,
   },
   {
-    id: "8", slug: "samba-coffee-br", name: "Samba Coffee Roasters",
+    id: "00000000-0000-0000-0000-000000000008", slug: "samba-coffee-br", name: "Samba Coffee Roasters",
     logo_url: "https://api.dicebear.com/7.x/shapes/svg?seed=samba&backgroundColor=ff3b5c",
     banner_url: PINK_GRADIENTS[2],
     short_intro: "Cà phê đặc sản Brazil — rang xay thủ công cho thị trường toàn cầu.",
@@ -142,7 +142,7 @@ export const DEMO_BUSINESSES: DemoBusiness[] = [
     gallery: PINK_GRADIENTS,
   },
   {
-    id: "9", slug: "desert-pearl-ae", name: "Desert Pearl Real Estate",
+    id: "00000000-0000-0000-0000-000000000009", slug: "desert-pearl-ae", name: "Desert Pearl Real Estate",
     logo_url: "https://api.dicebear.com/7.x/shapes/svg?seed=desert&backgroundColor=8b0000",
     banner_url: PINK_GRADIENTS[3],
     short_intro: "Bất động sản hạng sang tại Dubai và Trung Đông.",
@@ -153,7 +153,7 @@ export const DEMO_BUSINESSES: DemoBusiness[] = [
     gallery: PINK_GRADIENTS,
   },
   {
-    id: "10", slug: "kimchi-fashion-kr", name: "Kimchi Fashion House",
+    id: "00000000-0000-0000-0000-00000000000a", slug: "kimchi-fashion-kr", name: "Kimchi Fashion House",
     logo_url: "https://api.dicebear.com/7.x/shapes/svg?seed=kimchi&backgroundColor=c8102e",
     banner_url: PINK_GRADIENTS[4],
     short_intro: "Thương hiệu thời trang K-style xuất khẩu toàn cầu.",

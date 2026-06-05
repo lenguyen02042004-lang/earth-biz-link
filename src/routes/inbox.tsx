@@ -4,10 +4,10 @@ import { useServerFn } from "@tanstack/react-start";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { getInbox, markMessageRead, getMyBusinesses, getMyQuota } from "@/lib/messaging.functions";
-import { Navbar } from "@/components/Navbar";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Inbox, Send, Mail, UserPlus } from "lucide-react";
+import { Send, Mail, UserPlus } from "lucide-react";
+import { DashboardShell, DEMO_OWNER_PREFIX } from "@/components/DashboardShell";
 import { formatDistanceToNow } from "date-fns";
 import { downloadVCard } from "@/lib/vcard";
 import { toast } from "sonner";
@@ -29,9 +29,10 @@ function InboxPage() {
   const [bizId, setBizId] = useState<string>("");
 
   const bizQ = useQuery({ queryKey: ["my-bizes"], queryFn: () => myBiz() });
+  const myBizList = (bizQ.data?.businesses ?? []).filter((b) => !b.id.startsWith(DEMO_OWNER_PREFIX));
   useEffect(() => {
-    if (!bizId && bizQ.data?.businesses?.[0]) setBizId(bizQ.data.businesses[0].id);
-  }, [bizQ.data, bizId]);
+    if (!bizId && myBizList[0]) setBizId(myBizList[0].id);
+  }, [myBizList, bizId]);
 
   const msgQ = useQuery({
     queryKey: ["inbox", bizId], enabled: !!bizId,
@@ -47,28 +48,27 @@ function InboxPage() {
     onSuccess: () => msgQ.refetch(),
   });
 
-  if (bizQ.isLoading) return <FullPage>Loading...</FullPage>;
-  if (!bizQ.data?.businesses?.length) {
-    return <FullPage>
-      <h1 className="font-display text-2xl font-bold mb-2">Hộp thư doanh nghiệp</h1>
-      <p className="text-muted-foreground mb-4">Bạn cần tạo doanh nghiệp trước.</p>
-      <Button asChild><Link to="/business/edit">Tạo doanh nghiệp</Link></Button>
-    </FullPage>;
+  if (bizQ.isLoading) return <DashboardShell><p>Loading...</p></DashboardShell>;
+  if (!myBizList.length) {
+    return (
+      <DashboardShell title="Hộp thư doanh nghiệp" subtitle="Bạn cần tạo doanh nghiệp trước.">
+        <Button asChild><Link to="/business/edit">Tạo doanh nghiệp</Link></Button>
+      </DashboardShell>
+    );
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      <Navbar />
-      <main className="container max-w-5xl pt-24 pb-12">
-        <div className="flex items-center justify-between mb-6 flex-wrap gap-3">
-          <div>
-            <h1 className="font-display text-3xl font-bold flex items-center gap-2"><Inbox className="w-7 h-7 text-primary" /> Hộp thư</h1>
-            <p className="text-muted-foreground mt-1">Tin nhắn danh thiếp giữa doanh nghiệp.</p>
-          </div>
-          <select value={bizId} onChange={(e) => setBizId(e.target.value)} className="px-3 py-2 rounded-xl border border-border bg-card">
-            {bizQ.data.businesses.map((b) => (<option key={b.id} value={b.id}>{b.name}</option>))}
-          </select>
-        </div>
+    <DashboardShell
+      title="Hộp thư"
+      subtitle="Tin nhắn danh thiếp giữa doanh nghiệp."
+      actions={
+        <select value={bizId} onChange={(e) => setBizId(e.target.value)} className="px-3 py-2 rounded-xl border border-border bg-card text-sm">
+          {myBizList.map((b) => (<option key={b.id} value={b.id}>{b.name}</option>))}
+        </select>
+      }
+    >
+      <>
+
 
         {quotaQ.data && (
           <div className="mb-6 p-4 rounded-2xl bg-card border border-border">
@@ -134,16 +134,8 @@ function InboxPage() {
             );
           })}
         </div>
-      </main>
-    </div>
+      </>
+    </DashboardShell>
   );
 }
 
-function FullPage({ children }: { children: React.ReactNode }) {
-  return (
-    <div className="min-h-screen bg-background">
-      <Navbar />
-      <main className="container max-w-3xl pt-24 pb-12">{children}</main>
-    </div>
-  );
-}

@@ -1,15 +1,15 @@
 import { createFileRoute, Link, redirect } from "@tanstack/react-router";
-import { Navbar } from "@/components/Navbar";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import {
   Sparkles, Mail, Eye, Send, Plus, Pencil, Globe2, Loader2, MapPin,
-  BarChart3, Heart, BookOpen, Inbox, ArrowRight, Users, Share2, Copy, CheckCircle2,
+  Heart, Inbox, ArrowRight, Users, Share2, Copy, CheckCircle2, BookOpen, BarChart3,
 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
+import { DashboardShell, DEMO_OWNER_PREFIX } from "@/components/DashboardShell";
 
 export const Route = createFileRoute("/dashboard")({
   component: Dashboard,
@@ -27,20 +27,14 @@ type Biz = {
   views_count: number; followers_count: number;
 };
 
-type Stats = {
-  unread: number;
-  used: number;
-  limit: number;
-  contacts: number;
-  following: number;
-};
+type Stats = { unread: number; used: number; limit: number; contacts: number; following: number; };
 
 function Dashboard() {
   const { user } = useAuth();
   const [profile, setProfile] = useState<{ display_name: string | null; email: string | null } | null>(null);
   const [businesses, setBusinesses] = useState<Biz[]>([]);
   const [loadingBiz, setLoadingBiz] = useState(true);
-  const [stats, setStats] = useState<Stats>({ unread: 0, used: 0, limit: 1000, contacts: 0, following: 0 });
+  const [stats, setStats] = useState<Stats>({ unread: 0, used: 0, limit: 100, contacts: 0, following: 0 });
 
   useEffect(() => {
     if (!user) return;
@@ -58,7 +52,8 @@ function Dashboard() {
         ]);
       if (cancelled) return;
       setProfile(prof);
-      const list = (bizes ?? []) as Biz[];
+      // Hide system-seeded demo businesses from the user's own dashboard
+      const list = ((bizes ?? []) as Biz[]).filter((b) => !b.id.startsWith(DEMO_OWNER_PREFIX));
       setBusinesses(list);
       setLoadingBiz(false);
 
@@ -77,7 +72,7 @@ function Dashboard() {
         setStats({
           unread: unread ?? 0,
           used,
-          limit: 1000 * ids.length + bonus,
+          limit: 100 * ids.length + bonus,
           contacts: contactsCount ?? 0,
           following: followingCount ?? 0,
         });
@@ -106,158 +101,140 @@ function Dashboard() {
   };
 
   return (
-    <div className="min-h-screen bg-background">
-      <Navbar />
-      <div className="pt-24 px-4 sm:px-6 lg:px-8 max-w-6xl mx-auto pb-16">
-        {/* Header */}
-        <div className="mb-8 flex flex-wrap justify-between items-end gap-4 animate-fade-up">
-          <div>
-            <p className="text-xs uppercase tracking-wider text-muted-foreground font-medium">Bảng điều khiển</p>
-            <h1 className="text-3xl font-display font-bold mt-1">
-              Xin chào, {profile?.display_name ?? user?.email?.split("@")[0]} 👋
-            </h1>
-            <p className="text-muted-foreground mt-1 text-sm">
-              Quản lý danh thiếp, kết nối và hoạt động doanh nghiệp.
-            </p>
-          </div>
-          <div className="flex flex-wrap gap-2">
-            <Link to="/business/stats">
-              <Button variant="outline" size="sm" className="gap-1.5"><BarChart3 className="w-4 h-4" /> Thống kê</Button>
-            </Link>
-            <Link to="/business/edit">
-              <Button size="sm" className="gap-1.5 bg-gradient-vivid text-white border-0 shadow-pink">
-                <Plus className="w-4 h-4" /> Tạo danh thiếp
-              </Button>
-            </Link>
-          </div>
-        </div>
+    <DashboardShell
+      title={`Xin chào, ${profile?.display_name ?? user?.email?.split("@")[0] ?? ""} 👋`}
+      subtitle="Quản lý danh thiếp, kết nối và hoạt động doanh nghiệp của bạn."
+      actions={
+        <Link to="/business/edit">
+          <Button size="sm" className="gap-1.5 bg-gradient-vivid text-white border-0 shadow-pink">
+            <Plus className="w-4 h-4" /> Tạo danh thiếp
+          </Button>
+        </Link>
+      }
+    >
+      {/* KPI grid */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-8">
+        <KpiCard icon={Eye} label="Lượt xem" value={totalViews.toLocaleString()} accent="from-rose-600 to-red-500" />
+        <KpiCard icon={Users} label="Người theo dõi" value={totalFollowers.toLocaleString()} accent="from-pink-600 to-rose-500" />
+        <KpiCard icon={Send} label="Card đã gửi" value={`${stats.used} / ${stats.limit || 100}`} accent="from-orange-500 to-rose-500" />
+        <KpiCard icon={Mail} label="Tin chưa đọc" value={stats.unread.toLocaleString()} accent="from-red-700 to-rose-500" highlight={stats.unread > 0} />
+      </div>
 
-        {/* KPI grid */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-8">
-          <KpiCard icon={Eye} label="Lượt xem" value={totalViews.toLocaleString()} accent="from-rose-600 to-red-500" />
-          <KpiCard icon={Users} label="Người theo dõi" value={totalFollowers.toLocaleString()} accent="from-pink-600 to-rose-500" />
-          <KpiCard icon={Send} label="Card đã gửi" value={`${stats.used} / ${stats.limit || 1000}`} accent="from-orange-500 to-rose-500" />
-          <KpiCard icon={Mail} label="Tin chưa đọc" value={stats.unread.toLocaleString()} accent="from-red-700 to-rose-500" highlight={stats.unread > 0} />
-        </div>
+      {/* Shortcuts */}
+      <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-3 mb-10">
+        <ShortcutCard to="/inbox" icon={Inbox} title="Hộp thư"
+          description={stats.unread > 0 ? `${stats.unread} tin chưa đọc` : "Không có tin mới"}
+          badge={stats.unread > 0 ? stats.unread : undefined} />
+        <ShortcutCard to="/contacts" icon={BookOpen} title="Danh bạ"
+          description={`${stats.contacts} liên hệ đã lưu`} />
+        <ShortcutCard to="/following" icon={Heart} title="Đang theo dõi"
+          description={`${stats.following} doanh nghiệp`} />
+        <ShortcutCard to="/business/stats" icon={BarChart3} title="Thống kê"
+          description="Hiệu suất theo thời gian" />
+      </div>
 
-        {/* Shortcuts */}
-        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-3 mb-10">
-          <ShortcutCard to="/inbox" icon={Inbox} title="Hộp thư"
-            description={stats.unread > 0 ? `${stats.unread} tin chưa đọc` : "Không có tin mới"}
-            badge={stats.unread > 0 ? stats.unread : undefined} />
-          <ShortcutCard to="/contacts" icon={BookOpen} title="Danh bạ"
-            description={`${stats.contacts} liên hệ đã lưu`} />
-          <ShortcutCard to="/following" icon={Heart} title="Đang theo dõi"
-            description={`${stats.following} doanh nghiệp`} />
-          <ShortcutCard to="/business/stats" icon={BarChart3} title="Thống kê"
-            description="Hiệu suất theo thời gian" />
-        </div>
-
-        {/* Public card share helper */}
-        {publicBiz && (
-          <div className="mb-8 rounded-2xl border border-border bg-gradient-to-br from-card to-accent/40 p-5 flex flex-wrap items-center gap-4">
-            <div className="flex items-center gap-3 min-w-0 flex-1">
-              <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary flex-shrink-0">
-                <Share2 className="w-5 h-5" />
-              </div>
-              <div className="min-w-0">
-                <p className="text-sm font-semibold">Liên kết danh thiếp của bạn</p>
-                <p className="text-xs text-muted-foreground truncate">/b/{publicBiz.slug}</p>
-              </div>
+      {publicBiz && (
+        <div className="mb-8 rounded-2xl border border-border bg-gradient-to-br from-card to-accent/40 p-5 flex flex-wrap items-center gap-4">
+          <div className="flex items-center gap-3 min-w-0 flex-1">
+            <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary flex-shrink-0">
+              <Share2 className="w-5 h-5" />
             </div>
-            <div className="flex gap-2">
-              <Button size="sm" variant="outline" onClick={() => copyLink(publicBiz.slug)} className="gap-1.5">
-                <Copy className="w-3.5 h-3.5" /> Sao chép
-              </Button>
-              <Button size="sm" onClick={() => shareLink(publicBiz.slug)} className="gap-1.5 bg-gradient-vivid text-white border-0">
-                <Share2 className="w-3.5 h-3.5" /> Chia sẻ
-              </Button>
+            <div className="min-w-0">
+              <p className="text-sm font-semibold">Liên kết danh thiếp của bạn</p>
+              <p className="text-xs text-muted-foreground truncate">/b/{publicBiz.slug}</p>
             </div>
           </div>
-        )}
-
-        {/* Businesses */}
-        <div className="mb-6 flex items-center justify-between">
-          <h2 className="font-display text-xl font-bold">Doanh nghiệp của bạn</h2>
-          {businesses.length > 0 && (
-            <Link to="/business/edit" className="text-sm text-primary hover:underline inline-flex items-center gap-1">
-              <Plus className="w-3.5 h-3.5" /> Thêm mới
-            </Link>
-          )}
+          <div className="flex gap-2">
+            <Button size="sm" variant="outline" onClick={() => copyLink(publicBiz.slug)} className="gap-1.5">
+              <Copy className="w-3.5 h-3.5" /> Sao chép
+            </Button>
+            <Button size="sm" onClick={() => shareLink(publicBiz.slug)} className="gap-1.5 bg-gradient-vivid text-white border-0">
+              <Share2 className="w-3.5 h-3.5" /> Chia sẻ
+            </Button>
+          </div>
         </div>
+      )}
 
-        {loadingBiz ? (
-          <div className="py-12 flex justify-center"><Loader2 className="w-6 h-6 animate-spin text-primary" /></div>
-        ) : businesses.length === 0 ? (
-          <div className="relative overflow-hidden bg-gradient-vivid rounded-3xl p-8 text-white shadow-glow">
-            <div className="absolute -top-10 -right-10 w-64 h-64 rounded-full bg-white/10 blur-3xl" />
-            <div className="absolute -bottom-10 -left-10 w-64 h-64 rounded-full bg-white/10 blur-3xl" />
-            <div className="relative">
-              <Sparkles className="w-8 h-8 mb-3" />
-              <h2 className="text-2xl font-bold mb-2">Tạo danh thiếp doanh nghiệp đầu tiên</h2>
-              <p className="opacity-90 mb-5 max-w-lg">
-                Đưa doanh nghiệp lên bản đồ thế giới chỉ trong 2 phút. Hơn 10,000 đối tác tiềm năng đang chờ kết nối.
-              </p>
-              <Link to="/business/edit">
-                <Button size="lg" className="bg-white text-primary hover:bg-white/90 gap-2">
-                  Bắt đầu tạo <Sparkles className="w-4 h-4" />
-                </Button>
-              </Link>
-            </div>
-          </div>
-        ) : (
-          <div className="grid sm:grid-cols-2 gap-4">
-            {businesses.map((b) => (
-              <div key={b.id} className="bg-card border border-border rounded-2xl p-4 shadow-card hover:shadow-pink/20 hover:border-primary/30 transition-smooth">
-                <div className="flex gap-3 items-start">
-                  <div className={b.icon_tier === "premium" ? "ring-premium flex-shrink-0" : "flex-shrink-0"}>
-                    {b.logo_url ? (
-                      <img src={b.logo_url} alt={b.name} className="w-14 h-14 rounded-full bg-white object-cover" />
-                    ) : (
-                      <div className="w-14 h-14 rounded-full bg-muted flex items-center justify-center">
-                        <Globe2 className="w-5 h-5 text-muted-foreground" />
-                      </div>
-                    )}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 mb-1 flex-wrap">
-                      <h3 className="font-semibold truncate">{b.name}</h3>
-                      <Badge variant={b.status === "public" ? "default" : "secondary"} className={b.status === "public" ? "bg-primary text-primary-foreground border-0 gap-1" : ""}>
-                        {b.status === "public" ? <><CheckCircle2 className="w-3 h-3" /> Công khai</> : "Bản nháp"}
-                      </Badge>
-                    </div>
-                    {(b.country_code || b.province) && (
-                      <p className="text-xs text-muted-foreground flex items-center gap-1">
-                        <MapPin className="w-3 h-3" />{[b.province, b.country_code].filter(Boolean).join(", ")}
-                      </p>
-                    )}
-                    <div className="flex items-center gap-3 text-xs text-muted-foreground mt-1">
-                      <span className="flex items-center gap-1"><Eye className="w-3 h-3" /> {b.views_count}</span>
-                      <span className="flex items-center gap-1"><Users className="w-3 h-3" /> {b.followers_count}</span>
-                    </div>
-                  </div>
-                </div>
-                <div className="flex flex-wrap gap-1.5 mt-3 pt-3 border-t border-border">
-                  <Link to="/business/edit" search={{ id: b.id }}>
-                    <Button size="sm" variant="outline" className="gap-1"><Pencil className="w-3 h-3" /> Sửa</Button>
-                  </Link>
-                  {b.status === "public" && (
-                    <>
-                      <Link to="/b/$slug" params={{ slug: b.slug }}>
-                        <Button size="sm" variant="ghost" className="gap-1"><Eye className="w-3 h-3" /> Xem</Button>
-                      </Link>
-                      <Button size="sm" variant="ghost" onClick={() => shareLink(b.slug)} className="gap-1">
-                        <Share2 className="w-3 h-3" /> Chia sẻ
-                      </Button>
-                    </>
-                  )}
-                </div>
-              </div>
-            ))}
-          </div>
+      <div className="mb-6 flex items-center justify-between">
+        <h2 className="font-display text-xl font-bold">Doanh nghiệp của bạn</h2>
+        {businesses.length > 0 && (
+          <Link to="/business/edit" className="text-sm text-primary hover:underline inline-flex items-center gap-1">
+            <Plus className="w-3.5 h-3.5" /> Thêm mới
+          </Link>
         )}
       </div>
-    </div>
+
+      {loadingBiz ? (
+        <div className="py-12 flex justify-center"><Loader2 className="w-6 h-6 animate-spin text-primary" /></div>
+      ) : businesses.length === 0 ? (
+        <div className="relative overflow-hidden bg-gradient-vivid rounded-3xl p-8 text-white shadow-glow">
+          <div className="absolute -top-10 -right-10 w-64 h-64 rounded-full bg-white/10 blur-3xl" />
+          <div className="absolute -bottom-10 -left-10 w-64 h-64 rounded-full bg-white/10 blur-3xl" />
+          <div className="relative">
+            <Sparkles className="w-8 h-8 mb-3" />
+            <h2 className="text-2xl font-bold mb-2">Tạo danh thiếp doanh nghiệp đầu tiên</h2>
+            <p className="opacity-90 mb-5 max-w-lg">
+              Đưa doanh nghiệp lên bản đồ thế giới chỉ trong 2 phút.
+            </p>
+            <Link to="/business/edit">
+              <Button size="lg" className="bg-white text-primary hover:bg-white/90 gap-2">
+                Bắt đầu tạo <Sparkles className="w-4 h-4" />
+              </Button>
+            </Link>
+          </div>
+        </div>
+      ) : (
+        <div className="grid sm:grid-cols-2 gap-4">
+          {businesses.map((b) => (
+            <div key={b.id} className="bg-card border border-border rounded-2xl p-4 shadow-card hover:shadow-pink/20 hover:border-primary/30 transition-smooth">
+              <div className="flex gap-3 items-start">
+                <div className={b.icon_tier === "premium" ? "ring-premium flex-shrink-0" : "flex-shrink-0"}>
+                  {b.logo_url ? (
+                    <img src={b.logo_url} alt={b.name} className="w-14 h-14 rounded-full bg-white object-cover" />
+                  ) : (
+                    <div className="w-14 h-14 rounded-full bg-muted flex items-center justify-center">
+                      <Globe2 className="w-5 h-5 text-muted-foreground" />
+                    </div>
+                  )}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 mb-1 flex-wrap">
+                    <h3 className="font-semibold truncate">{b.name}</h3>
+                    <Badge variant={b.status === "public" ? "default" : "secondary"} className={b.status === "public" ? "bg-primary text-primary-foreground border-0 gap-1" : ""}>
+                      {b.status === "public" ? <><CheckCircle2 className="w-3 h-3" /> Công khai</> : "Bản nháp"}
+                    </Badge>
+                  </div>
+                  {(b.country_code || b.province) && (
+                    <p className="text-xs text-muted-foreground flex items-center gap-1">
+                      <MapPin className="w-3 h-3" />{[b.province, b.country_code].filter(Boolean).join(", ")}
+                    </p>
+                  )}
+                  <div className="flex items-center gap-3 text-xs text-muted-foreground mt-1">
+                    <span className="flex items-center gap-1"><Eye className="w-3 h-3" /> {b.views_count}</span>
+                    <span className="flex items-center gap-1"><Users className="w-3 h-3" /> {b.followers_count}</span>
+                  </div>
+                </div>
+              </div>
+              <div className="flex flex-wrap gap-1.5 mt-3 pt-3 border-t border-border">
+                <Link to="/business/edit" search={{ id: b.id }}>
+                  <Button size="sm" variant="outline" className="gap-1"><Pencil className="w-3 h-3" /> Sửa</Button>
+                </Link>
+                {b.status === "public" && (
+                  <>
+                    <Link to="/b/$slug" params={{ slug: b.slug }}>
+                      <Button size="sm" variant="ghost" className="gap-1"><Eye className="w-3 h-3" /> Xem</Button>
+                    </Link>
+                    <Button size="sm" variant="ghost" onClick={() => shareLink(b.slug)} className="gap-1">
+                      <Share2 className="w-3 h-3" /> Chia sẻ
+                    </Button>
+                  </>
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </DashboardShell>
   );
 }
 
