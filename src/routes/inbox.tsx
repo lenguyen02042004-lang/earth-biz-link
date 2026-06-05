@@ -29,9 +29,10 @@ function InboxPage() {
   const [bizId, setBizId] = useState<string>("");
 
   const bizQ = useQuery({ queryKey: ["my-bizes"], queryFn: () => myBiz() });
+  const myBizList = (bizQ.data?.businesses ?? []).filter((b) => !b.id.startsWith(DEMO_OWNER_PREFIX));
   useEffect(() => {
-    if (!bizId && bizQ.data?.businesses?.[0]) setBizId(bizQ.data.businesses[0].id);
-  }, [bizQ.data, bizId]);
+    if (!bizId && myBizList[0]) setBizId(myBizList[0].id);
+  }, [myBizList, bizId]);
 
   const msgQ = useQuery({
     queryKey: ["inbox", bizId], enabled: !!bizId,
