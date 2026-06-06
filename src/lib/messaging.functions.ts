@@ -2,12 +2,18 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
+// Permissive UUID format (any 8-4-4-4-12 hex). Postgres accepts these; Zod's
+// built-in .uuid() rejects v0/nil-style ids which our demo seed uses.
+const uuidLike = z
+  .string()
+  .regex(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i, "Invalid id");
+
 export const sendCardVisit = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input) =>
     z.object({
-      from_business: z.string().uuid(),
-      to_business: z.string().uuid(),
+      from_business: uuidLike,
+      to_business: uuidLike,
       subject: z.string().trim().min(1).max(200),
       body: z.string().trim().min(1).max(2000),
     }).parse(input)
@@ -26,7 +32,7 @@ export const sendCardVisit = createServerFn({ method: "POST" })
 
 export const getInbox = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((input) => z.object({ business_id: z.string().uuid() }).parse(input))
+  .inputValidator((input) => z.object({ business_id: uuidLike }).parse(input))
   .handler(async ({ data, context }) => {
     const { supabase } = context;
     const { data: messages, error } = await supabase
@@ -48,7 +54,7 @@ export const getInbox = createServerFn({ method: "GET" })
 
 export const markMessageRead = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((input) => z.object({ id: z.string().uuid() }).parse(input))
+  .inputValidator((input) => z.object({ id: uuidLike }).parse(input))
   .handler(async ({ data, context }) => {
     const { error } = await context.supabase
       .from("connect_messages")
@@ -60,7 +66,7 @@ export const markMessageRead = createServerFn({ method: "POST" })
 
 export const getMyQuota = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((input) => z.object({ business_id: z.string().uuid() }).parse(input))
+  .inputValidator((input) => z.object({ business_id: uuidLike }).parse(input))
   .handler(async ({ data, context }) => {
     const year = new Date().getFullYear();
     const { data: row } = await context.supabase
@@ -105,7 +111,7 @@ export const getMyBusinesses = createServerFn({ method: "GET" })
 
 export const getBusinessStats = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((input) => z.object({ business_id: z.string().uuid() }).parse(input))
+  .inputValidator((input) => z.object({ business_id: uuidLike }).parse(input))
   .handler(async ({ data, context }) => {
     const { supabase } = context;
     const businessId = data.business_id;
@@ -142,7 +148,7 @@ export const getBusinessStats = createServerFn({ method: "GET" })
       : { data: [] as Array<{ id: string; name: string; slug: string; logo_url: string | null }> };
     const partnerMap = new Map((partners ?? []).map((p) => [p.id, p]));
 
-    // Aggregate by day for last 30 days (sent)
+    // Aggregate by day for last 30 days
     const since = new Date();
     since.setDate(since.getDate() - 29);
     const { data: recent } = await supabase
@@ -190,4 +196,3 @@ export const getBusinessStats = createServerFn({ method: "GET" })
       }),
     };
   });
-
