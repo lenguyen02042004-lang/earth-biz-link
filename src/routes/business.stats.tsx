@@ -169,7 +169,7 @@ function StatsPage() {
             </div>
           </>
         ) : null}
-      </div>
-    </div>
+      </>
+    </DashboardShell>
   );
 }
