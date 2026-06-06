@@ -1,12 +1,12 @@
 import { createFileRoute, Link, redirect } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Navbar } from "@/components/Navbar";
+import { DashboardShell } from "@/components/DashboardShell";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
 import { getMyBusinesses, getBusinessStats } from "@/lib/messaging.functions";
-import { Eye, Send, Inbox, Users, ArrowDownLeft, ArrowUpRight, Loader2, BarChart3, ArrowLeft } from "lucide-react";
+import { Eye, Send, Inbox, Users, ArrowDownLeft, ArrowUpRight, Loader2 } from "lucide-react";
 
 export const Route = createFileRoute("/business/stats")({
   component: StatsPage,
@@ -42,33 +42,24 @@ function StatsPage() {
   );
 
   return (
-    <div className="min-h-screen bg-background">
-      <Navbar />
-      <div className="pt-24 px-4 sm:px-6 lg:px-8 max-w-6xl mx-auto pb-12">
-        <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
-          <div>
-            <Link to="/dashboard" className="text-sm text-muted-foreground hover:text-foreground inline-flex items-center gap-1 mb-2">
-              <ArrowLeft className="w-4 h-4" /> Quay lại bảng điều khiển
-            </Link>
-            <h1 className="text-3xl font-display font-bold flex items-center gap-2">
-              <BarChart3 className="w-7 h-7 text-primary" /> Thống kê doanh nghiệp
-            </h1>
-            <p className="text-muted-foreground text-sm mt-1">
-              Theo dõi lượt xem, gửi danh thiếp và lịch sử kết nối.
-            </p>
-          </div>
+    <DashboardShell
+      title="Thống kê doanh nghiệp"
+      subtitle="Theo dõi lượt xem, gửi danh thiếp và lịch sử kết nối."
+      actions={
+        businesses.length > 1 ? (
+          <Select value={businessId ?? ""} onValueChange={setBusinessId}>
+            <SelectTrigger className="w-64"><SelectValue placeholder="Chọn doanh nghiệp" /></SelectTrigger>
+            <SelectContent>
+              {businesses.map((b) => (
+                <SelectItem key={b.id} value={b.id}>{b.name}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        ) : null
+      }
+    >
+      <>
 
-          {businesses.length > 1 && (
-            <Select value={businessId ?? ""} onValueChange={setBusinessId}>
-              <SelectTrigger className="w-64"><SelectValue placeholder="Chọn doanh nghiệp" /></SelectTrigger>
-              <SelectContent>
-                {businesses.map((b) => (
-                  <SelectItem key={b.id} value={b.id}>{b.name}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          )}
-        </div>
 
         {loadingMine || loadingStats ? (
           <div className="py-20 flex justify-center"><Loader2 className="w-6 h-6 animate-spin text-primary" /></div>
@@ -178,7 +169,7 @@ function StatsPage() {
             </div>
           </>
         ) : null}
-      </div>
-    </div>
+      </>
+    </DashboardShell>
   );
 }

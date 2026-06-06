@@ -1,11 +1,11 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
-import { Navbar } from "@/components/Navbar";
+import { DashboardShell } from "@/components/DashboardShell";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { BookOpen, Search, Trash2, Phone, Mail, Globe, MapPin, Building2 } from "lucide-react";
+import { Search, Trash2, Phone, Mail, Globe, MapPin, Building2 } from "lucide-react";
 
 export const Route = createFileRoute("/contacts")({
   component: ContactsPage,
@@ -77,29 +77,19 @@ function ContactsPage() {
   }, [items, q]);
 
   return (
-    <div className="min-h-screen bg-background">
-      <Navbar />
-      <main className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 pb-16">
-        <header className="flex items-start justify-between gap-4 mb-6">
-          <div>
-            <h1 className="text-2xl sm:text-3xl font-bold flex items-center gap-2">
-              <BookOpen className="w-6 h-6 text-primary" /> Danh bạ doanh nghiệp
-            </h1>
-            <p className="text-sm text-muted-foreground mt-1">
-              Các doanh nghiệp bạn đã lưu — tìm kiếm và liên hệ nhanh sau này.
-            </p>
-          </div>
-        </header>
-
-        <div className="relative mb-5">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-          <Input
-            value={q}
-            onChange={(e) => setQ(e.target.value)}
-            placeholder="Tìm theo tên, ngành nghề, quốc gia, email…"
-            className="pl-9 h-11"
-          />
-        </div>
+    <DashboardShell
+      title="Danh bạ doanh nghiệp"
+      subtitle="Các doanh nghiệp bạn đã lưu — tìm kiếm và liên hệ nhanh sau này."
+    >
+      <div className="relative mb-5">
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+        <Input
+          value={q}
+          onChange={(e) => setQ(e.target.value)}
+          placeholder="Tìm theo tên, ngành nghề, quốc gia, email…"
+          className="pl-9 h-11"
+        />
+      </div>
 
         {loading ? (
           <p className="text-muted-foreground">Đang tải…</p>
@@ -168,9 +158,8 @@ function ContactsPage() {
                 </div>
               </div>
             ))}
-          </div>
-        )}
-      </main>
-    </div>
+        </div>
+      )}
+    </DashboardShell>
   );
 }
