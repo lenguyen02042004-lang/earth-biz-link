@@ -1,6 +1,6 @@
 import { createFileRoute, Link, redirect, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { Navbar } from "@/components/Navbar";
+import { DashboardShell } from "@/components/DashboardShell";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
@@ -98,18 +98,13 @@ function FollowingPage() {
   };
 
   return (
-    <div className="min-h-screen bg-background">
-      <Navbar />
-      <main className="pt-20 pb-12 px-4 sm:px-6 lg:px-8 max-w-5xl mx-auto">
-        <div className="flex items-center gap-3 mb-2">
-          <div className="w-10 h-10 rounded-xl bg-gradient-vivid flex items-center justify-center shadow-pink">
-            <Heart className="w-5 h-5 text-white fill-current" />
-          </div>
-          <h1 className="font-display text-2xl sm:text-3xl font-bold">Doanh nghiệp tôi theo dõi</h1>
-        </div>
-        <p className="text-sm text-muted-foreground mb-6">
-          {loading ? "Đang tải..." : `${items.length} doanh nghiệp`}
-        </p>
+    <DashboardShell
+      title="Doanh nghiệp tôi theo dõi"
+      subtitle={loading ? "Đang tải..." : `${items.length} doanh nghiệp đang theo dõi`}
+      maxWidth="5xl"
+    >
+      <>
+
 
         {loading ? (
           <div className="flex justify-center py-16">
@@ -210,7 +205,7 @@ function FollowingPage() {
             </Link>
           </div>
         )}
-      </main>
-    </div>
+      </>
+    </DashboardShell>
   );
 }
