@@ -87,6 +87,7 @@ function EditBusinessPage() {
   const { id } = useSearch({ from: "/business/edit" });
 
   const [form, setForm] = useState<FormState>(EMPTY);
+  const [ownerId, setOwnerId] = useState<string | null>(null);
   const [tab, setTab] = useState<string>("basic");
   const [industries, setIndustries] = useState<Industry[]>([]);
   const [loading, setLoading] = useState(!!id);
@@ -157,7 +158,7 @@ function EditBusinessPage() {
     }
     setSaving(true);
     const payload: any = {
-      owner_id: user.id,
+      owner_id: ownerId ?? user.id,
       name: form.name.trim(),
       slug: form.slug || slugify(form.name),
       short_intro: form.short_intro || null,
