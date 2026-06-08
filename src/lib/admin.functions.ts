@@ -86,3 +86,88 @@ export const checkIsAdmin = createServerFn({ method: "GET" })
       .from("user_roles").select("role").eq("user_id", context.userId).eq("role", "admin").maybeSingle();
     return { isAdmin: !!data };
   });
+
+// === List ALL businesses for admin management ===
+export const adminListBusinesses = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const { supabase, userId } = context;
+    await requireAdmin(supabase, userId);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data, error } = await supabaseAdmin
+      .from("businesses")
+      .select("id, name, slug, status, owner_id, country_code, views_count, followers_count, created_at")
+      .order("created_at", { ascending: false })
+      .limit(500);
+    if (error) throw new Error(error.message);
+    // Resolve owner emails
+    const ownerIds = Array.from(new Set((data ?? []).map((b) => b.owner_id)));
+    const { data: users } = await supabaseAdmin.auth.admin.listUsers({ page: 1, perPage: 1000 });
+    const emailMap = new Map((users?.users ?? []).map((u) => [u.id, u.email ?? ""]));
+    return {
+      businesses: (data ?? []).map((b) => ({ ...b, owner_email: emailMap.get(b.owner_id) ?? "" })),
+    };
+  });
+
+// === Seed demo accounts: create 1 auth user per demo business and reassign owner ===
+// Demo businesses are identified by slug prefix in DEMO_SLUGS.
+const DEMO_SLUGS = [
+  "nova-tech-vn", "sakura-trading", "lion-finance-sg", "stellar-design-nyc",
+  "alpine-luxury-ch", "thames-legal", "kanga-build-au", "samba-coffee-br",
+  "desert-pearl-ae", "kimchi-fashion-kr",
+];
+
+export const seedDemoAccounts = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const { supabase, userId } = context;
+    await requireAdmin(supabase, userId);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+
+    const password = "Demo@12345";
+    const results: { slug: string; email: string; password: string; created: boolean; ok: boolean; error?: string }[] = [];
+
+    // Cache existing users
+    const { data: listed } = await supabaseAdmin.auth.admin.listUsers({ page: 1, perPage: 1000 });
+    const existingByEmail = new Map((listed?.users ?? []).map((u) => [u.email?.toLowerCase() ?? "", u.id]));
+
+    for (const slug of DEMO_SLUGS) {
+      const email = `${slug}@demo.globalbiz.test`;
+      try {
+        let uid = existingByEmail.get(email);
+        let created = false;
+        if (!uid) {
+          const { data: newUser, error: cErr } = await supabaseAdmin.auth.admin.createUser({
+            email,
+            password,
+            email_confirm: true,
+            user_metadata: { display_name: `Demo · ${slug}`, demo_owner_for: slug },
+          });
+          if (cErr || !newUser?.user) throw cErr ?? new Error("createUser failed");
+          uid = newUser.user.id;
+          created = true;
+        }
+        // Reassign business owner
+        const { error: uErr } = await supabaseAdmin
+          .from("businesses").update({ owner_id: uid }).eq("slug", slug);
+        if (uErr) throw uErr;
+        results.push({ slug, email, password, created, ok: true });
+      } catch (e: any) {
+        results.push({ slug, email, password, created: false, ok: false, error: e.message ?? String(e) });
+      }
+    }
+    return { results };
+  });
+
+// === Reset password for any user (admin only) ===
+export const adminResetUserPassword = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input) => z.object({ user_id: z.string().uuid(), new_password: z.string().min(8).max(72) }).parse(input))
+  .handler(async ({ data, context }) => {
+    const { supabase, userId } = context;
+    await requireAdmin(supabase, userId);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { error } = await supabaseAdmin.auth.admin.updateUserById(data.user_id, { password: data.new_password });
+    if (error) throw new Error(error.message);
+    return { ok: true };
+  });
