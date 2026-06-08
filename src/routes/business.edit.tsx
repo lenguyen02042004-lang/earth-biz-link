@@ -87,6 +87,7 @@ function EditBusinessPage() {
   const { id } = useSearch({ from: "/business/edit" });
 
   const [form, setForm] = useState<FormState>(EMPTY);
+  const [ownerId, setOwnerId] = useState<string | null>(null);
   const [tab, setTab] = useState<string>("basic");
   const [industries, setIndustries] = useState<Industry[]>([]);
   const [loading, setLoading] = useState(!!id);
@@ -103,9 +104,10 @@ function EditBusinessPage() {
     if (!id || !user) return;
     setLoading(true);
     (async () => {
-      const { data: biz, error } = await supabase.from("businesses").select("*").eq("id", id).eq("owner_id", user.id).maybeSingle();
+      // RLS already restricts to owner OR admin — no owner_id filter on client.
+      const { data: biz, error } = await supabase.from("businesses").select("*").eq("id", id).maybeSingle();
       if (error || !biz) {
-        toast.error("Không tìm thấy doanh nghiệp");
+        toast.error("Không tìm thấy doanh nghiệp hoặc bạn không có quyền");
         navigate({ to: "/dashboard" });
         return;
       }
@@ -128,6 +130,7 @@ function EditBusinessPage() {
         gallery: (gallery ?? []).map((g) => g.image_url),
         certifications: Array.isArray((biz as any).certifications) ? (biz as any).certifications : [],
       });
+      setOwnerId(biz.owner_id);
       setLoading(false);
     })();
   }, [id, user, navigate]);
@@ -155,7 +158,7 @@ function EditBusinessPage() {
     }
     setSaving(true);
     const payload: any = {
-      owner_id: user.id,
+      owner_id: ownerId ?? user.id,
       name: form.name.trim(),
       slug: form.slug || slugify(form.name),
       short_intro: form.short_intro || null,
