@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { createFileRoute, redirect, useNavigate, useSearch, Link } from "@tanstack/react-router";
-import { Navbar } from "@/components/Navbar";
+import { DashboardShell } from "@/components/DashboardShell";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -208,30 +208,26 @@ function EditBusinessPage() {
     setForm((f) => ({ ...f, certifications: f.certifications.filter((_, i) => i !== idx) }));
 
   return (
-    <div className="min-h-screen bg-background">
-      <Navbar />
-      <div className="pt-20 px-4 sm:px-6 lg:px-8 max-w-5xl mx-auto pb-16">
-        <div className="mb-6 flex flex-wrap items-end justify-between gap-3">
-          <div>
-            <h1 className="text-2xl sm:text-3xl font-display font-bold">
-              {form.id ? "Chỉnh sửa danh thiếp" : "Tạo danh thiếp mới"}
-            </h1>
-            <p className="text-muted-foreground text-sm mt-1">
-              Quản lý thông tin doanh nghiệp theo từng mục bên dưới.
-            </p>
-          </div>
-          <div className="flex items-center gap-2">
-            <Badge variant={form.status === "public" ? "default" : "secondary"} className={form.status === "public" ? "bg-primary" : ""}>
-              {form.status === "public" ? "Công khai" : "Bản nháp"}
-            </Badge>
-            <Button variant="outline" onClick={() => save(false)} disabled={saving} size="sm" className="gap-1.5">
-              {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />} Lưu nháp
-            </Button>
-            <Button onClick={() => save(true)} disabled={saving} size="sm" className="gap-1.5 bg-gradient-vivid text-white border-0 shadow-pink">
-              {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />} Xuất bản
-            </Button>
-          </div>
-        </div>
+    <DashboardShell
+      maxWidth="5xl"
+      title={form.id ? "Chỉnh sửa danh thiếp" : "Tạo danh thiếp mới"}
+      subtitle="Quản lý thông tin doanh nghiệp theo từng mục bên dưới."
+      actions={
+        <>
+          <Badge variant={form.status === "public" ? "default" : "secondary"} className={form.status === "public" ? "bg-primary" : ""}>
+            {form.status === "public" ? "Công khai" : "Bản nháp"}
+          </Badge>
+          <Button variant="outline" onClick={() => save(false)} disabled={saving} size="sm" className="gap-1.5">
+            {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />} Lưu nháp
+          </Button>
+          <Button onClick={() => save(true)} disabled={saving} size="sm" className="gap-1.5 bg-gradient-vivid text-white border-0 shadow-pink">
+            {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />} Xuất bản
+          </Button>
+        </>
+      }
+    >
+      <div>
+
 
         <Tabs value={tab} onValueChange={setTab} className="space-y-5">
           <TabsList className="flex flex-wrap h-auto gap-1 bg-muted/60 p-1">

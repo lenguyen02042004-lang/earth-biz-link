@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
-import { createFileRoute, redirect, Link } from "@tanstack/react-router";
-import { Navbar } from "@/components/Navbar";
+import { createFileRoute, redirect } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -9,6 +8,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { ImageUpload } from "@/components/ImageUpload";
 import { toast } from "sonner";
 import { Loader2, Save, KeyRound, User, Mail } from "lucide-react";
+import { DashboardShell } from "@/components/DashboardShell";
 
 export const Route = createFileRoute("/settings")({
   component: SettingsPage,
@@ -40,7 +40,7 @@ function SettingsPage() {
   }, [user]);
 
   if (!user) {
-    return <div className="min-h-screen bg-background"><Navbar /><div className="pt-32 flex justify-center"><Loader2 className="w-6 h-6 animate-spin text-primary" /></div></div>;
+    return <DashboardShell maxWidth="4xl"><div className="py-16 flex justify-center"><Loader2 className="w-6 h-6 animate-spin text-primary" /></div></DashboardShell>;
   }
 
   const saveProfile = async () => {
@@ -75,14 +75,12 @@ function SettingsPage() {
   };
 
   return (
-    <div className="min-h-screen bg-background">
-      <Navbar />
-      <div className="pt-24 px-4 sm:px-6 lg:px-8 max-w-2xl mx-auto pb-16 space-y-6">
-        <div className="animate-fade-up">
-          <h1 className="text-3xl font-display font-bold">Cài đặt tài khoản</h1>
-          <p className="text-muted-foreground mt-1">Quản lý hồ sơ, email và mật khẩu</p>
-        </div>
-
+    <DashboardShell
+      maxWidth="4xl"
+      title="Cài đặt tài khoản"
+      subtitle="Quản lý hồ sơ, email và mật khẩu"
+    >
+      <div className="space-y-6">
         {/* Profile */}
         <div className="bg-card border border-border rounded-3xl p-6 shadow-card">
           <h2 className="font-semibold flex items-center gap-2 mb-4"><User className="w-4 h-4 text-primary" /> Hồ sơ</h2>
@@ -123,11 +121,7 @@ function SettingsPage() {
             <Button onClick={updatePassword} variant="outline" disabled={!newPassword}>Đổi</Button>
           </div>
         </div>
-
-        <div className="pt-2">
-          <Link to="/dashboard"><Button variant="ghost">← Về bảng điều khiển</Button></Link>
-        </div>
       </div>
-    </div>
+    </DashboardShell>
   );
 }

@@ -10,7 +10,7 @@ import {
   seedDemoAccounts,
 } from "@/lib/admin.functions";
 import { parseCSV, BULK_CSV_TEMPLATE } from "@/lib/csv";
-import { Navbar } from "@/components/Navbar";
+import { DashboardShell } from "@/components/DashboardShell";
 import { Button } from "@/components/ui/button";
 import {
   Shield, Upload, Download, CheckCircle2, AlertCircle,
@@ -285,9 +285,8 @@ function BulkImportSection({ importFn }: { importFn: ReturnType<typeof useServer
 
 function Shell({ children }: { children: React.ReactNode }) {
   return (
-    <div className="min-h-screen bg-background">
-      <Navbar />
-      <main className="container max-w-6xl pt-24 pb-12">{children}</main>
-    </div>
+    <DashboardShell maxWidth="6xl">
+      {children}
+    </DashboardShell>
   );
 }
