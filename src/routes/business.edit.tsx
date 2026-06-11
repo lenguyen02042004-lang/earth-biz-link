@@ -542,7 +542,7 @@ function EditBusinessPage() {
           </div>
         </Tabs>
       </div>
-    </div>
+    </DashboardShell>
   );
 }
 
