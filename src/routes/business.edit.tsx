@@ -143,10 +143,9 @@ function EditBusinessPage() {
 
   if (!user || loading) {
     return (
-      <div className="min-h-screen bg-background">
-        <Navbar />
-        <div className="pt-32 flex justify-center"><Loader2 className="w-6 h-6 animate-spin text-primary" /></div>
-      </div>
+      <DashboardShell maxWidth="5xl">
+        <div className="py-16 flex justify-center"><Loader2 className="w-6 h-6 animate-spin text-primary" /></div>
+      </DashboardShell>
     );
   }
 
