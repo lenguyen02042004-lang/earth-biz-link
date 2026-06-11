@@ -1,5 +1,5 @@
 import { Link } from "@tanstack/react-router";
-import { Globe2, Sparkles, LogIn, LayoutDashboard, LogOut, Settings, Heart, BookOpen } from "lucide-react";
+import { Globe2, Sparkles, LogIn, LayoutDashboard, LogOut } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/use-auth";
@@ -38,30 +38,14 @@ export function Navbar() {
           </Link>
         </nav>
 
-
         <div className="flex items-center gap-1">
           <LanguageSwitcher />
           {!loading && user ? (
             <>
+              <InboxBell />
               <Link to="/dashboard">
                 <Button variant="ghost" size="sm" className="gap-2">
                   <LayoutDashboard className="w-4 h-4" /> <span className="hidden sm:inline">{t("nav.dashboard")}</span>
-                </Button>
-              </Link>
-              <InboxBell />
-              <Link to="/following">
-                <Button variant="ghost" size="icon" title="Đang theo dõi">
-                  <Heart className="w-4 h-4" />
-                </Button>
-              </Link>
-              <Link to="/contacts">
-                <Button variant="ghost" size="icon" title="Danh bạ">
-                  <BookOpen className="w-4 h-4" />
-                </Button>
-              </Link>
-              <Link to="/settings">
-                <Button variant="ghost" size="icon" title={t("nav.settings")}>
-                  <Settings className="w-4 h-4" />
                 </Button>
               </Link>
               <Button
@@ -91,7 +75,6 @@ export function Navbar() {
             </>
           ) : null}
         </div>
-
       </div>
     </header>
   );

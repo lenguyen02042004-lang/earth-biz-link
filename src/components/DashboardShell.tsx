@@ -1,24 +1,32 @@
 import { Link, useLocation } from "@tanstack/react-router";
 import { Navbar } from "@/components/Navbar";
-import { LayoutDashboard, Inbox, BookOpen, Heart, BarChart3, Pencil } from "lucide-react";
-import type { ComponentType } from "react";
+import {
+  LayoutDashboard, Inbox, BookOpen, Heart, BarChart3, Pencil, Settings as SettingsIcon, Shield,
+} from "lucide-react";
+import { useEffect, useState, type ComponentType } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/use-auth";
 
 export const DEMO_OWNER_PREFIX = "00000000-0000-0000-0000-0000000000";
 
 type TabDef = {
-  to: "/dashboard" | "/inbox" | "/contacts" | "/following" | "/business/stats" | "/business/edit";
+  to: "/dashboard" | "/inbox" | "/contacts" | "/following" | "/business/stats" | "/business/edit" | "/settings" | "/admin";
   label: string;
   icon: ComponentType<{ className?: string }>;
   match: (path: string) => boolean;
+  adminOnly?: boolean;
+  group: "main" | "system";
 };
 
 const TABS: TabDef[] = [
-  { to: "/dashboard", label: "Tổng quan", icon: LayoutDashboard, match: (p) => p === "/dashboard" },
-  { to: "/inbox", label: "Hộp thư", icon: Inbox, match: (p) => p.startsWith("/inbox") },
-  { to: "/contacts", label: "Danh bạ", icon: BookOpen, match: (p) => p.startsWith("/contacts") },
-  { to: "/following", label: "Đang theo dõi", icon: Heart, match: (p) => p.startsWith("/following") },
-  { to: "/business/stats", label: "Thống kê", icon: BarChart3, match: (p) => p.startsWith("/business/stats") },
-  { to: "/business/edit", label: "Chỉnh sửa DN", icon: Pencil, match: (p) => p.startsWith("/business/edit") },
+  { to: "/dashboard", label: "Tổng quan", icon: LayoutDashboard, match: (p) => p === "/dashboard", group: "main" },
+  { to: "/inbox", label: "Hộp thư", icon: Inbox, match: (p) => p.startsWith("/inbox"), group: "main" },
+  { to: "/contacts", label: "Danh bạ", icon: BookOpen, match: (p) => p.startsWith("/contacts"), group: "main" },
+  { to: "/following", label: "Đang theo dõi", icon: Heart, match: (p) => p.startsWith("/following"), group: "main" },
+  { to: "/business/stats", label: "Thống kê", icon: BarChart3, match: (p) => p.startsWith("/business/stats"), group: "main" },
+  { to: "/business/edit", label: "Chỉnh sửa DN", icon: Pencil, match: (p) => p.startsWith("/business/edit"), group: "main" },
+  { to: "/settings", label: "Cài đặt", icon: SettingsIcon, match: (p) => p.startsWith("/settings"), group: "system" },
+  { to: "/admin", label: "Quản trị", icon: Shield, match: (p) => p.startsWith("/admin"), adminOnly: true, group: "system" },
 ];
 
 interface Props {
@@ -26,7 +34,6 @@ interface Props {
   subtitle?: string;
   actions?: React.ReactNode;
   children: React.ReactNode;
-  /** Optional max width for the right-hand content column. */
   maxWidth?: "4xl" | "5xl" | "6xl" | "7xl" | "full";
 }
 
@@ -38,10 +45,46 @@ const WIDTH_CLS: Record<NonNullable<Props["maxWidth"]>, string> = {
   "full": "max-w-none",
 };
 
+function useIsAdmin() {
+  const { user } = useAuth();
+  const [isAdmin, setIsAdmin] = useState(false);
+  useEffect(() => {
+    if (!user) { setIsAdmin(false); return; }
+    let cancelled = false;
+    supabase.from("user_roles").select("role").eq("user_id", user.id).eq("role", "admin").maybeSingle()
+      .then(({ data }) => { if (!cancelled) setIsAdmin(!!data); });
+    return () => { cancelled = true; };
+  }, [user]);
+  return isAdmin;
+}
+
 export function DashboardShell({ title, subtitle, actions, children, maxWidth = "6xl" }: Props) {
   const location = useLocation();
   const path = location.pathname;
   const widthCls = WIDTH_CLS[maxWidth];
+  const isAdmin = useIsAdmin();
+  const visible = TABS.filter((t) => !t.adminOnly || isAdmin);
+  const mainTabs = visible.filter((t) => t.group === "main");
+  const systemTabs = visible.filter((t) => t.group === "system");
+
+  const renderLink = (t: TabDef) => {
+    const active = t.match(path);
+    const Icon = t.icon;
+    return (
+      <Link
+        key={t.to}
+        to={t.to}
+        className={`group inline-flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition-smooth ${
+          active
+            ? "bg-gradient-vivid text-white shadow-pink font-semibold"
+            : "text-muted-foreground hover:bg-accent hover:text-foreground"
+        }`}
+      >
+        <Icon className="w-4 h-4 shrink-0" />
+        <span className="truncate">{t.label}</span>
+      </Link>
+    );
+  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -49,32 +92,21 @@ export function DashboardShell({ title, subtitle, actions, children, maxWidth = 
 
       <div className="pt-16 flex">
         {/* Desktop sidebar */}
-        <aside className="hidden lg:flex flex-col w-60 shrink-0 border-r border-border bg-card/40 sticky top-16 h-[calc(100vh-4rem)] py-6 px-3">
-          <div className="px-3 mb-4">
+        <aside className="hidden lg:flex flex-col w-60 shrink-0 border-r border-border bg-card/40 sticky top-16 h-[calc(100vh-4rem)] py-6 px-3 overflow-y-auto">
+          <div className="px-3 mb-3">
             <p className="text-[11px] uppercase tracking-wider font-semibold text-muted-foreground">
               Tài khoản doanh nghiệp
             </p>
           </div>
-          <nav className="flex-1 flex flex-col gap-0.5">
-            {TABS.map((t) => {
-              const active = t.match(path);
-              const Icon = t.icon;
-              return (
-                <Link
-                  key={t.to}
-                  to={t.to}
-                  className={`group inline-flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition-smooth ${
-                    active
-                      ? "bg-gradient-vivid text-white shadow-pink font-semibold"
-                      : "text-muted-foreground hover:bg-accent hover:text-foreground"
-                  }`}
-                >
-                  <Icon className="w-4 h-4 shrink-0" />
-                  <span className="truncate">{t.label}</span>
-                </Link>
-              );
-            })}
-          </nav>
+          <nav className="flex flex-col gap-0.5">{mainTabs.map(renderLink)}</nav>
+          {systemTabs.length > 0 && (
+            <>
+              <div className="px-3 mt-5 mb-2">
+                <p className="text-[11px] uppercase tracking-wider font-semibold text-muted-foreground">Hệ thống</p>
+              </div>
+              <nav className="flex flex-col gap-0.5">{systemTabs.map(renderLink)}</nav>
+            </>
+          )}
         </aside>
 
         {/* Right content area */}
@@ -82,7 +114,7 @@ export function DashboardShell({ title, subtitle, actions, children, maxWidth = 
           {/* Mobile horizontal tabs */}
           <nav className="lg:hidden sticky top-16 z-30 bg-background/90 backdrop-blur border-b border-border">
             <div className="flex gap-1 overflow-x-auto no-scrollbar px-4">
-              {TABS.map((t) => {
+              {visible.map((t) => {
                 const active = t.match(path);
                 const Icon = t.icon;
                 return (
