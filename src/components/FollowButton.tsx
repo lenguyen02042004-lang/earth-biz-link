@@ -57,24 +57,11 @@ export function FollowButton({ businessId, initialCount, variant = "full", class
     return () => { active = false; };
   }, [businessId, isRealBusiness]);
 
-  // Realtime subscription — live count updates from other clients
-  useEffect(() => {
-    if (!isRealBusiness) return;
-    const channel = supabase
-      .channel(`follows:${businessId}`)
-      .on(
-        "postgres_changes",
-        { event: "INSERT", schema: "public", table: "follows", filter: `business_id=eq.${businessId}` },
-        () => setCount((c) => c + 1)
-      )
-      .on(
-        "postgres_changes",
-        { event: "DELETE", schema: "public", table: "follows", filter: `business_id=eq.${businessId}` },
-        () => setCount((c) => Math.max(0, c - 1))
-      )
-      .subscribe();
-    return () => { supabase.removeChannel(channel); };
-  }, [businessId, isRealBusiness]);
+  // Note: realtime subscription on `follows` intentionally removed — the
+  // table is no longer part of the realtime publication to prevent leaking
+  // follow events across users. Count updates rely on the denormalized
+  // `businesses.followers_count` (refreshed on mount + optimistic UI).
+
 
   const handleToggle = async (e: React.MouseEvent) => {
     e.stopPropagation();
