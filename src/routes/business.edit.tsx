@@ -81,6 +81,8 @@ const TABS = [
   { key: "review", label: "Xuất bản", icon: CheckCircle2 },
 ] as const;
 
+const LOCAL_DRAFT_KEY = "biz_wizard_draft_v1";
+
 function EditBusinessPage() {
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -92,6 +94,8 @@ function EditBusinessPage() {
   const [industries, setIndustries] = useState<Industry[]>([]);
   const [loading, setLoading] = useState(!!id);
   const [saving, setSaving] = useState(false);
+  const [hasLocalDraft, setHasLocalDraft] = useState(false);
+  const [draftRestored, setDraftRestored] = useState(false);
 
   useEffect(() => {
     supabase.from("industries").select("id, name, slug").order("name").then(({ data }) => {
@@ -99,6 +103,15 @@ function EditBusinessPage() {
       else setIndustries(INDUSTRY_LIST.map((i, idx) => ({ id: `local-${idx}`, name: i.name, slug: i.slug })));
     });
   }, []);
+
+  // Detect local draft (only for NEW business — id not provided)
+  useEffect(() => {
+    if (id || !user) return;
+    try {
+      const raw = localStorage.getItem(`${LOCAL_DRAFT_KEY}:${user.id}`);
+      if (raw) setHasLocalDraft(true);
+    } catch {}
+  }, [id, user]);
 
   useEffect(() => {
     if (!id || !user) return;
@@ -141,6 +154,43 @@ function EditBusinessPage() {
     }
   }, [form.name, form.id, form.slug]);
 
+  // Autosave local draft (only when creating new)
+  useEffect(() => {
+    if (id || !user || loading) return;
+    if (form === EMPTY) return;
+    try {
+      localStorage.setItem(
+        `${LOCAL_DRAFT_KEY}:${user.id}`,
+        JSON.stringify({ form, tab, savedAt: Date.now() }),
+      );
+    } catch {}
+  }, [form, tab, id, user, loading]);
+
+  const restoreLocalDraft = () => {
+    if (!user) return;
+    try {
+      const raw = localStorage.getItem(`${LOCAL_DRAFT_KEY}:${user.id}`);
+      if (!raw) return;
+      const parsed = JSON.parse(raw);
+      if (parsed?.form) setForm({ ...EMPTY, ...parsed.form });
+      if (parsed?.tab) setTab(parsed.tab);
+      setDraftRestored(true);
+      setHasLocalDraft(false);
+      toast.success("Đã khôi phục bản nháp");
+    } catch {
+      toast.error("Không đọc được bản nháp");
+    }
+  };
+
+  const discardLocalDraft = () => {
+    if (!user) return;
+    try { localStorage.removeItem(`${LOCAL_DRAFT_KEY}:${user.id}`); } catch {}
+    setHasLocalDraft(false);
+    setForm(EMPTY);
+    setTab("basic");
+    toast.success("Đã xóa bản nháp");
+  };
+
   if (!user || loading) {
     return (
       <DashboardShell maxWidth="5xl">
@@ -148,6 +198,7 @@ function EditBusinessPage() {
       </DashboardShell>
     );
   }
+
 
   const save = async (publish: boolean) => {
     if (!form.name.trim()) {
@@ -195,9 +246,16 @@ function EditBusinessPage() {
     }
 
     setSaving(false);
+    // Wipe the local wizard draft once saved to DB
+    try { if (user) localStorage.removeItem(`${LOCAL_DRAFT_KEY}:${user.id}`); } catch {}
     toast.success(publish ? "Đã xuất bản!" : "Đã lưu bản nháp");
-    navigate({ to: "/dashboard" });
+    if (publish) navigate({ to: "/dashboard" });
+    else {
+      // Stay on wizard so user can continue; ensure id is now in URL
+      if (!form.id) navigate({ to: "/business/edit", search: { id: bizId! } });
+    }
   };
+
 
   // Cert helpers
   const addCert = () => setForm((f) => ({ ...f, certifications: [...f.certifications, { name: "", issuer: "", year: null, icon: "🏅" }] }));
@@ -226,14 +284,28 @@ function EditBusinessPage() {
       }
     >
       <div>
+        {hasLocalDraft && !draftRestored && !form.id && (
+          <div className="mb-4 p-4 rounded-2xl border border-primary/30 bg-primary/5 flex flex-wrap items-center justify-between gap-3">
+            <div className="text-sm">
+              <p className="font-semibold">Tìm thấy bản nháp chưa hoàn tất</p>
+              <p className="text-muted-foreground text-xs">Bạn có muốn tiếp tục nhập tiếp thông tin doanh nghiệp đang dở?</p>
+            </div>
+            <div className="flex gap-2">
+              <Button size="sm" variant="ghost" onClick={discardLocalDraft}>Bỏ nháp</Button>
+              <Button size="sm" onClick={restoreLocalDraft} className="gap-1.5"><ArrowRight className="w-3.5 h-3.5" />Tiếp tục</Button>
+            </div>
+          </div>
+        )}
 
+        <ProgressBar tab={tab} setTab={setTab} />
 
         <Tabs value={tab} onValueChange={setTab} className="space-y-5">
           <TabsList className="flex flex-wrap h-auto gap-1 bg-muted/60 p-1">
-            {TABS.map((t) => {
+            {TABS.map((t, i) => {
               const Icon = t.icon;
               return (
                 <TabsTrigger key={t.key} value={t.key} className="gap-1.5 data-[state=active]:bg-card data-[state=active]:shadow-sm">
+                  <span className="text-[10px] font-mono opacity-60">{i + 1}.</span>
                   <Icon className="w-3.5 h-3.5" /> <span className="text-xs sm:text-sm">{t.label}</span>
                 </TabsTrigger>
               );
@@ -242,6 +314,7 @@ function EditBusinessPage() {
 
           <div className="bg-card border border-border rounded-3xl p-5 sm:p-7 shadow-card">
             <TabsContent value="basic" className="space-y-5 mt-0">
+
               <div className="grid sm:grid-cols-[1fr_auto] gap-5 items-start">
                 <div className="space-y-4">
                   <div>
@@ -537,7 +610,12 @@ function EditBusinessPage() {
             </TabsContent>
 
             {/* Step navigation */}
-            <StepNav tab={tab} setTab={setTab} onPublish={() => save(true)} saving={saving} />
+            <StepNav
+              tab={tab} setTab={setTab}
+              onPublish={() => save(true)}
+              onSaveDraft={() => save(false)}
+              saving={saving}
+            />
           </div>
         </Tabs>
       </div>
@@ -545,14 +623,43 @@ function EditBusinessPage() {
   );
 }
 
-function StepNav({ tab, setTab, onPublish, saving }: { tab: string; setTab: (v: string) => void; onPublish: () => void; saving: boolean }) {
+function ProgressBar({ tab, setTab }: { tab: string; setTab: (v: string) => void }) {
+  const idx = TABS.findIndex((t) => t.key === tab);
+  const pct = Math.round(((idx + 1) / TABS.length) * 100);
+  return (
+    <div className="mb-4">
+      <div className="flex items-center justify-between text-xs text-muted-foreground mb-1.5">
+        <span>Bước <span className="font-semibold text-foreground">{idx + 1}</span> / {TABS.length} · {TABS[idx]?.label}</span>
+        <span className="tabular-nums">{pct}%</span>
+      </div>
+      <div className="h-2 rounded-full bg-muted overflow-hidden">
+        <div className="h-full bg-gradient-vivid transition-all duration-300" style={{ width: `${pct}%` }} />
+      </div>
+      <div className="hidden md:flex items-center justify-between mt-2 gap-1">
+        {TABS.map((t, i) => (
+          <button
+            key={t.key}
+            type="button"
+            onClick={() => setTab(t.key)}
+            className={`flex-1 h-1.5 rounded-full transition-smooth ${i <= idx ? "bg-primary" : "bg-muted"} hover:opacity-80`}
+            title={`${i + 1}. ${t.label}`}
+          />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function StepNav({
+  tab, setTab, onPublish, onSaveDraft, saving,
+}: { tab: string; setTab: (v: string) => void; onPublish: () => void; onSaveDraft: () => void; saving: boolean }) {
   const idx = TABS.findIndex((t) => t.key === tab);
   const prev = idx > 0 ? TABS[idx - 1] : null;
   const next = idx < TABS.length - 1 ? TABS[idx + 1] : null;
   const isLast = tab === "review";
 
   return (
-    <div className="mt-6 pt-5 border-t border-border flex items-center justify-between gap-3">
+    <div className="mt-6 pt-5 border-t border-border flex items-center justify-between gap-3 flex-wrap">
       <Button
         type="button" variant="outline" size="sm" className="gap-1.5"
         disabled={!prev}
@@ -561,9 +668,16 @@ function StepNav({ tab, setTab, onPublish, saving }: { tab: string; setTab: (v: 
         <ArrowLeft className="w-4 h-4" /> {prev ? prev.label : "Trước"}
       </Button>
 
-      <p className="text-xs text-muted-foreground hidden sm:block">
-        Bước {idx + 1} / {TABS.length}
-      </p>
+      <div className="flex items-center gap-2">
+        <Button type="button" variant="ghost" size="sm" onClick={onSaveDraft} disabled={saving} className="gap-1.5">
+          {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+          <span className="hidden sm:inline">Lưu nháp & tiếp tục sau</span>
+          <span className="sm:hidden">Lưu nháp</span>
+        </Button>
+        <p className="text-xs text-muted-foreground hidden md:block">
+          Bước {idx + 1} / {TABS.length}
+        </p>
+      </div>
 
       {isLast ? (
         <Button type="button" size="sm" onClick={onPublish} disabled={saving} className="gap-1.5 bg-gradient-vivid text-white border-0 shadow-pink">
@@ -580,3 +694,4 @@ function StepNav({ tab, setTab, onPublish, saving }: { tab: string; setTab: (v: 
     </div>
   );
 }
+
