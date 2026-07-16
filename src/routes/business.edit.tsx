@@ -81,6 +81,8 @@ const TABS = [
   { key: "review", label: "Xuất bản", icon: CheckCircle2 },
 ] as const;
 
+const LOCAL_DRAFT_KEY = "biz_wizard_draft_v1";
+
 function EditBusinessPage() {
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -92,6 +94,8 @@ function EditBusinessPage() {
   const [industries, setIndustries] = useState<Industry[]>([]);
   const [loading, setLoading] = useState(!!id);
   const [saving, setSaving] = useState(false);
+  const [hasLocalDraft, setHasLocalDraft] = useState(false);
+  const [draftRestored, setDraftRestored] = useState(false);
 
   useEffect(() => {
     supabase.from("industries").select("id, name, slug").order("name").then(({ data }) => {
@@ -99,6 +103,15 @@ function EditBusinessPage() {
       else setIndustries(INDUSTRY_LIST.map((i, idx) => ({ id: `local-${idx}`, name: i.name, slug: i.slug })));
     });
   }, []);
+
+  // Detect local draft (only for NEW business — id not provided)
+  useEffect(() => {
+    if (id || !user) return;
+    try {
+      const raw = localStorage.getItem(`${LOCAL_DRAFT_KEY}:${user.id}`);
+      if (raw) setHasLocalDraft(true);
+    } catch {}
+  }, [id, user]);
 
   useEffect(() => {
     if (!id || !user) return;
@@ -141,6 +154,43 @@ function EditBusinessPage() {
     }
   }, [form.name, form.id, form.slug]);
 
+  // Autosave local draft (only when creating new)
+  useEffect(() => {
+    if (id || !user || loading) return;
+    if (form === EMPTY) return;
+    try {
+      localStorage.setItem(
+        `${LOCAL_DRAFT_KEY}:${user.id}`,
+        JSON.stringify({ form, tab, savedAt: Date.now() }),
+      );
+    } catch {}
+  }, [form, tab, id, user, loading]);
+
+  const restoreLocalDraft = () => {
+    if (!user) return;
+    try {
+      const raw = localStorage.getItem(`${LOCAL_DRAFT_KEY}:${user.id}`);
+      if (!raw) return;
+      const parsed = JSON.parse(raw);
+      if (parsed?.form) setForm({ ...EMPTY, ...parsed.form });
+      if (parsed?.tab) setTab(parsed.tab);
+      setDraftRestored(true);
+      setHasLocalDraft(false);
+      toast.success("Đã khôi phục bản nháp");
+    } catch {
+      toast.error("Không đọc được bản nháp");
+    }
+  };
+
+  const discardLocalDraft = () => {
+    if (!user) return;
+    try { localStorage.removeItem(`${LOCAL_DRAFT_KEY}:${user.id}`); } catch {}
+    setHasLocalDraft(false);
+    setForm(EMPTY);
+    setTab("basic");
+    toast.success("Đã xóa bản nháp");
+  };
+
   if (!user || loading) {
     return (
       <DashboardShell maxWidth="5xl">
@@ -148,6 +198,7 @@ function EditBusinessPage() {
       </DashboardShell>
     );
   }
+
 
   const save = async (publish: boolean) => {
     if (!form.name.trim()) {
