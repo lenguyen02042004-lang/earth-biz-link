@@ -207,15 +207,20 @@ function BusinessTableSection({ listFn }: { listFn: ReturnType<typeof useServerF
   );
 }
 
-/* ---------------- Bulk import (existing) ---------------- */
+/* ---------------- Bulk import (creates owner accounts + businesses) ---------------- */
 function BulkImportSection({ importFn }: { importFn: ReturnType<typeof useServerFn<typeof bulkImportBusinesses>> }) {
   const [file, setFile] = useState<File | null>(null);
   const [preview, setPreview] = useState<Record<string, string>[]>([]);
-  const [result, setResult] = useState<{ ok: number; failed: { row: number; error: string }[] } | null>(null);
+  const [result, setResult] = useState<Awaited<ReturnType<typeof bulkImportBusinesses>> | null>(null);
+  const [createOwners, setCreateOwners] = useState(true);
 
   const importMut = useMutation({
-    mutationFn: (rows: Record<string, string>[]) => importFn({ data: { rows } }),
-    onSuccess: (res) => { setResult(res); toast.success(`Đã import ${res.ok} doanh nghiệp.`); },
+    mutationFn: (rows: Record<string, string>[]) =>
+      importFn({ data: { rows, create_missing_owners: createOwners } }),
+    onSuccess: (res) => {
+      setResult(res);
+      toast.success(`Đã import ${res.ok} doanh nghiệp, tạo mới ${res.created_users} tài khoản.`);
+    },
     onError: (e: any) => toast.error(e.message ?? "Import lỗi"),
   });
 
@@ -233,10 +238,30 @@ function BulkImportSection({ importFn }: { importFn: ReturnType<typeof useServer
     URL.revokeObjectURL(url);
   }
 
+  function exportCredentials() {
+    if (!result?.credentials.length) return;
+    const header = "row,slug,email,password,created\n";
+    const body = result.credentials
+      .map((c) => [c.row, c.slug, c.email, c.password, c.created ? "yes" : "no"].map((v) => `"${String(v).replace(/"/g, '""')}"`).join(","))
+      .join("\n");
+    const blob = new Blob([header + body], { type: "text/csv" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a"); a.href = url; a.download = "business-import-credentials.csv"; a.click();
+    URL.revokeObjectURL(url);
+  }
+
   return (
     <section className="rounded-3xl bg-card border border-border p-6">
-      <h2 className="font-display text-xl font-semibold mb-2">Nhập hàng loạt doanh nghiệp (CSV)</h2>
-      <p className="text-sm text-muted-foreground mb-4">Mỗi dòng tương ứng một doanh nghiệp. Tài khoản chủ sở hữu phải đã đăng ký email tương ứng.</p>
+      <h2 className="font-display text-xl font-semibold mb-2">Nhập hàng loạt doanh nghiệp + tài khoản (CSV)</h2>
+      <p className="text-sm text-muted-foreground mb-2">
+        Mỗi dòng CSV tạo <strong>1 doanh nghiệp</strong> và (nếu bật) <strong>tài khoản chủ sở hữu</strong> tương ứng.
+        Cột bắt buộc: <code>owner_email</code>, <code>name</code>, <code>slug</code>. Tùy chọn:{" "}
+        <code>owner_password</code> (mặc định <code>Owner@12345</code>), <code>owner_display_name</code>.
+      </p>
+      <label className="flex items-center gap-2 text-sm mb-4 select-none">
+        <input type="checkbox" checked={createOwners} onChange={(e) => setCreateOwners(e.target.checked)} />
+        Tự tạo tài khoản chủ sở hữu nếu email chưa tồn tại
+      </label>
 
       <div className="flex flex-wrap gap-3 mb-4">
         <Button variant="outline" onClick={downloadTemplate}><Download className="w-4 h-4 mr-2" />Tải mẫu CSV</Button>
@@ -254,6 +279,11 @@ function BulkImportSection({ importFn }: { importFn: ReturnType<typeof useServer
             {importMut.isPending ? "Đang import..." : `Import ${preview.length ? "tất cả" : ""}`}
           </Button>
         )}
+        {result?.credentials.length ? (
+          <Button variant="outline" onClick={exportCredentials}>
+            <Download className="w-4 h-4 mr-2" />Tải CSV tài khoản
+          </Button>
+        ) : null}
       </div>
 
       {preview.length > 0 && (
@@ -267,11 +297,47 @@ function BulkImportSection({ importFn }: { importFn: ReturnType<typeof useServer
       )}
 
       {result && (
-        <div className="p-4 rounded-xl bg-muted">
-          <div className="flex items-center gap-2 mb-2"><CheckCircle2 className="text-green-600 w-5 h-5" /><span className="font-semibold">Thành công: {result.ok}</span></div>
+        <div className="p-4 rounded-xl bg-muted space-y-3">
+          <div className="flex items-center gap-4 flex-wrap">
+            <div className="flex items-center gap-2"><CheckCircle2 className="text-green-600 w-5 h-5" /><span className="font-semibold">Doanh nghiệp: {result.ok}</span></div>
+            <div className="flex items-center gap-2"><Users className="text-primary w-5 h-5" /><span className="font-semibold">Tài khoản mới: {result.created_users}</span></div>
+            {result.failed.length > 0 && (
+              <div className="flex items-center gap-2"><AlertCircle className="text-destructive w-5 h-5" /><span className="font-semibold">Lỗi: {result.failed.length}</span></div>
+            )}
+          </div>
+
+          {result.credentials.length > 0 && (
+            <div className="overflow-auto rounded-lg border border-border bg-background">
+              <table className="w-full text-xs">
+                <thead className="bg-muted text-left">
+                  <tr>
+                    <th className="p-2">Dòng</th><th className="p-2">Doanh nghiệp</th>
+                    <th className="p-2">Email</th><th className="p-2">Mật khẩu</th><th className="p-2">Trạng thái</th><th className="p-2"></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {result.credentials.map((c) => (
+                    <tr key={c.row} className="border-t border-border">
+                      <td className="p-2">{c.row}</td>
+                      <td className="p-2 font-mono">{c.slug}</td>
+                      <td className="p-2 font-mono">{c.email}</td>
+                      <td className="p-2 font-mono">{c.password}</td>
+                      <td className="p-2">{c.created ? <span className="text-green-600">Tài khoản mới</span> : <span className="text-muted-foreground">Đã có</span>}</td>
+                      <td className="p-2">
+                        <Button size="sm" variant="ghost" onClick={() => { navigator.clipboard.writeText(`${c.email} / ${c.password}`); toast.success("Đã sao chép"); }}>
+                          <Copy className="w-3.5 h-3.5" />
+                        </Button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+
           {result.failed.length > 0 && (
             <div>
-              <div className="flex items-center gap-2 mt-2 mb-1"><AlertCircle className="text-destructive w-5 h-5" /><span className="font-semibold">Lỗi: {result.failed.length}</span></div>
+              <div className="font-semibold text-sm mb-1 text-destructive">Chi tiết lỗi</div>
               <ul className="text-xs space-y-1 max-h-48 overflow-auto">
                 {result.failed.map((f, i) => <li key={i}>Dòng {f.row}: {f.error}</li>)}
               </ul>
@@ -282,6 +348,7 @@ function BulkImportSection({ importFn }: { importFn: ReturnType<typeof useServer
     </section>
   );
 }
+
 
 function Shell({ children }: { children: React.ReactNode }) {
   return (
