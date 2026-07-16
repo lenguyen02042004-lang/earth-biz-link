@@ -105,7 +105,7 @@ export const adminListBusinesses = createServerFn({ method: "GET" })
     const { data: users } = await supabaseAdmin.auth.admin.listUsers({ page: 1, perPage: 1000 });
     const emailMap = new Map((users?.users ?? []).map((u) => [u.id, u.email ?? ""]));
     return {
-      businesses: (data ?? []).map((b) => ({ ...b, owner_email: emailMap.get(b.owner_id) ?? "" })),
+      businesses: (data ?? []).map((b) => ({ ...b, owner_email: (b.owner_id ? emailMap.get(b.owner_id) : "") ?? "" })),
     };
   });
 
