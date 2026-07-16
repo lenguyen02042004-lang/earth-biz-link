@@ -4,6 +4,8 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
 const BizRow = z.object({
   owner_email: z.string().email(),
+  owner_password: z.string().min(8).max(72).optional().nullable(),
+  owner_display_name: z.string().max(120).optional().nullable(),
   name: z.string().min(1).max(200),
   slug: z.string().min(1).max(120).regex(/^[a-z0-9-]+$/),
   short_intro: z.string().max(500).optional().default(""),
@@ -27,9 +29,16 @@ async function requireAdmin(supabase: any, userId: string) {
   if (!data) throw new Error("Admin only");
 }
 
+const DEFAULT_OWNER_PASSWORD = "Owner@12345";
+
 export const bulkImportBusinesses = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((input) => z.object({ rows: z.array(z.record(z.string(), z.any())).max(2000) }).parse(input))
+  .inputValidator((input) =>
+    z.object({
+      rows: z.array(z.record(z.string(), z.any())).max(2000),
+      create_missing_owners: z.boolean().optional().default(true),
+    }).parse(input),
+  )
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context;
     await requireAdmin(supabase, userId);
@@ -40,19 +49,50 @@ export const bulkImportBusinesses = createServerFn({ method: "POST" })
     const { data: industries } = await supabaseAdmin.from("industries").select("id, slug");
     const indMap = new Map((industries ?? []).map((i: any) => [i.slug, i.id]));
 
-    const results = { ok: 0, failed: [] as { row: number; error: string }[] };
+    // Cache existing users by email (single fetch)
+    const { data: listed } = await supabaseAdmin.auth.admin.listUsers({ page: 1, perPage: 1000 });
+    const userByEmail = new Map<string, string>(
+      (listed?.users ?? []).map((u) => [(u.email ?? "").toLowerCase(), u.id]),
+    );
+
+    const results = {
+      ok: 0,
+      created_users: 0,
+      failed: [] as { row: number; error: string }[],
+      credentials: [] as { row: number; email: string; password: string; slug: string; created: boolean }[],
+    };
 
     for (let i = 0; i < data.rows.length; i++) {
       try {
         const parsed = BizRow.parse(data.rows[i]);
-        // Find owner by email via admin API
-        const { data: users } = await supabaseAdmin.auth.admin.listUsers({ page: 1, perPage: 1000 });
-        const user = users?.users.find((u) => u.email?.toLowerCase() === parsed.owner_email.toLowerCase());
-        if (!user) { results.failed.push({ row: i + 1, error: `No user with email ${parsed.owner_email}` }); continue; }
+        const emailKey = parsed.owner_email.toLowerCase();
+        let ownerId = userByEmail.get(emailKey);
+        let createdNow = false;
+        const password = parsed.owner_password || DEFAULT_OWNER_PASSWORD;
+
+        if (!ownerId) {
+          if (!data.create_missing_owners) {
+            throw new Error(`No user with email ${parsed.owner_email}`);
+          }
+          const { data: newUser, error: cErr } = await supabaseAdmin.auth.admin.createUser({
+            email: parsed.owner_email,
+            password,
+            email_confirm: true,
+            user_metadata: {
+              display_name: parsed.owner_display_name ?? parsed.name,
+              bulk_import: true,
+            },
+          });
+          if (cErr || !newUser?.user) throw cErr ?? new Error("Không tạo được tài khoản chủ sở hữu");
+          ownerId = newUser.user.id;
+          userByEmail.set(emailKey, ownerId);
+          createdNow = true;
+          results.created_users++;
+        }
 
         const industry_id = parsed.industry_slug ? indMap.get(parsed.industry_slug) ?? null : null;
         const { error } = await supabaseAdmin.from("businesses").upsert({
-          owner_id: user.id,
+          owner_id: ownerId,
           name: parsed.name,
           slug: parsed.slug,
           short_intro: parsed.short_intro,
@@ -72,12 +112,20 @@ export const bulkImportBusinesses = createServerFn({ method: "POST" })
         }, { onConflict: "slug" });
         if (error) throw error;
         results.ok++;
+        results.credentials.push({
+          row: i + 1,
+          email: parsed.owner_email,
+          password: createdNow ? password : "(đã tồn tại)",
+          slug: parsed.slug,
+          created: createdNow,
+        });
       } catch (e: any) {
         results.failed.push({ row: i + 1, error: e.message ?? String(e) });
       }
     }
     return results;
   });
+
 
 export const checkIsAdmin = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
