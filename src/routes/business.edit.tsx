@@ -610,7 +610,12 @@ function EditBusinessPage() {
             </TabsContent>
 
             {/* Step navigation */}
-            <StepNav tab={tab} setTab={setTab} onPublish={() => save(true)} saving={saving} />
+            <StepNav
+              tab={tab} setTab={setTab}
+              onPublish={() => save(true)}
+              onSaveDraft={() => save(false)}
+              saving={saving}
+            />
           </div>
         </Tabs>
       </div>
@@ -618,14 +623,43 @@ function EditBusinessPage() {
   );
 }
 
-function StepNav({ tab, setTab, onPublish, saving }: { tab: string; setTab: (v: string) => void; onPublish: () => void; saving: boolean }) {
+function ProgressBar({ tab, setTab }: { tab: string; setTab: (v: string) => void }) {
+  const idx = TABS.findIndex((t) => t.key === tab);
+  const pct = Math.round(((idx + 1) / TABS.length) * 100);
+  return (
+    <div className="mb-4">
+      <div className="flex items-center justify-between text-xs text-muted-foreground mb-1.5">
+        <span>Bước <span className="font-semibold text-foreground">{idx + 1}</span> / {TABS.length} · {TABS[idx]?.label}</span>
+        <span className="tabular-nums">{pct}%</span>
+      </div>
+      <div className="h-2 rounded-full bg-muted overflow-hidden">
+        <div className="h-full bg-gradient-vivid transition-all duration-300" style={{ width: `${pct}%` }} />
+      </div>
+      <div className="hidden md:flex items-center justify-between mt-2 gap-1">
+        {TABS.map((t, i) => (
+          <button
+            key={t.key}
+            type="button"
+            onClick={() => setTab(t.key)}
+            className={`flex-1 h-1.5 rounded-full transition-smooth ${i <= idx ? "bg-primary" : "bg-muted"} hover:opacity-80`}
+            title={`${i + 1}. ${t.label}`}
+          />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function StepNav({
+  tab, setTab, onPublish, onSaveDraft, saving,
+}: { tab: string; setTab: (v: string) => void; onPublish: () => void; onSaveDraft: () => void; saving: boolean }) {
   const idx = TABS.findIndex((t) => t.key === tab);
   const prev = idx > 0 ? TABS[idx - 1] : null;
   const next = idx < TABS.length - 1 ? TABS[idx + 1] : null;
   const isLast = tab === "review";
 
   return (
-    <div className="mt-6 pt-5 border-t border-border flex items-center justify-between gap-3">
+    <div className="mt-6 pt-5 border-t border-border flex items-center justify-between gap-3 flex-wrap">
       <Button
         type="button" variant="outline" size="sm" className="gap-1.5"
         disabled={!prev}
@@ -634,9 +668,16 @@ function StepNav({ tab, setTab, onPublish, saving }: { tab: string; setTab: (v: 
         <ArrowLeft className="w-4 h-4" /> {prev ? prev.label : "Trước"}
       </Button>
 
-      <p className="text-xs text-muted-foreground hidden sm:block">
-        Bước {idx + 1} / {TABS.length}
-      </p>
+      <div className="flex items-center gap-2">
+        <Button type="button" variant="ghost" size="sm" onClick={onSaveDraft} disabled={saving} className="gap-1.5">
+          {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+          <span className="hidden sm:inline">Lưu nháp & tiếp tục sau</span>
+          <span className="sm:hidden">Lưu nháp</span>
+        </Button>
+        <p className="text-xs text-muted-foreground hidden md:block">
+          Bước {idx + 1} / {TABS.length}
+        </p>
+      </div>
 
       {isLast ? (
         <Button type="button" size="sm" onClick={onPublish} disabled={saving} className="gap-1.5 bg-gradient-vivid text-white border-0 shadow-pink">
@@ -653,3 +694,4 @@ function StepNav({ tab, setTab, onPublish, saving }: { tab: string; setTab: (v: 
     </div>
   );
 }
+
