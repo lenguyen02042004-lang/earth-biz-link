@@ -246,9 +246,16 @@ function EditBusinessPage() {
     }
 
     setSaving(false);
+    // Wipe the local wizard draft once saved to DB
+    try { if (user) localStorage.removeItem(`${LOCAL_DRAFT_KEY}:${user.id}`); } catch {}
     toast.success(publish ? "Đã xuất bản!" : "Đã lưu bản nháp");
-    navigate({ to: "/dashboard" });
+    if (publish) navigate({ to: "/dashboard" });
+    else {
+      // Stay on wizard so user can continue; ensure id is now in URL
+      if (!form.id) navigate({ to: "/business/edit", search: { id: bizId! } });
+    }
   };
+
 
   // Cert helpers
   const addCert = () => setForm((f) => ({ ...f, certifications: [...f.certifications, { name: "", issuer: "", year: null, icon: "🏅" }] }));
