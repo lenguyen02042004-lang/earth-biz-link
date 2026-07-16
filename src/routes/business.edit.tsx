@@ -284,14 +284,28 @@ function EditBusinessPage() {
       }
     >
       <div>
+        {hasLocalDraft && !draftRestored && !form.id && (
+          <div className="mb-4 p-4 rounded-2xl border border-primary/30 bg-primary/5 flex flex-wrap items-center justify-between gap-3">
+            <div className="text-sm">
+              <p className="font-semibold">Tìm thấy bản nháp chưa hoàn tất</p>
+              <p className="text-muted-foreground text-xs">Bạn có muốn tiếp tục nhập tiếp thông tin doanh nghiệp đang dở?</p>
+            </div>
+            <div className="flex gap-2">
+              <Button size="sm" variant="ghost" onClick={discardLocalDraft}>Bỏ nháp</Button>
+              <Button size="sm" onClick={restoreLocalDraft} className="gap-1.5"><ArrowRight className="w-3.5 h-3.5" />Tiếp tục</Button>
+            </div>
+          </div>
+        )}
 
+        <ProgressBar tab={tab} setTab={setTab} />
 
         <Tabs value={tab} onValueChange={setTab} className="space-y-5">
           <TabsList className="flex flex-wrap h-auto gap-1 bg-muted/60 p-1">
-            {TABS.map((t) => {
+            {TABS.map((t, i) => {
               const Icon = t.icon;
               return (
                 <TabsTrigger key={t.key} value={t.key} className="gap-1.5 data-[state=active]:bg-card data-[state=active]:shadow-sm">
+                  <span className="text-[10px] font-mono opacity-60">{i + 1}.</span>
                   <Icon className="w-3.5 h-3.5" /> <span className="text-xs sm:text-sm">{t.label}</span>
                 </TabsTrigger>
               );
@@ -300,6 +314,7 @@ function EditBusinessPage() {
 
           <div className="bg-card border border-border rounded-3xl p-5 sm:p-7 shadow-card">
             <TabsContent value="basic" className="space-y-5 mt-0">
+
               <div className="grid sm:grid-cols-[1fr_auto] gap-5 items-start">
                 <div className="space-y-4">
                   <div>
