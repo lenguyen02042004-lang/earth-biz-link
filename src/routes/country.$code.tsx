@@ -102,18 +102,36 @@ function CountryPage() {
         {/* Header */}
         <header className="bg-card border-b border-border">
           <div className="max-w-7xl mx-auto px-4 py-8">
-            <div className="flex items-center gap-2 text-sm text-muted-foreground mb-3">
-              <Link to="/explore" className="hover:text-foreground">Khám phá</Link>
+            <nav aria-label="Breadcrumb" className="flex items-center flex-wrap gap-1.5 text-sm text-muted-foreground mb-3">
+              <Link to="/" className="hover:text-foreground">Trang chủ</Link>
               <span>/</span>
-              <span className="text-foreground">{country.name}</span>
-            </div>
-            <div className="flex flex-wrap items-center gap-4">
-              <div className="text-[11px] font-mono font-bold px-2.5 py-1 rounded bg-muted text-muted-foreground">
-                {country.code}
+              <Link to="/countries" className="hover:text-foreground">Quốc gia</Link>
+              <span>/</span>
+              <span className="text-foreground font-medium">{country.name}</span>
+            </nav>
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div className="flex flex-wrap items-center gap-4">
+                <div className="text-[11px] font-mono font-bold px-2.5 py-1 rounded bg-muted text-muted-foreground">
+                  {country.code}
+                </div>
+                <h1 className="font-display text-3xl sm:text-4xl font-bold">
+                  Doanh nghiệp tại {country.name}
+                </h1>
               </div>
-              <h1 className="font-display text-3xl sm:text-4xl font-bold">
-                Doanh nghiệp tại {country.name}
-              </h1>
+              <div className="flex flex-wrap gap-2">
+                <Button asChild variant="outline" size="sm">
+                  <Link to="/countries">
+                    <Globe2 className="w-4 h-4 mr-1.5" />
+                    Danh sách quốc gia
+                  </Link>
+                </Button>
+                <Button asChild variant="outline" size="sm">
+                  <Link to="/explore">
+                    <MapIcon className="w-4 h-4 mr-1.5" />
+                    Quay lại bản đồ
+                  </Link>
+                </Button>
+              </div>
             </div>
             <div className="flex flex-wrap gap-6 mt-4 text-sm text-muted-foreground">
               <span className="inline-flex items-center gap-1.5">
