@@ -102,6 +102,26 @@ function CountryPage() {
 
   const availableIndustries = INDUSTRY_LIST.filter((i) => industryCounts.has(i.slug));
 
+  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+  useEffect(() => { if (page > totalPages) setPage(1); }, [page, totalPages]);
+  const pageItems = useMemo(
+    () => filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE),
+    [filtered, page],
+  );
+  const pageNumbers = useMemo<(number | "…")[]>(() => {
+    const range: (number | "…")[] = [];
+    const add = (n: number | "…") => range.push(n);
+    const around = 1;
+    for (let i = 1; i <= totalPages; i++) {
+      if (i === 1 || i === totalPages || (i >= page - around && i <= page + around)) {
+        add(i);
+      } else if (range[range.length - 1] !== "…") {
+        add("…");
+      }
+    }
+    return range;
+  }, [page, totalPages]);
+
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
