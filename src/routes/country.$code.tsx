@@ -57,9 +57,12 @@ function CountryNotFound() {
         <p className="text-muted-foreground mb-4">
           Mã quốc gia "{code}" không có trong danh sách.
         </p>
-        <Link to="/explore" className="text-primary hover:underline">
-          ← Quay lại khám phá
-        </Link>
+        <div className="flex items-center justify-center gap-4">
+          <Link to="/countries" className="text-primary hover:underline inline-flex items-center gap-1">
+            <ArrowLeft className="w-4 h-4" /> Danh sách quốc gia
+          </Link>
+          <Link to="/explore" className="text-primary hover:underline">Khám phá bản đồ</Link>
+        </div>
       </div>
     </div>
   );
