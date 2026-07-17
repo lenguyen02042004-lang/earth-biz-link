@@ -6,10 +6,11 @@ import { BusinessCard } from "@/components/BusinessCard";
 import { FollowButton } from "@/components/FollowButton";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Button } from "@/components/ui/button";
 import { DEMO_BUSINESSES, type DemoBusiness } from "@/lib/mock-businesses";
 import { COUNTRY_LIST, INDUSTRY_LIST } from "@/lib/constants";
 import { formatCount } from "@/lib/format";
-import { Eye, Search, MapPin, Building2 } from "lucide-react";
+import { Eye, Search, MapPin, Building2, ArrowLeft, Globe2, Map as MapIcon } from "lucide-react";
 
 export const Route = createFileRoute("/country/$code")({
   loader: ({ params }) => {
@@ -56,9 +57,12 @@ function CountryNotFound() {
         <p className="text-muted-foreground mb-4">
           Mã quốc gia "{code}" không có trong danh sách.
         </p>
-        <Link to="/explore" className="text-primary hover:underline">
-          ← Quay lại khám phá
-        </Link>
+        <div className="flex items-center justify-center gap-4">
+          <Link to="/countries" className="text-primary hover:underline inline-flex items-center gap-1">
+            <ArrowLeft className="w-4 h-4" /> Danh sách quốc gia
+          </Link>
+          <Link to="/explore" className="text-primary hover:underline">Khám phá bản đồ</Link>
+        </div>
       </div>
     </div>
   );
@@ -101,18 +105,36 @@ function CountryPage() {
         {/* Header */}
         <header className="bg-card border-b border-border">
           <div className="max-w-7xl mx-auto px-4 py-8">
-            <div className="flex items-center gap-2 text-sm text-muted-foreground mb-3">
-              <Link to="/explore" className="hover:text-foreground">Khám phá</Link>
+            <nav aria-label="Breadcrumb" className="flex items-center flex-wrap gap-1.5 text-sm text-muted-foreground mb-3">
+              <Link to="/" className="hover:text-foreground">Trang chủ</Link>
               <span>/</span>
-              <span className="text-foreground">{country.name}</span>
-            </div>
-            <div className="flex flex-wrap items-center gap-4">
-              <div className="text-[11px] font-mono font-bold px-2.5 py-1 rounded bg-muted text-muted-foreground">
-                {country.code}
+              <Link to="/countries" className="hover:text-foreground">Quốc gia</Link>
+              <span>/</span>
+              <span className="text-foreground font-medium">{country.name}</span>
+            </nav>
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div className="flex flex-wrap items-center gap-4">
+                <div className="text-[11px] font-mono font-bold px-2.5 py-1 rounded bg-muted text-muted-foreground">
+                  {country.code}
+                </div>
+                <h1 className="font-display text-3xl sm:text-4xl font-bold">
+                  Doanh nghiệp tại {country.name}
+                </h1>
               </div>
-              <h1 className="font-display text-3xl sm:text-4xl font-bold">
-                Doanh nghiệp tại {country.name}
-              </h1>
+              <div className="flex flex-wrap gap-2">
+                <Button asChild variant="outline" size="sm">
+                  <Link to="/countries">
+                    <Globe2 className="w-4 h-4 mr-1.5" />
+                    Danh sách quốc gia
+                  </Link>
+                </Button>
+                <Button asChild variant="outline" size="sm">
+                  <Link to="/explore">
+                    <MapIcon className="w-4 h-4 mr-1.5" />
+                    Quay lại bản đồ
+                  </Link>
+                </Button>
+              </div>
             </div>
             <div className="flex flex-wrap gap-6 mt-4 text-sm text-muted-foreground">
               <span className="inline-flex items-center gap-1.5">
