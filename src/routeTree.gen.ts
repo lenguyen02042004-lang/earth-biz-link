@@ -18,9 +18,11 @@ import { Route as InboxRouteImport } from './routes/inbox'
 import { Route as FollowingRouteImport } from './routes/following'
 import { Route as ExploreRouteImport } from './routes/explore'
 import { Route as DashboardRouteImport } from './routes/dashboard'
+import { Route as CountriesRouteImport } from './routes/countries'
 import { Route as ContactsRouteImport } from './routes/contacts'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as CountryCodeRouteImport } from './routes/country.$code'
 import { Route as BusinessStatsRouteImport } from './routes/business.stats'
 import { Route as BusinessEditRouteImport } from './routes/business.edit'
 import { Route as BSlugRouteImport } from './routes/b.$slug'
@@ -70,6 +72,11 @@ const DashboardRoute = DashboardRouteImport.update({
   path: '/dashboard',
   getParentRoute: () => rootRouteImport,
 } as any)
+const CountriesRoute = CountriesRouteImport.update({
+  id: '/countries',
+  path: '/countries',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ContactsRoute = ContactsRouteImport.update({
   id: '/contacts',
   path: '/contacts',
@@ -83,6 +90,11 @@ const AdminRoute = AdminRouteImport.update({
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CountryCodeRoute = CountryCodeRouteImport.update({
+  id: '/country/$code',
+  path: '/country/$code',
   getParentRoute: () => rootRouteImport,
 } as any)
 const BusinessStatsRoute = BusinessStatsRouteImport.update({
@@ -105,6 +117,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/admin': typeof AdminRoute
   '/contacts': typeof ContactsRoute
+  '/countries': typeof CountriesRoute
   '/dashboard': typeof DashboardRoute
   '/explore': typeof ExploreRoute
   '/following': typeof FollowingRoute
@@ -117,11 +130,13 @@ export interface FileRoutesByFullPath {
   '/b/$slug': typeof BSlugRoute
   '/business/edit': typeof BusinessEditRoute
   '/business/stats': typeof BusinessStatsRoute
+  '/country/$code': typeof CountryCodeRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/admin': typeof AdminRoute
   '/contacts': typeof ContactsRoute
+  '/countries': typeof CountriesRoute
   '/dashboard': typeof DashboardRoute
   '/explore': typeof ExploreRoute
   '/following': typeof FollowingRoute
@@ -134,12 +149,14 @@ export interface FileRoutesByTo {
   '/b/$slug': typeof BSlugRoute
   '/business/edit': typeof BusinessEditRoute
   '/business/stats': typeof BusinessStatsRoute
+  '/country/$code': typeof CountryCodeRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/admin': typeof AdminRoute
   '/contacts': typeof ContactsRoute
+  '/countries': typeof CountriesRoute
   '/dashboard': typeof DashboardRoute
   '/explore': typeof ExploreRoute
   '/following': typeof FollowingRoute
@@ -152,6 +169,7 @@ export interface FileRoutesById {
   '/b/$slug': typeof BSlugRoute
   '/business/edit': typeof BusinessEditRoute
   '/business/stats': typeof BusinessStatsRoute
+  '/country/$code': typeof CountryCodeRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -159,6 +177,7 @@ export interface FileRouteTypes {
     | '/'
     | '/admin'
     | '/contacts'
+    | '/countries'
     | '/dashboard'
     | '/explore'
     | '/following'
@@ -171,11 +190,13 @@ export interface FileRouteTypes {
     | '/b/$slug'
     | '/business/edit'
     | '/business/stats'
+    | '/country/$code'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/admin'
     | '/contacts'
+    | '/countries'
     | '/dashboard'
     | '/explore'
     | '/following'
@@ -188,11 +209,13 @@ export interface FileRouteTypes {
     | '/b/$slug'
     | '/business/edit'
     | '/business/stats'
+    | '/country/$code'
   id:
     | '__root__'
     | '/'
     | '/admin'
     | '/contacts'
+    | '/countries'
     | '/dashboard'
     | '/explore'
     | '/following'
@@ -205,12 +228,14 @@ export interface FileRouteTypes {
     | '/b/$slug'
     | '/business/edit'
     | '/business/stats'
+    | '/country/$code'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AdminRoute: typeof AdminRoute
   ContactsRoute: typeof ContactsRoute
+  CountriesRoute: typeof CountriesRoute
   DashboardRoute: typeof DashboardRoute
   ExploreRoute: typeof ExploreRoute
   FollowingRoute: typeof FollowingRoute
@@ -223,6 +248,7 @@ export interface RootRouteChildren {
   BSlugRoute: typeof BSlugRoute
   BusinessEditRoute: typeof BusinessEditRoute
   BusinessStatsRoute: typeof BusinessStatsRoute
+  CountryCodeRoute: typeof CountryCodeRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -290,6 +316,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/countries': {
+      id: '/countries'
+      path: '/countries'
+      fullPath: '/countries'
+      preLoaderRoute: typeof CountriesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/contacts': {
       id: '/contacts'
       path: '/contacts'
@@ -309,6 +342,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/country/$code': {
+      id: '/country/$code'
+      path: '/country/$code'
+      fullPath: '/country/$code'
+      preLoaderRoute: typeof CountryCodeRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/business/stats': {
@@ -339,6 +379,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AdminRoute: AdminRoute,
   ContactsRoute: ContactsRoute,
+  CountriesRoute: CountriesRoute,
   DashboardRoute: DashboardRoute,
   ExploreRoute: ExploreRoute,
   FollowingRoute: FollowingRoute,
@@ -351,6 +392,7 @@ const rootRouteChildren: RootRouteChildren = {
   BSlugRoute: BSlugRoute,
   BusinessEditRoute: BusinessEditRoute,
   BusinessStatsRoute: BusinessStatsRoute,
+  CountryCodeRoute: CountryCodeRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

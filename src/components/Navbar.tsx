@@ -33,6 +33,10 @@ export function Navbar() {
           <Link to="/explore" activeProps={{ className: "text-primary" }} className="hover:text-primary transition-smooth">
             {t("nav.explore")}
           </Link>
+          <Link to="/countries" activeProps={{ className: "text-primary" }} className="hover:text-primary transition-smooth">
+            Quốc gia
+          </Link>
+
           <Link to="/pricing" activeProps={{ className: "text-primary" }} className="hover:text-primary transition-smooth">
             {t("nav.pricing")}
           </Link>
