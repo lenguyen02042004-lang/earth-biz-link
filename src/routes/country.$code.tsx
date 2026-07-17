@@ -1,5 +1,6 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
+import { ChevronLeft, ChevronRight, LayoutGrid, List as ListIcon } from "lucide-react";
 import { Navbar } from "@/components/Navbar";
 import { MapView } from "@/components/MapView";
 import { BusinessCard } from "@/components/BusinessCard";
