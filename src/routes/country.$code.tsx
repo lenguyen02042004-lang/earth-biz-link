@@ -153,7 +153,7 @@ function CountryPage() {
           </div>
         </header>
 
-        <div className="max-w-7xl mx-auto px-4 py-6 grid lg:grid-cols-[1fr_1.2fr] gap-6">
+        <div className="max-w-7xl mx-auto px-4 py-6 grid lg:grid-cols-[1.4fr_1fr] gap-6">
           {/* List */}
           <section>
             <div className="flex flex-col sm:flex-row gap-2 mb-4">
@@ -162,12 +162,12 @@ function CountryPage() {
                 <Input
                   placeholder="Tìm doanh nghiệp..."
                   value={search}
-                  onChange={(e) => setSearch(e.target.value)}
+                  onChange={(e) => { setSearch(e.target.value); setPage(1); }}
                   className="pl-9"
                 />
               </div>
-              <Select value={industry} onValueChange={setIndustry}>
-                <SelectTrigger className="sm:w-[220px]">
+              <Select value={industry} onValueChange={(v) => { setIndustry(v); setPage(1); }}>
+                <SelectTrigger className="sm:w-[200px]">
                   <SelectValue placeholder="Ngành nghề" />
                 </SelectTrigger>
                 <SelectContent className="max-h-72">
@@ -179,6 +179,24 @@ function CountryPage() {
                   ))}
                 </SelectContent>
               </Select>
+              <div className="inline-flex rounded-md border border-border overflow-hidden">
+                <button
+                  type="button"
+                  onClick={() => setView("grid")}
+                  aria-pressed={view === "grid"}
+                  className={`px-3 flex items-center gap-1.5 text-sm ${view === "grid" ? "bg-primary text-primary-foreground" : "bg-card hover:bg-accent"}`}
+                >
+                  <LayoutGrid className="w-4 h-4" />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setView("list")}
+                  aria-pressed={view === "list"}
+                  className={`px-3 flex items-center gap-1.5 text-sm border-l border-border ${view === "list" ? "bg-primary text-primary-foreground" : "bg-card hover:bg-accent"}`}
+                >
+                  <ListIcon className="w-4 h-4" />
+                </button>
+              </div>
             </div>
 
             {filtered.length === 0 ? (
@@ -186,30 +204,103 @@ function CountryPage() {
                 Chưa có doanh nghiệp nào phù hợp.
               </div>
             ) : (
-              <div className="space-y-2">
-                {filtered.map((b) => (
-                  <div
-                    key={b.id}
-                    onClick={() => setSelected(b)}
-                    role="button"
-                    tabIndex={0}
-                    onKeyDown={(e) => { if (e.key === "Enter") setSelected(b); }}
-                    className="p-3 rounded-2xl bg-card hover:bg-accent transition-smooth border border-border/40 hover:border-primary/40 hover:shadow-soft flex gap-3 items-center cursor-pointer"
-                  >
-                    <div className={b.icon_tier === "premium" ? "ring-premium flex-shrink-0" : "flex-shrink-0"}>
-                      <img src={b.logo_url} alt="" className="w-12 h-12 rounded-full bg-white object-cover" />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="font-semibold text-sm truncate">{b.name}</p>
-                      <p className="text-xs text-muted-foreground truncate">{b.industry} · {b.province}</p>
-                      <p className="text-xs text-muted-foreground flex items-center gap-1 mt-0.5">
-                        <Eye className="w-3 h-3" /> {formatCount(b.views_count)}
-                      </p>
-                    </div>
-                    <FollowButton businessId={b.id} variant="icon" className="shrink-0" />
+              <>
+                <div className="flex items-center justify-between mb-3 text-xs text-muted-foreground">
+                  <span>
+                    Hiển thị {(page - 1) * PAGE_SIZE + 1}–{Math.min(page * PAGE_SIZE, filtered.length)} / {filtered.length}
+                  </span>
+                  <span>Trang {page} / {totalPages}</span>
+                </div>
+
+                {view === "grid" ? (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3">
+                    {pageItems.map((b) => (
+                      <div
+                        key={b.id}
+                        onClick={() => setSelected(b)}
+                        role="button"
+                        tabIndex={0}
+                        onKeyDown={(e) => { if (e.key === "Enter") setSelected(b); }}
+                        className="group relative p-4 rounded-2xl bg-card hover:bg-accent transition-smooth border border-border/40 hover:border-primary/40 hover:shadow-soft cursor-pointer flex flex-col items-center text-center"
+                      >
+                        <div className="absolute top-2 right-2" onClick={(e) => e.stopPropagation()}>
+                          <FollowButton businessId={b.id} variant="icon" />
+                        </div>
+                        <div className={b.icon_tier === "premium" ? "ring-premium" : ""}>
+                          <img src={b.logo_url} alt="" className="w-16 h-16 rounded-full bg-white object-cover" />
+                        </div>
+                        <p className="mt-3 font-semibold text-sm line-clamp-2">{b.name}</p>
+                        <p className="text-xs text-muted-foreground mt-0.5 line-clamp-1">{b.industry}</p>
+                        <p className="text-xs text-muted-foreground line-clamp-1">{b.province}</p>
+                        <p className="text-xs text-muted-foreground flex items-center gap-1 mt-2">
+                          <Eye className="w-3 h-3" /> {formatCount(b.views_count)}
+                        </p>
+                      </div>
+                    ))}
                   </div>
-                ))}
-              </div>
+                ) : (
+                  <div className="space-y-2">
+                    {pageItems.map((b) => (
+                      <div
+                        key={b.id}
+                        onClick={() => setSelected(b)}
+                        role="button"
+                        tabIndex={0}
+                        onKeyDown={(e) => { if (e.key === "Enter") setSelected(b); }}
+                        className="p-3 rounded-2xl bg-card hover:bg-accent transition-smooth border border-border/40 hover:border-primary/40 hover:shadow-soft flex gap-3 items-center cursor-pointer"
+                      >
+                        <div className={b.icon_tier === "premium" ? "ring-premium flex-shrink-0" : "flex-shrink-0"}>
+                          <img src={b.logo_url} alt="" className="w-12 h-12 rounded-full bg-white object-cover" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="font-semibold text-sm truncate">{b.name}</p>
+                          <p className="text-xs text-muted-foreground truncate">{b.industry} · {b.province}</p>
+                          <p className="text-xs text-muted-foreground flex items-center gap-1 mt-0.5">
+                            <Eye className="w-3 h-3" /> {formatCount(b.views_count)}
+                          </p>
+                        </div>
+                        <FollowButton businessId={b.id} variant="icon" className="shrink-0" />
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {totalPages > 1 && (
+                  <div className="flex items-center justify-center gap-1 mt-6 flex-wrap">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setPage((p) => Math.max(1, p - 1))}
+                      disabled={page === 1}
+                    >
+                      <ChevronLeft className="w-4 h-4" />
+                    </Button>
+                    {pageNumbers.map((n, i) =>
+                      n === "…" ? (
+                        <span key={`e${i}`} className="px-2 text-muted-foreground text-sm">…</span>
+                      ) : (
+                        <Button
+                          key={n}
+                          variant={n === page ? "default" : "outline"}
+                          size="sm"
+                          className="min-w-9"
+                          onClick={() => setPage(n as number)}
+                        >
+                          {n}
+                        </Button>
+                      ),
+                    )}
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                      disabled={page === totalPages}
+                    >
+                      <ChevronRight className="w-4 h-4" />
+                    </Button>
+                  </div>
+                )}
+              </>
             )}
           </section>
 
