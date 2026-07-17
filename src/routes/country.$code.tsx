@@ -74,6 +74,9 @@ function CountryPage() {
   const [selected, setSelected] = useState<DemoBusiness | null>(null);
   const [industry, setIndustry] = useState("all");
   const [search, setSearch] = useState("");
+  const [view, setView] = useState<"grid" | "list">("grid");
+  const [page, setPage] = useState(1);
+  const PAGE_SIZE = 12;
 
   const inCountry = useMemo(
     () => DEMO_BUSINESSES.filter((b) => b.country_code === country.code),
