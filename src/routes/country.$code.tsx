@@ -6,10 +6,11 @@ import { BusinessCard } from "@/components/BusinessCard";
 import { FollowButton } from "@/components/FollowButton";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Button } from "@/components/ui/button";
 import { DEMO_BUSINESSES, type DemoBusiness } from "@/lib/mock-businesses";
 import { COUNTRY_LIST, INDUSTRY_LIST } from "@/lib/constants";
 import { formatCount } from "@/lib/format";
-import { Eye, Search, MapPin, Building2 } from "lucide-react";
+import { Eye, Search, MapPin, Building2, ArrowLeft, Globe2, Map as MapIcon } from "lucide-react";
 
 export const Route = createFileRoute("/country/$code")({
   loader: ({ params }) => {
