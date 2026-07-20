@@ -1,6 +1,19 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
+import { randomBytes } from "crypto";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+
+function generateStrongPassword(length = 20): string {
+  // URL-safe random string, mixed case + digits, no ambiguous chars
+  const alphabet = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789";
+  const bytes = randomBytes(length);
+  let out = "";
+  for (let i = 0; i < length; i++) out += alphabet[bytes[i] % alphabet.length];
+  // Guarantee complexity requirements
+  return `${out}!A9`;
+}
+
+
 
 const BizRow = z.object({
   owner_email: z.string().email(),
