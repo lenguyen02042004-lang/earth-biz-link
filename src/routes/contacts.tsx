@@ -11,10 +11,12 @@ export const Route = createFileRoute("/contacts")({
   component: ContactsPage,
   head: () => ({
     meta: [
-      { title: "Danh bạ doanh nghiệp — GlobalBiz.Connect" },
-      { name: "description", content: "Danh bạ doanh nghiệp bạn đã lưu — tra cứu và tìm kiếm nhanh." },
+      { title: "Danh bạ doanh nghiệp đã lưu — GlobalBiz.Connect" },
+      { name: "description", content: "Danh bạ các doanh nghiệp bạn đã lưu — tra cứu, tìm kiếm nhanh theo tên, ngành nghề, quốc gia và liên hệ trực tiếp bất cứ lúc nào." },
+      { name: "robots", content: "noindex" },
     ],
   }),
+
 });
 
 type SavedContact = {
@@ -113,7 +115,7 @@ function ContactsPage() {
               <div key={c.id} className="rounded-xl border border-border bg-card p-4 flex flex-col gap-3 hover:shadow-pink transition-smooth">
                 <div className="flex items-start gap-3">
                   {c.logo_url ? (
-                    <img src={c.logo_url} alt="" className="w-12 h-12 rounded-lg object-cover border border-border" />
+                    <img src={c.logo_url} alt={`Logo ${c.business_name}`} className="w-12 h-12 rounded-lg object-cover border border-border" />
                   ) : (
                     <div className="w-12 h-12 rounded-lg bg-accent flex items-center justify-center">
                       <Building2 className="w-5 h-5 text-muted-foreground" />

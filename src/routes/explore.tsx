@@ -22,10 +22,15 @@ export const Route = createFileRoute("/explore")({
   validateSearch: (s) => exploreSearchSchema.parse(s),
   head: () => ({
     meta: [
-      { title: "Khám phá doanh nghiệp — GlobalBiz.Connect" },
-      { name: "description", content: "Bản đồ doanh nghiệp toàn cầu với bộ lọc theo quốc gia và ngành nghề." },
+      { title: "Khám phá doanh nghiệp trên bản đồ — GlobalBiz.Connect" },
+      { name: "description", content: "Bản đồ 2D doanh nghiệp toàn cầu — lọc theo quốc gia, ngành nghề, tìm kiếm nhanh và theo dõi các doanh nghiệp phù hợp với bạn." },
+      { property: "og:title", content: "Khám phá doanh nghiệp trên bản đồ — GlobalBiz.Connect" },
+      { property: "og:description", content: "Bản đồ 2D doanh nghiệp toàn cầu — lọc theo quốc gia, ngành nghề, tìm kiếm nhanh và theo dõi các doanh nghiệp phù hợp với bạn." },
+      { property: "og:url", content: "https://earth-biz-link.lovable.app/explore" },
     ],
+    links: [{ rel: "canonical", href: "https://earth-biz-link.lovable.app/explore" }],
   }),
+
 });
 
 function ExplorePage() {
@@ -70,7 +75,7 @@ function ExplorePage() {
                 className="w-full text-left p-3 rounded-2xl bg-background hover:bg-accent transition-smooth border border-border/40 hover:border-primary/40 hover:shadow-soft flex gap-3 items-center cursor-pointer"
               >
                 <div className={b.icon_tier === "premium" ? "ring-premium flex-shrink-0" : "flex-shrink-0"}>
-                  <img src={b.logo_url} alt="" className="w-12 h-12 rounded-full bg-white object-cover" />
+                  <img src={b.logo_url} alt={`Logo ${b.name}`} className="w-12 h-12 rounded-full bg-white object-cover" />
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="font-semibold text-sm truncate">{b.name}</p>

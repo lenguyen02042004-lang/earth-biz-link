@@ -11,7 +11,17 @@ import { Sparkles } from "lucide-react";
 
 export const Route = createFileRoute("/login")({
   component: LoginPage,
-  head: () => ({ meta: [{ title: "Đăng nhập — GlobalBiz.Connect" }] }),
+  head: () => ({
+    meta: [
+      { title: "Đăng nhập tài khoản doanh nghiệp — GlobalBiz.Connect" },
+      { name: "description", content: "Đăng nhập vào GlobalBiz.Connect để quản lý danh thiếp doanh nghiệp, hộp thư kết nối và danh bạ đối tác B2B toàn cầu của bạn." },
+      { property: "og:title", content: "Đăng nhập tài khoản doanh nghiệp — GlobalBiz.Connect" },
+      { property: "og:description", content: "Đăng nhập để quản lý danh thiếp doanh nghiệp, hộp thư kết nối và danh bạ đối tác B2B toàn cầu." },
+      { property: "og:url", content: "https://earth-biz-link.lovable.app/login" },
+    ],
+    links: [{ rel: "canonical", href: "https://earth-biz-link.lovable.app/login" }],
+  }),
+
 });
 
 function LoginPage() {

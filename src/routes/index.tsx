@@ -24,11 +24,18 @@ export const Route = createFileRoute("/")({
   component: HomePage,
   head: () => ({
     meta: [
-      { title: "GlobalBiz.Connect — Bản đồ doanh nghiệp toàn cầu" },
-      { name: "description", content: "Khám phá và kết nối với doanh nghiệp khắp thế giới qua bản đồ tương tác 3D." },
+      { title: "GlobalBiz.Connect — Bản đồ doanh nghiệp toàn cầu 3D" },
+      { name: "description", content: "Bản đồ 3D tương tác kết nối hàng ngàn doanh nghiệp toàn cầu theo quốc gia và ngành nghề. Tạo danh thiếp online, gửi card visit và mở rộng đối tác B2B quốc tế chỉ từ $5/năm." },
+      { property: "og:title", content: "GlobalBiz.Connect — Bản đồ doanh nghiệp toàn cầu 3D" },
+      { property: "og:description", content: "Bản đồ 3D tương tác kết nối doanh nghiệp toàn cầu theo quốc gia & ngành nghề. Tạo danh thiếp online, gửi card visit, mở rộng đối tác B2B quốc tế." },
+      { property: "og:url", content: "https://earth-biz-link.lovable.app/" },
+      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/00a22ce0-49e6-49b7-90b4-01df776e6cc4/id-preview-2ea6aefd--f585c186-6c05-4cf6-909f-f5ed83a67e7f.lovable.app-1780538420894.png" },
+      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/00a22ce0-49e6-49b7-90b4-01df776e6cc4/id-preview-2ea6aefd--f585c186-6c05-4cf6-909f-f5ed83a67e7f.lovable.app-1780538420894.png" },
     ],
+    links: [{ rel: "canonical", href: "https://earth-biz-link.lovable.app/" }],
   }),
 });
+
 
 const INDUSTRY_ICONS: Record<string, React.ComponentType<{ className?: string }>> = {
   technology: Cpu, finance: Landmark, "real-estate": Building2, manufacturing: Factory,
@@ -168,10 +175,11 @@ function HomePage() {
         <div className="max-w-6xl mx-auto">
           {/* Search row */}
           <div className="animate-fade-up">
-            <h2 className="text-2xl sm:text-3xl font-display font-bold text-white mb-1">
-              Tìm doanh nghiệp trên khắp <span className="text-gradient">thế giới</span>
-            </h2>
+            <h1 className="text-2xl sm:text-3xl font-display font-bold text-white mb-1">
+              GlobalBiz.Connect — Tìm doanh nghiệp trên khắp <span className="text-gradient">thế giới</span>
+            </h1>
             <p className="text-white/60 text-sm mb-5">
+
               Lọc theo tên, ngành nghề và quốc gia. {DEMO_BUSINESSES.length} doanh nghiệp đã được lập chỉ mục.
             </p>
 

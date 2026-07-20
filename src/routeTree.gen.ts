@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as SignupRouteImport } from './routes/signup'
 import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
@@ -27,6 +28,11 @@ import { Route as BusinessStatsRouteImport } from './routes/business.stats'
 import { Route as BusinessEditRouteImport } from './routes/business.edit'
 import { Route as BSlugRouteImport } from './routes/b.$slug'
 
+const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
+  id: '/sitemap.xml',
+  path: '/sitemap.xml',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const SignupRoute = SignupRouteImport.update({
   id: '/signup',
   path: '/signup',
@@ -127,6 +133,7 @@ export interface FileRoutesByFullPath {
   '/reset-password': typeof ResetPasswordRoute
   '/settings': typeof SettingsRoute
   '/signup': typeof SignupRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/b/$slug': typeof BSlugRoute
   '/business/edit': typeof BusinessEditRoute
   '/business/stats': typeof BusinessStatsRoute
@@ -146,6 +153,7 @@ export interface FileRoutesByTo {
   '/reset-password': typeof ResetPasswordRoute
   '/settings': typeof SettingsRoute
   '/signup': typeof SignupRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/b/$slug': typeof BSlugRoute
   '/business/edit': typeof BusinessEditRoute
   '/business/stats': typeof BusinessStatsRoute
@@ -166,6 +174,7 @@ export interface FileRoutesById {
   '/reset-password': typeof ResetPasswordRoute
   '/settings': typeof SettingsRoute
   '/signup': typeof SignupRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/b/$slug': typeof BSlugRoute
   '/business/edit': typeof BusinessEditRoute
   '/business/stats': typeof BusinessStatsRoute
@@ -187,6 +196,7 @@ export interface FileRouteTypes {
     | '/reset-password'
     | '/settings'
     | '/signup'
+    | '/sitemap.xml'
     | '/b/$slug'
     | '/business/edit'
     | '/business/stats'
@@ -206,6 +216,7 @@ export interface FileRouteTypes {
     | '/reset-password'
     | '/settings'
     | '/signup'
+    | '/sitemap.xml'
     | '/b/$slug'
     | '/business/edit'
     | '/business/stats'
@@ -225,6 +236,7 @@ export interface FileRouteTypes {
     | '/reset-password'
     | '/settings'
     | '/signup'
+    | '/sitemap.xml'
     | '/b/$slug'
     | '/business/edit'
     | '/business/stats'
@@ -245,6 +257,7 @@ export interface RootRouteChildren {
   ResetPasswordRoute: typeof ResetPasswordRoute
   SettingsRoute: typeof SettingsRoute
   SignupRoute: typeof SignupRoute
+  SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   BSlugRoute: typeof BSlugRoute
   BusinessEditRoute: typeof BusinessEditRoute
   BusinessStatsRoute: typeof BusinessStatsRoute
@@ -253,6 +266,13 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/sitemap.xml': {
+      id: '/sitemap.xml'
+      path: '/sitemap.xml'
+      fullPath: '/sitemap.xml'
+      preLoaderRoute: typeof SitemapDotxmlRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/signup': {
       id: '/signup'
       path: '/signup'
@@ -389,6 +409,7 @@ const rootRouteChildren: RootRouteChildren = {
   ResetPasswordRoute: ResetPasswordRoute,
   SettingsRoute: SettingsRoute,
   SignupRoute: SignupRoute,
+  SitemapDotxmlRoute: SitemapDotxmlRoute,
   BSlugRoute: BSlugRoute,
   BusinessEditRoute: BusinessEditRoute,
   BusinessStatsRoute: BusinessStatsRoute,

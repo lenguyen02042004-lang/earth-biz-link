@@ -1,0 +1,14 @@
+User-agent: *
+Allow: /
+
+Disallow: /admin
+Disallow: /dashboard
+Disallow: /business/edit
+Disallow: /business/stats
+Disallow: /settings
+Disallow: /inbox
+Disallow: /contacts
+Disallow: /following
+Disallow: /reset-password
+
+Sitemap: https://earth-biz-link.lovable.app/sitemap.xml

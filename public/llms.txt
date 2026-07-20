@@ -1,0 +1,19 @@
+# GlobalBiz.Connect
+
+> Nền tảng bản đồ doanh nghiệp toàn cầu (worldwide B2B directory). Doanh nghiệp tạo danh thiếp trực tuyến, hiển thị trên bản đồ 3D tương tác, kết nối và trao đổi card visit với đối tác quốc tế.
+
+GlobalBiz.Connect giúp doanh nghiệp quảng bá thương hiệu ra thị trường quốc tế, tìm và xác minh đối tác B2B thông qua danh mục doanh nghiệp theo quốc gia và ngành nghề.
+
+## Pages
+
+- [Trang chủ](/): Bản đồ 3D và tìm kiếm doanh nghiệp toàn cầu.
+- [Khám phá](/explore): Bản đồ 2D với bộ lọc theo quốc gia và ngành nghề.
+- [Quốc gia](/countries): Danh sách các quốc gia có doanh nghiệp đang hoạt động.
+- [Bảng giá](/pricing): Các gói thành viên (miễn phí và trả phí từ $5/năm).
+- [Đăng nhập](/login): Đăng nhập tài khoản doanh nghiệp.
+- [Đăng ký](/signup): Tạo tài khoản doanh nghiệp mới miễn phí.
+
+## Optional
+
+- [Doanh nghiệp mẫu — Nova Tech](/b/nova-tech-vn): Ví dụ trang danh thiếp doanh nghiệp công nghệ.
+- [Doanh nghiệp mẫu — Sakura Trading](/b/sakura-trading): Ví dụ trang danh thiếp doanh nghiệp thương mại.

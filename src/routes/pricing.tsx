@@ -7,10 +7,15 @@ export const Route = createFileRoute("/pricing")({
   component: PricingPage,
   head: () => ({
     meta: [
-      { title: "Bảng giá — GlobalBiz.Connect" },
-      { name: "description", content: "Gói thành viên chỉ từ $5/năm. Quảng bá doanh nghiệp ra toàn cầu, gửi 1000 card visit mỗi năm." },
+      { title: "Bảng giá gói thành viên — GlobalBiz.Connect" },
+      { name: "description", content: "Chọn gói phù hợp cho doanh nghiệp của bạn: miễn phí để bắt đầu, hoặc Thành viên chỉ từ $5/năm với 1.000 lượt gửi card visit và hỗ trợ ưu tiên." },
+      { property: "og:title", content: "Bảng giá gói thành viên — GlobalBiz.Connect" },
+      { property: "og:description", content: "Chọn gói phù hợp cho doanh nghiệp: miễn phí để bắt đầu, hoặc Thành viên $5/năm với 1.000 lượt gửi card visit và hỗ trợ ưu tiên." },
+      { property: "og:url", content: "https://earth-biz-link.lovable.app/pricing" },
     ],
+    links: [{ rel: "canonical", href: "https://earth-biz-link.lovable.app/pricing" }],
   }),
+
 });
 
 const TIERS = [
