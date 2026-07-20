@@ -1,6 +1,19 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
+import { randomBytes } from "crypto";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+
+function generateStrongPassword(length = 20): string {
+  // URL-safe random string, mixed case + digits, no ambiguous chars
+  const alphabet = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789";
+  const bytes = randomBytes(length);
+  let out = "";
+  for (let i = 0; i < length; i++) out += alphabet[bytes[i] % alphabet.length];
+  // Guarantee complexity requirements
+  return `${out}!A9`;
+}
+
+
 
 const BizRow = z.object({
   owner_email: z.string().email(),
@@ -29,7 +42,7 @@ async function requireAdmin(supabase: any, userId: string) {
   if (!data) throw new Error("Admin only");
 }
 
-const DEFAULT_OWNER_PASSWORD = "Owner@12345";
+// No shared default password — every account gets a unique random password.
 
 export const bulkImportBusinesses = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
@@ -68,7 +81,7 @@ export const bulkImportBusinesses = createServerFn({ method: "POST" })
         const emailKey = parsed.owner_email.toLowerCase();
         let ownerId = userByEmail.get(emailKey);
         let createdNow = false;
-        const password = parsed.owner_password || DEFAULT_OWNER_PASSWORD;
+        const password = parsed.owner_password || generateStrongPassword();
 
         if (!ownerId) {
           if (!data.create_missing_owners) {
@@ -172,7 +185,6 @@ export const seedDemoAccounts = createServerFn({ method: "POST" })
     await requireAdmin(supabase, userId);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
-    const password = "Demo@12345";
     const results: { slug: string; email: string; password: string; created: boolean; ok: boolean; error?: string }[] = [];
 
     // Cache existing users
@@ -181,6 +193,8 @@ export const seedDemoAccounts = createServerFn({ method: "POST" })
 
     for (const slug of DEMO_SLUGS) {
       const email = `${slug}@demo.globalbiz.test`;
+      // Every run generates a fresh unique password — never a shared constant.
+      const password = generateStrongPassword();
       try {
         let uid = existingByEmail.get(email);
         let created = false;
@@ -194,6 +208,10 @@ export const seedDemoAccounts = createServerFn({ method: "POST" })
           if (cErr || !newUser?.user) throw cErr ?? new Error("createUser failed");
           uid = newUser.user.id;
           created = true;
+        } else {
+          // Rotate password on existing demo account so previously hardcoded credentials no longer work.
+          const { error: pErr } = await supabaseAdmin.auth.admin.updateUserById(uid, { password });
+          if (pErr) throw pErr;
         }
         // Reassign business owner
         const { error: uErr } = await supabaseAdmin
@@ -201,11 +219,12 @@ export const seedDemoAccounts = createServerFn({ method: "POST" })
         if (uErr) throw uErr;
         results.push({ slug, email, password, created, ok: true });
       } catch (e: any) {
-        results.push({ slug, email, password, created: false, ok: false, error: e.message ?? String(e) });
+        results.push({ slug, email, password: "", created: false, ok: false, error: e.message ?? String(e) });
       }
     }
     return { results };
   });
+
 
 // === Reset password for any user (admin only) ===
 export const adminResetUserPassword = createServerFn({ method: "POST" })

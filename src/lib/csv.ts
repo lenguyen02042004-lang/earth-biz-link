@@ -28,6 +28,7 @@ export function parseCSV(text: string): Record<string, string>[] {
 }
 
 export const BULK_CSV_TEMPLATE = `owner_email,owner_password,owner_display_name,name,slug,short_intro,address,country_code,province,lat,lng,phone,email,website,logo_url,banner_url,industry_slug,status,icon_tier
-owner@example.com,Owner@12345,Owner Name,Acme Corp,acme-corp,Leading global tech,123 Main St,US,California,37.77,-122.41,+1-555-1000,hello@acme.com,https://acme.com,,,technology,public,standard
+owner@example.com,,Owner Name,Acme Corp,acme-corp,Leading global tech,123 Main St,US,California,37.77,-122.41,+1-555-1000,hello@acme.com,https://acme.com,,,technology,public,standard
 `;
+
 

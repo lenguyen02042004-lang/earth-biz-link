@@ -86,10 +86,11 @@ function DemoAccountsSection({ seedFn }: { seedFn: ReturnType<typeof useServerFn
         </Button>
       </div>
       <p className="text-sm text-muted-foreground mb-4">
-        Mỗi doanh nghiệp demo sẽ có 1 tài khoản độc lập (email <code>&lt;slug&gt;@demo.globalbiz.test</code>, mật khẩu
-        <code className="ml-1">Demo@12345</code>). Bạn có thể đăng nhập bằng các tài khoản này để kiểm tra đầy đủ luồng:
-        hộp thư, theo dõi, gửi danh thiếp giữa các doanh nghiệp.
+        Mỗi doanh nghiệp demo sẽ có 1 tài khoản độc lập (email <code>&lt;slug&gt;@demo.globalbiz.test</code>). Mỗi lần
+        chạy sẽ <strong>sinh mật khẩu ngẫu nhiên mạnh, khác nhau</strong> cho từng tài khoản và luân chuyển mật khẩu
+        cũ — hãy sao chép và lưu lại ngay từ bảng bên dưới, hệ thống không hiển thị lại.
       </p>
+
 
       {results && (
         <div className="overflow-auto rounded-xl border border-border">
@@ -256,8 +257,10 @@ function BulkImportSection({ importFn }: { importFn: ReturnType<typeof useServer
       <p className="text-sm text-muted-foreground mb-2">
         Mỗi dòng CSV tạo <strong>1 doanh nghiệp</strong> và (nếu bật) <strong>tài khoản chủ sở hữu</strong> tương ứng.
         Cột bắt buộc: <code>owner_email</code>, <code>name</code>, <code>slug</code>. Tùy chọn:{" "}
-        <code>owner_password</code> (mặc định <code>Owner@12345</code>), <code>owner_display_name</code>.
+        <code>owner_password</code> (nếu để trống, hệ thống sinh mật khẩu ngẫu nhiên mạnh riêng cho từng tài khoản),{" "}
+        <code>owner_display_name</code>. Hãy tải CSV mật khẩu ngay sau khi import — mật khẩu chỉ hiển thị một lần.
       </p>
+
       <label className="flex items-center gap-2 text-sm mb-4 select-none">
         <input type="checkbox" checked={createOwners} onChange={(e) => setCreateOwners(e.target.checked)} />
         Tự tạo tài khoản chủ sở hữu nếu email chưa tồn tại
