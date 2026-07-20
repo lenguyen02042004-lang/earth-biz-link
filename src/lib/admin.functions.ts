@@ -81,7 +81,7 @@ export const bulkImportBusinesses = createServerFn({ method: "POST" })
         const emailKey = parsed.owner_email.toLowerCase();
         let ownerId = userByEmail.get(emailKey);
         let createdNow = false;
-        const password = parsed.owner_password || DEFAULT_OWNER_PASSWORD;
+        const password = parsed.owner_password || generateStrongPassword();
 
         if (!ownerId) {
           if (!data.create_missing_owners) {
