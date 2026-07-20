@@ -102,6 +102,32 @@ function HomePage() {
           {mounted && <Globe3D businesses={filtered} onSelect={setSelected} />}
         </div>
 
+        {/* SSR-rendered hero copy — paints instantly for fast LCP */}
+        <div className="absolute inset-0 z-20 flex items-center justify-center pointer-events-none px-4">
+          <div className="max-w-3xl text-center">
+            <h1 className="font-display font-bold text-white text-4xl sm:text-6xl leading-[1.05] tracking-tight drop-shadow-[0_2px_20px_rgba(0,0,0,0.35)]">
+              Bản đồ doanh nghiệp <span className="text-gradient">toàn cầu</span>
+            </h1>
+            <p className="mt-4 text-white/80 text-base sm:text-lg max-w-2xl mx-auto">
+              Kết nối, gửi danh thiếp online và mở rộng đối tác B2B trên hơn {COUNTRY_LIST.length}+ quốc gia.
+            </p>
+            <div className="mt-6 flex flex-wrap gap-3 justify-center pointer-events-auto">
+              <button
+                onClick={scrollToExplore}
+                className="px-5 h-11 rounded-xl bg-gradient-vivid text-white font-semibold shadow-pink hover:opacity-90 transition-smooth inline-flex items-center gap-2"
+              >
+                <Search className="w-4 h-4" /> Khám phá ngay
+              </button>
+              <Link
+                to="/explore"
+                className="px-5 h-11 rounded-xl bg-white/10 backdrop-blur-md border border-white/25 text-white font-semibold hover:bg-white/20 transition-smooth inline-flex items-center gap-2"
+              >
+                <Globe2 className="w-4 h-4" /> Bản đồ 2D
+              </Link>
+            </div>
+          </div>
+        </div>
+
         {/* Top-left logo */}
         <div className="absolute top-5 left-5 z-30">
           <Link to="/" className="flex items-center gap-2.5 group">
@@ -170,14 +196,16 @@ function HomePage() {
         </button>
       </section>
 
+
       {/* ===== Search + Industry panel (below globe) ===== */}
       <section id="explore-panel" className="relative z-10 px-4 sm:px-6 py-10 sm:py-14">
         <div className="max-w-6xl mx-auto">
           {/* Search row */}
           <div className="animate-fade-up">
-            <h1 className="text-2xl sm:text-3xl font-display font-bold text-white mb-1">
-              GlobalBiz.Connect — Tìm doanh nghiệp trên khắp <span className="text-gradient">thế giới</span>
-            </h1>
+            <h2 className="text-2xl sm:text-3xl font-display font-bold text-white mb-1">
+              Tìm doanh nghiệp trên khắp <span className="text-gradient">thế giới</span>
+            </h2>
+
             <p className="text-white/60 text-sm mb-5">
 
               Lọc theo tên, ngành nghề và quốc gia. {DEMO_BUSINESSES.length} doanh nghiệp đã được lập chỉ mục.
