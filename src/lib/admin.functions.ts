@@ -185,7 +185,6 @@ export const seedDemoAccounts = createServerFn({ method: "POST" })
     await requireAdmin(supabase, userId);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
-    const password = "Demo@12345";
     const results: { slug: string; email: string; password: string; created: boolean; ok: boolean; error?: string }[] = [];
 
     // Cache existing users
@@ -194,6 +193,8 @@ export const seedDemoAccounts = createServerFn({ method: "POST" })
 
     for (const slug of DEMO_SLUGS) {
       const email = `${slug}@demo.globalbiz.test`;
+      // Every run generates a fresh unique password — never a shared constant.
+      const password = generateStrongPassword();
       try {
         let uid = existingByEmail.get(email);
         let created = false;
@@ -207,6 +208,10 @@ export const seedDemoAccounts = createServerFn({ method: "POST" })
           if (cErr || !newUser?.user) throw cErr ?? new Error("createUser failed");
           uid = newUser.user.id;
           created = true;
+        } else {
+          // Rotate password on existing demo account so previously hardcoded credentials no longer work.
+          const { error: pErr } = await supabaseAdmin.auth.admin.updateUserById(uid, { password });
+          if (pErr) throw pErr;
         }
         // Reassign business owner
         const { error: uErr } = await supabaseAdmin
@@ -214,11 +219,12 @@ export const seedDemoAccounts = createServerFn({ method: "POST" })
         if (uErr) throw uErr;
         results.push({ slug, email, password, created, ok: true });
       } catch (e: any) {
-        results.push({ slug, email, password, created: false, ok: false, error: e.message ?? String(e) });
+        results.push({ slug, email, password: "", created: false, ok: false, error: e.message ?? String(e) });
       }
     }
     return { results };
   });
+
 
 // === Reset password for any user (admin only) ===
 export const adminResetUserPassword = createServerFn({ method: "POST" })
