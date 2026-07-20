@@ -8,12 +8,15 @@ import { Building2 } from "lucide-react";
 export const Route = createFileRoute("/countries")({
   head: () => ({
     meta: [
-      { title: "Danh sách quốc gia — GlobalBiz.Connect" },
-      { name: "description", content: "Duyệt doanh nghiệp theo từng quốc gia trên bản đồ toàn cầu." },
-      { property: "og:title", content: "Danh sách quốc gia — GlobalBiz.Connect" },
-      { property: "og:description", content: "Duyệt doanh nghiệp theo từng quốc gia trên bản đồ toàn cầu." },
+      { title: "Danh mục quốc gia có doanh nghiệp — GlobalBiz.Connect" },
+      { name: "description", content: "Duyệt danh mục doanh nghiệp theo từng quốc gia trên bản đồ B2B toàn cầu. Chọn thị trường bạn quan tâm để khám phá đối tác tiềm năng." },
+      { property: "og:title", content: "Danh mục quốc gia có doanh nghiệp — GlobalBiz.Connect" },
+      { property: "og:description", content: "Duyệt danh mục doanh nghiệp theo từng quốc gia trên bản đồ B2B toàn cầu — chọn thị trường bạn quan tâm để khám phá đối tác." },
+      { property: "og:url", content: "https://earth-biz-link.lovable.app/countries" },
     ],
+    links: [{ rel: "canonical", href: "https://earth-biz-link.lovable.app/countries" }],
   }),
+
   component: CountriesPage,
 });
 

@@ -127,7 +127,7 @@ export function BusinessCard({ business, onClose }: Props) {
                   <Building2 className="w-2.5 h-2.5 mr-1" /> {business.industry}
                 </Badge>
               </div>
-              <h2 className="text-lg sm:text-2xl font-bold leading-tight mt-1 truncate">{business.name}</h2>
+              <h1 className="text-lg sm:text-2xl font-bold leading-tight mt-1 truncate">{business.name}</h1>
               <p className="text-[11px] sm:text-xs text-white/85 mt-0.5 line-clamp-2">{business.short_intro}</p>
 
               <div className="flex items-center gap-3 text-[10px] sm:text-xs text-white/80 mt-1.5">
@@ -154,7 +154,7 @@ export function BusinessCard({ business, onClose }: Props) {
                 className="shrink-0 hidden sm:block"
               >
                 <div className="w-20 h-20 lg:w-24 lg:h-24 rounded-xl bg-white p-1.5 shadow-pink hover:scale-105 transition-smooth">
-                  <img src={qrUrl} alt="QR" className="w-full h-full" />
+                  <img src={qrUrl} alt={`Mã QR danh thiếp doanh nghiệp ${business.name}`} className="w-full h-full" />
                 </div>
               </a>
             )}
@@ -166,7 +166,7 @@ export function BusinessCard({ business, onClose }: Props) {
           {qrUrl && (
             <a href={profileUrl} target="_blank" rel="noopener noreferrer"
                className="sm:hidden flex items-center gap-3 p-3 rounded-xl bg-accent/40 border border-border">
-              <img src={qrUrl} alt="QR" className="w-16 h-16 rounded-lg bg-white p-1" />
+              <img src={qrUrl} alt={`Mã QR danh thiếp doanh nghiệp ${business.name}`} className="w-16 h-16 rounded-lg bg-white p-1" />
               <div className="text-xs">
                 <p className="font-semibold">Quét QR để mở danh thiếp</p>
                 <p className="text-muted-foreground truncate">{profileUrl.replace(/^https?:\/\//, "")}</p>
