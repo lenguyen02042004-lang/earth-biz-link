@@ -42,7 +42,7 @@ async function requireAdmin(supabase: any, userId: string) {
   if (!data) throw new Error("Admin only");
 }
 
-const DEFAULT_OWNER_PASSWORD = "Owner@12345";
+// No shared default password — every account gets a unique random password.
 
 export const bulkImportBusinesses = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
