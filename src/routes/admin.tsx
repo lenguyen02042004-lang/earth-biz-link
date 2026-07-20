@@ -257,8 +257,10 @@ function BulkImportSection({ importFn }: { importFn: ReturnType<typeof useServer
       <p className="text-sm text-muted-foreground mb-2">
         Mỗi dòng CSV tạo <strong>1 doanh nghiệp</strong> và (nếu bật) <strong>tài khoản chủ sở hữu</strong> tương ứng.
         Cột bắt buộc: <code>owner_email</code>, <code>name</code>, <code>slug</code>. Tùy chọn:{" "}
-        <code>owner_password</code> (mặc định <code>Owner@12345</code>), <code>owner_display_name</code>.
+        <code>owner_password</code> (nếu để trống, hệ thống sinh mật khẩu ngẫu nhiên mạnh riêng cho từng tài khoản),{" "}
+        <code>owner_display_name</code>. Hãy tải CSV mật khẩu ngay sau khi import — mật khẩu chỉ hiển thị một lần.
       </p>
+
       <label className="flex items-center gap-2 text-sm mb-4 select-none">
         <input type="checkbox" checked={createOwners} onChange={(e) => setCreateOwners(e.target.checked)} />
         Tự tạo tài khoản chủ sở hữu nếu email chưa tồn tại
