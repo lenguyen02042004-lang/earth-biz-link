@@ -86,10 +86,11 @@ function DemoAccountsSection({ seedFn }: { seedFn: ReturnType<typeof useServerFn
         </Button>
       </div>
       <p className="text-sm text-muted-foreground mb-4">
-        Mỗi doanh nghiệp demo sẽ có 1 tài khoản độc lập (email <code>&lt;slug&gt;@demo.globalbiz.test</code>, mật khẩu
-        <code className="ml-1">Demo@12345</code>). Bạn có thể đăng nhập bằng các tài khoản này để kiểm tra đầy đủ luồng:
-        hộp thư, theo dõi, gửi danh thiếp giữa các doanh nghiệp.
+        Mỗi doanh nghiệp demo sẽ có 1 tài khoản độc lập (email <code>&lt;slug&gt;@demo.globalbiz.test</code>). Mỗi lần
+        chạy sẽ <strong>sinh mật khẩu ngẫu nhiên mạnh, khác nhau</strong> cho từng tài khoản và luân chuyển mật khẩu
+        cũ — hãy sao chép và lưu lại ngay từ bảng bên dưới, hệ thống không hiển thị lại.
       </p>
+
 
       {results && (
         <div className="overflow-auto rounded-xl border border-border">
