@@ -175,10 +175,11 @@ function HomePage() {
         <div className="max-w-6xl mx-auto">
           {/* Search row */}
           <div className="animate-fade-up">
-            <h2 className="text-2xl sm:text-3xl font-display font-bold text-white mb-1">
-              Tìm doanh nghiệp trên khắp <span className="text-gradient">thế giới</span>
-            </h2>
+            <h1 className="text-2xl sm:text-3xl font-display font-bold text-white mb-1">
+              GlobalBiz.Connect — Tìm doanh nghiệp trên khắp <span className="text-gradient">thế giới</span>
+            </h1>
             <p className="text-white/60 text-sm mb-5">
+
               Lọc theo tên, ngành nghề và quốc gia. {DEMO_BUSINESSES.length} doanh nghiệp đã được lập chỉ mục.
             </p>
 
