@@ -51,14 +51,14 @@ export const Route = createFileRoute("/country/$slug")({
 });
 
 function CountryNotFound() {
-  const { code } = Route.useParams();
+  const { slug } = Route.useParams();
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
       <div className="pt-24 max-w-xl mx-auto text-center px-4">
         <h1 className="text-2xl font-bold mb-2">Không tìm thấy quốc gia</h1>
         <p className="text-muted-foreground mb-4">
-          Mã quốc gia "{code}" không có trong danh sách.
+          Quốc gia "{slug}" không có trong danh sách.
         </p>
         <div className="flex items-center justify-center gap-4">
           <Link to="/countries" className="text-primary hover:underline inline-flex items-center gap-1">
