@@ -45,8 +45,8 @@ function CountriesPage() {
             return (
               <Link
                 key={c.code}
-                to="/country/$code"
-                params={{ code: c.code.toLowerCase() }}
+                to="/country/$slug"
+                params={{ slug: c.slug }}
                 className="p-4 rounded-2xl bg-card hover:bg-accent border border-border/50 hover:border-primary/40 transition-smooth hover:shadow-soft"
               >
                 <div className="flex items-center gap-2 mb-2">
