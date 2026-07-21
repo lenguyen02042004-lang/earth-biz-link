@@ -365,7 +365,17 @@ function CountryPage() {
                             <Eye className="w-3 h-3" /> {formatCount(b.views_count)}
                           </p>
                         </div>
-                        <FollowButton businessId={b.id} variant="icon" className="shrink-0" />
+                        <div className="flex items-center gap-1 shrink-0" onClick={(e) => e.stopPropagation()}>
+                          <button
+                            type="button"
+                            onClick={() => shareBusiness(b)}
+                            aria-label={`Chia sẻ ${b.name}`}
+                            className="w-8 h-8 inline-flex items-center justify-center rounded-full hover:bg-muted text-muted-foreground hover:text-foreground"
+                          >
+                            <Share2 className="w-4 h-4" />
+                          </button>
+                          <FollowButton businessId={b.id} variant="icon" />
+                        </div>
                       </div>
                     ))}
                   </div>
