@@ -13,7 +13,7 @@ import { COUNTRY_LIST, INDUSTRY_LIST } from "@/lib/constants";
 import { formatCount } from "@/lib/format";
 import { Eye, Search, MapPin, Building2, ArrowLeft, Globe2, Map as MapIcon } from "lucide-react";
 
-export const Route = createFileRoute("/country/$code")({
+export const Route = createFileRoute("/country/$slug")({
   loader: ({ params }) => {
     const country = COUNTRY_LIST.find(
       (c) => c.code.toLowerCase() === params.code.toLowerCase(),

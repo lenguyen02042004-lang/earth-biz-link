@@ -23,7 +23,7 @@ import { Route as CountriesRouteImport } from './routes/countries'
 import { Route as ContactsRouteImport } from './routes/contacts'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as CountryCodeRouteImport } from './routes/country.$code'
+import { Route as CountrySlugRouteImport } from './routes/country.$slug'
 import { Route as BusinessStatsRouteImport } from './routes/business.stats'
 import { Route as BusinessEditRouteImport } from './routes/business.edit'
 import { Route as BSlugRouteImport } from './routes/b.$slug'
@@ -98,9 +98,9 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const CountryCodeRoute = CountryCodeRouteImport.update({
-  id: '/country/$code',
-  path: '/country/$code',
+const CountrySlugRoute = CountrySlugRouteImport.update({
+  id: '/country/$slug',
+  path: '/country/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
 const BusinessStatsRoute = BusinessStatsRouteImport.update({
@@ -137,7 +137,7 @@ export interface FileRoutesByFullPath {
   '/b/$slug': typeof BSlugRoute
   '/business/edit': typeof BusinessEditRoute
   '/business/stats': typeof BusinessStatsRoute
-  '/country/$code': typeof CountryCodeRoute
+  '/country/$slug': typeof CountrySlugRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -157,7 +157,7 @@ export interface FileRoutesByTo {
   '/b/$slug': typeof BSlugRoute
   '/business/edit': typeof BusinessEditRoute
   '/business/stats': typeof BusinessStatsRoute
-  '/country/$code': typeof CountryCodeRoute
+  '/country/$slug': typeof CountrySlugRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -178,7 +178,7 @@ export interface FileRoutesById {
   '/b/$slug': typeof BSlugRoute
   '/business/edit': typeof BusinessEditRoute
   '/business/stats': typeof BusinessStatsRoute
-  '/country/$code': typeof CountryCodeRoute
+  '/country/$slug': typeof CountrySlugRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -200,7 +200,7 @@ export interface FileRouteTypes {
     | '/b/$slug'
     | '/business/edit'
     | '/business/stats'
-    | '/country/$code'
+    | '/country/$slug'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -220,7 +220,7 @@ export interface FileRouteTypes {
     | '/b/$slug'
     | '/business/edit'
     | '/business/stats'
-    | '/country/$code'
+    | '/country/$slug'
   id:
     | '__root__'
     | '/'
@@ -240,7 +240,7 @@ export interface FileRouteTypes {
     | '/b/$slug'
     | '/business/edit'
     | '/business/stats'
-    | '/country/$code'
+    | '/country/$slug'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -261,7 +261,7 @@ export interface RootRouteChildren {
   BSlugRoute: typeof BSlugRoute
   BusinessEditRoute: typeof BusinessEditRoute
   BusinessStatsRoute: typeof BusinessStatsRoute
-  CountryCodeRoute: typeof CountryCodeRoute
+  CountrySlugRoute: typeof CountrySlugRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -364,11 +364,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/country/$code': {
-      id: '/country/$code'
-      path: '/country/$code'
-      fullPath: '/country/$code'
-      preLoaderRoute: typeof CountryCodeRouteImport
+    '/country/$slug': {
+      id: '/country/$slug'
+      path: '/country/$slug'
+      fullPath: '/country/$slug'
+      preLoaderRoute: typeof CountrySlugRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/business/stats': {
@@ -413,7 +413,7 @@ const rootRouteChildren: RootRouteChildren = {
   BSlugRoute: BSlugRoute,
   BusinessEditRoute: BusinessEditRoute,
   BusinessStatsRoute: BusinessStatsRoute,
-  CountryCodeRoute: CountryCodeRoute,
+  CountrySlugRoute: CountrySlugRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
