@@ -15,8 +15,10 @@ import { Eye, Search, MapPin, Building2, ArrowLeft, Globe2, Map as MapIcon } fro
 
 export const Route = createFileRoute("/country/$slug")({
   loader: ({ params }) => {
+    const key = params.slug.toLowerCase();
+    // Accept both SEO slug and legacy ISO code for backward compatibility.
     const country = COUNTRY_LIST.find(
-      (c) => c.code.toLowerCase() === params.code.toLowerCase(),
+      (c) => c.slug === key || c.code.toLowerCase() === key,
     );
     if (!country) throw notFound();
     return { country };
