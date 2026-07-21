@@ -1,6 +1,7 @@
 import { useState, useMemo, useEffect } from "react";
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
-import { ChevronLeft, ChevronRight, LayoutGrid, List as ListIcon } from "lucide-react";
+import { ChevronLeft, ChevronRight, LayoutGrid, List as ListIcon, Share2, Check } from "lucide-react";
+import { toast } from "sonner";
 import { Navbar } from "@/components/Navbar";
 import { MapView } from "@/components/MapView";
 import { BusinessCard } from "@/components/BusinessCard";
@@ -12,6 +13,25 @@ import { DEMO_BUSINESSES, type DemoBusiness } from "@/lib/mock-businesses";
 import { COUNTRY_LIST, INDUSTRY_LIST } from "@/lib/constants";
 import { formatCount } from "@/lib/format";
 import { Eye, Search, MapPin, Building2, ArrowLeft, Globe2, Map as MapIcon } from "lucide-react";
+
+async function shareBusiness(b: DemoBusiness) {
+  const url = `${window.location.origin}/b/${b.slug}`;
+  const shareData = { title: b.name, text: b.short_intro || b.name, url };
+  try {
+    if (navigator.share && typeof navigator.canShare === "function" ? navigator.canShare(shareData) : !!navigator.share) {
+      await navigator.share(shareData);
+      return;
+    }
+  } catch {
+    // fall through to clipboard
+  }
+  try {
+    await navigator.clipboard.writeText(url);
+    toast.success("Đã sao chép liên kết doanh nghiệp");
+  } catch {
+    toast.error("Không thể chia sẻ liên kết");
+  }
+}
 
 export const Route = createFileRoute("/country/$slug")({
   loader: ({ params }) => {
