@@ -1,6 +1,7 @@
 import { useState, useMemo, useEffect } from "react";
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
-import { ChevronLeft, ChevronRight, LayoutGrid, List as ListIcon } from "lucide-react";
+import { ChevronLeft, ChevronRight, LayoutGrid, List as ListIcon, Share2 } from "lucide-react";
+import { toast } from "sonner";
 import { Navbar } from "@/components/Navbar";
 import { MapView } from "@/components/MapView";
 import { BusinessCard } from "@/components/BusinessCard";
@@ -12,6 +13,25 @@ import { DEMO_BUSINESSES, type DemoBusiness } from "@/lib/mock-businesses";
 import { COUNTRY_LIST, INDUSTRY_LIST } from "@/lib/constants";
 import { formatCount } from "@/lib/format";
 import { Eye, Search, MapPin, Building2, ArrowLeft, Globe2, Map as MapIcon } from "lucide-react";
+
+async function shareBusiness(b: DemoBusiness) {
+  const url = `${window.location.origin}/b/${b.slug}`;
+  const shareData = { title: b.name, text: b.short_intro || b.name, url };
+  try {
+    if (navigator.share && (typeof navigator.canShare === "function" ? navigator.canShare(shareData) : true)) {
+      await navigator.share(shareData);
+      return;
+    }
+  } catch {
+    // fall through to clipboard
+  }
+  try {
+    await navigator.clipboard.writeText(url);
+    toast.success("Đã sao chép liên kết doanh nghiệp");
+  } catch {
+    toast.error("Không thể chia sẻ liên kết");
+  }
+}
 
 export const Route = createFileRoute("/country/$slug")({
   loader: ({ params }) => {
@@ -235,30 +255,94 @@ function CountryPage() {
                 </div>
 
                 {view === "grid" ? (
-                  <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3">
-                    {pageItems.map((b) => (
-                      <div
-                        key={b.id}
-                        onClick={() => setSelected(b)}
-                        role="button"
-                        tabIndex={0}
-                        onKeyDown={(e) => { if (e.key === "Enter") setSelected(b); }}
-                        className="group relative p-4 rounded-2xl bg-card hover:bg-accent transition-smooth border border-border/40 hover:border-primary/40 hover:shadow-soft cursor-pointer flex flex-col items-center text-center"
-                      >
-                        <div className="absolute top-2 right-2" onClick={(e) => e.stopPropagation()}>
-                          <FollowButton businessId={b.id} variant="icon" />
-                        </div>
-                        <div className={b.icon_tier === "premium" ? "ring-premium" : ""}>
-                          <img src={b.logo_url} alt={`Logo ${b.name}`} className="w-16 h-16 rounded-full bg-white object-cover" />
-                        </div>
-                        <p className="mt-3 font-semibold text-sm line-clamp-2">{b.name}</p>
-                        <p className="text-xs text-muted-foreground mt-0.5 line-clamp-1">{b.industry}</p>
-                        <p className="text-xs text-muted-foreground line-clamp-1">{b.province}</p>
-                        <p className="text-xs text-muted-foreground flex items-center gap-1 mt-2">
-                          <Eye className="w-3 h-3" /> {formatCount(b.views_count)}
-                        </p>
-                      </div>
-                    ))}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
+                    {pageItems.map((b) => {
+                      const thumbs = (b.gallery ?? []).slice(0, 5);
+                      return (
+                        <article
+                          key={b.id}
+                          onClick={() => setSelected(b)}
+                          role="button"
+                          tabIndex={0}
+                          onKeyDown={(e) => { if (e.key === "Enter") setSelected(b); }}
+                          className="group relative rounded-2xl bg-card border border-border/40 hover:border-primary/40 hover:shadow-soft transition-smooth cursor-pointer overflow-hidden flex flex-col"
+                        >
+                          {/* Banner */}
+                          <div className="relative h-28 w-full overflow-hidden bg-muted">
+                            {b.banner_url ? (
+                              <img
+                                src={b.banner_url}
+                                alt={`Ảnh bìa ${b.name}`}
+                                loading="lazy"
+                                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                              />
+                            ) : (
+                              <div className="w-full h-full bg-gradient-to-br from-primary/30 to-accent/30" />
+                            )}
+                            <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent" />
+                            <div className="absolute top-2 right-2 flex gap-1.5" onClick={(e) => e.stopPropagation()}>
+                              <button
+                                type="button"
+                                onClick={() => shareBusiness(b)}
+                                aria-label={`Chia sẻ ${b.name}`}
+                                className="w-8 h-8 inline-flex items-center justify-center rounded-full bg-background/85 hover:bg-background text-foreground shadow-sm backdrop-blur"
+                              >
+                                <Share2 className="w-4 h-4" />
+                              </button>
+                              <FollowButton businessId={b.id} variant="icon" />
+                            </div>
+                          </div>
+
+                          {/* Body */}
+                          <div className="px-4 pt-0 pb-4 flex-1 flex flex-col">
+                            <div className="flex items-start gap-3 -mt-7">
+                              <div className={`shrink-0 rounded-2xl bg-white p-1 shadow-md ${b.icon_tier === "premium" ? "ring-premium" : ""}`}>
+                                <img src={b.logo_url} alt={`Logo ${b.name}`} className="w-14 h-14 rounded-xl object-cover" />
+                              </div>
+                              <div className="min-w-0 flex-1 pt-8">
+                                <h3 className="font-semibold text-sm leading-tight line-clamp-2">{b.name}</h3>
+                                <p className="text-xs text-muted-foreground truncate mt-0.5">{b.industry}</p>
+                              </div>
+                            </div>
+
+                            {b.short_intro && (
+                              <p className="text-xs text-muted-foreground mt-2 line-clamp-2">{b.short_intro}</p>
+                            )}
+
+                            {/* Gallery — quick 5 */}
+                            {thumbs.length > 0 && (
+                              <div className="mt-3 grid grid-cols-5 gap-1">
+                                {thumbs.map((src, i) => (
+                                  <div key={i} className="relative aspect-square rounded-md overflow-hidden bg-muted">
+                                    <img
+                                      src={src}
+                                      alt={`${b.name} — ảnh ${i + 1}`}
+                                      loading="lazy"
+                                      className="w-full h-full object-cover"
+                                    />
+                                    {i === 4 && (b.gallery?.length ?? 0) > 5 && (
+                                      <div className="absolute inset-0 bg-black/55 text-white text-[11px] font-medium flex items-center justify-center">
+                                        +{(b.gallery!.length - 5)}
+                                      </div>
+                                    )}
+                                  </div>
+                                ))}
+                              </div>
+                            )}
+
+                            <div className="flex items-center justify-between mt-3 pt-3 border-t border-border/40 text-xs text-muted-foreground">
+                              <span className="inline-flex items-center gap-1 truncate">
+                                <MapPin className="w-3 h-3 shrink-0" />
+                                <span className="truncate">{b.province}</span>
+                              </span>
+                              <span className="inline-flex items-center gap-1">
+                                <Eye className="w-3 h-3" /> {formatCount(b.views_count)}
+                              </span>
+                            </div>
+                          </div>
+                        </article>
+                      );
+                    })}
                   </div>
                 ) : (
                   <div className="space-y-2">
@@ -281,7 +365,17 @@ function CountryPage() {
                             <Eye className="w-3 h-3" /> {formatCount(b.views_count)}
                           </p>
                         </div>
-                        <FollowButton businessId={b.id} variant="icon" className="shrink-0" />
+                        <div className="flex items-center gap-1 shrink-0" onClick={(e) => e.stopPropagation()}>
+                          <button
+                            type="button"
+                            onClick={() => shareBusiness(b)}
+                            aria-label={`Chia sẻ ${b.name}`}
+                            className="w-8 h-8 inline-flex items-center justify-center rounded-full hover:bg-muted text-muted-foreground hover:text-foreground"
+                          >
+                            <Share2 className="w-4 h-4" />
+                          </button>
+                          <FollowButton businessId={b.id} variant="icon" />
+                        </div>
                       </div>
                     ))}
                   </div>
