@@ -26,7 +26,7 @@ export const Route = createFileRoute("/sitemap.xml")({
 
         for (const c of COUNTRY_LIST) {
           entries.push({
-            path: `/country/${c.code.toLowerCase()}`,
+            path: `/country/${c.slug}`,
             changefreq: "weekly",
             priority: "0.6",
           });

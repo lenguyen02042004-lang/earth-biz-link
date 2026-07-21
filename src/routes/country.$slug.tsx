@@ -13,10 +13,12 @@ import { COUNTRY_LIST, INDUSTRY_LIST } from "@/lib/constants";
 import { formatCount } from "@/lib/format";
 import { Eye, Search, MapPin, Building2, ArrowLeft, Globe2, Map as MapIcon } from "lucide-react";
 
-export const Route = createFileRoute("/country/$code")({
+export const Route = createFileRoute("/country/$slug")({
   loader: ({ params }) => {
+    const key = params.slug.toLowerCase();
+    // Accept both SEO slug and legacy ISO code for backward compatibility.
     const country = COUNTRY_LIST.find(
-      (c) => c.code.toLowerCase() === params.code.toLowerCase(),
+      (c) => c.slug === key || c.code.toLowerCase() === key,
     );
     if (!country) throw notFound();
     return { country };
@@ -49,14 +51,14 @@ export const Route = createFileRoute("/country/$code")({
 });
 
 function CountryNotFound() {
-  const { code } = Route.useParams();
+  const { slug } = Route.useParams();
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
       <div className="pt-24 max-w-xl mx-auto text-center px-4">
         <h1 className="text-2xl font-bold mb-2">Không tìm thấy quốc gia</h1>
         <p className="text-muted-foreground mb-4">
-          Mã quốc gia "{code}" không có trong danh sách.
+          Quốc gia "{slug}" không có trong danh sách.
         </p>
         <div className="flex items-center justify-center gap-4">
           <Link to="/countries" className="text-primary hover:underline inline-flex items-center gap-1">
@@ -337,8 +339,8 @@ function CountryPage() {
             {COUNTRY_LIST.filter((c) => c.code !== country.code).map((c) => (
               <Link
                 key={c.code}
-                to="/country/$code"
-                params={{ code: c.code.toLowerCase() }}
+                to="/country/$slug"
+                params={{ slug: c.slug }}
                 className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-card hover:bg-accent border border-border/50 text-sm transition-smooth"
               >
                 <span className="text-[10px] font-mono font-bold px-1.5 py-0.5 rounded bg-muted text-muted-foreground">{c.code}</span>
