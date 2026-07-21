@@ -18,7 +18,7 @@ async function shareBusiness(b: DemoBusiness) {
   const url = `${window.location.origin}/b/${b.slug}`;
   const shareData = { title: b.name, text: b.short_intro || b.name, url };
   try {
-    if (navigator.share && typeof navigator.canShare === "function" ? navigator.canShare(shareData) : !!navigator.share) {
+    if (navigator.share && (typeof navigator.canShare === "function" ? navigator.canShare(shareData) : true)) {
       await navigator.share(shareData);
       return;
     }
