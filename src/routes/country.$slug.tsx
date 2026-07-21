@@ -339,8 +339,8 @@ function CountryPage() {
             {COUNTRY_LIST.filter((c) => c.code !== country.code).map((c) => (
               <Link
                 key={c.code}
-                to="/country/$code"
-                params={{ code: c.code.toLowerCase() }}
+                to="/country/$slug"
+                params={{ slug: c.slug }}
                 className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-card hover:bg-accent border border-border/50 text-sm transition-smooth"
               >
                 <span className="text-[10px] font-mono font-bold px-1.5 py-0.5 rounded bg-muted text-muted-foreground">{c.code}</span>
