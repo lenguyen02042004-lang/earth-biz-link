@@ -1,6 +1,6 @@
 import { useState, useMemo, useEffect } from "react";
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
-import { ChevronLeft, ChevronRight, LayoutGrid, List as ListIcon, Share2, Check } from "lucide-react";
+import { ChevronLeft, ChevronRight, LayoutGrid, List as ListIcon, Share2 } from "lucide-react";
 import { toast } from "sonner";
 import { Navbar } from "@/components/Navbar";
 import { MapView } from "@/components/MapView";
