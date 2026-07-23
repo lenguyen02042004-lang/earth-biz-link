@@ -13,8 +13,14 @@ import { DEMO_BUSINESSES, type DemoBusiness } from "@/lib/mock-businesses";
 import { COUNTRY_LIST, INDUSTRY_LIST } from "@/lib/constants";
 import { formatCount } from "@/lib/format";
 import { Eye, Search, MapPin, Building2, ArrowLeft, Globe2, Map as MapIcon } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 async function shareBusiness(b: DemoBusiness) {
+  if (UUID_RE.test(b.id)) {
+    supabase.rpc("increment_business_shares", { _id: b.id });
+  }
   const url = `${window.location.origin}/b/${b.slug}`;
   const shareData = { title: b.name, text: b.short_intro || b.name, url };
   try {

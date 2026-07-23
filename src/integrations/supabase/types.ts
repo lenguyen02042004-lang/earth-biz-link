@@ -165,6 +165,7 @@ export type Database = {
           phone: string | null
           premium_until: string | null
           province: string | null
+          shares_count: number
           short_intro: string | null
           slug: string
           status: Database["public"]["Enums"]["business_status"]
@@ -192,6 +193,7 @@ export type Database = {
           phone?: string | null
           premium_until?: string | null
           province?: string | null
+          shares_count?: number
           short_intro?: string | null
           slug: string
           status?: Database["public"]["Enums"]["business_status"]
@@ -219,6 +221,7 @@ export type Database = {
           phone?: string | null
           premium_until?: string | null
           province?: string | null
+          shares_count?: number
           short_intro?: string | null
           slug?: string
           status?: Database["public"]["Enums"]["business_status"]
@@ -605,6 +608,8 @@ export type Database = {
         }
         Returns: boolean
       }
+      increment_business_shares: { Args: { _id: string }; Returns: undefined }
+      increment_business_views: { Args: { _id: string }; Returns: undefined }
       is_admin: { Args: never; Returns: boolean }
       send_card_visit: {
         Args: {
