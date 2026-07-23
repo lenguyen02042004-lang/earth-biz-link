@@ -91,6 +91,38 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
       { rel: "stylesheet", href: "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" },
     ],
+    scripts: [
+      {
+        type: "application/ld+json",
+        children: JSON.stringify({
+          "@context": "https://schema.org",
+          "@graph": [
+            {
+              "@type": "Organization",
+              "@id": "https://earth-biz-link.lovable.app/#org",
+              name: "GlobalBiz.Connect",
+              url: "https://earth-biz-link.lovable.app/",
+              logo: "https://earth-biz-link.lovable.app/favicon.ico",
+              description:
+                "Worldwide B2B business directory with an interactive 3D map. Create online business cards, connect and exchange contacts with international partners.",
+            },
+            {
+              "@type": "WebSite",
+              "@id": "https://earth-biz-link.lovable.app/#website",
+              url: "https://earth-biz-link.lovable.app/",
+              name: "GlobalBiz.Connect",
+              publisher: { "@id": "https://earth-biz-link.lovable.app/#org" },
+              potentialAction: {
+                "@type": "SearchAction",
+                target:
+                  "https://earth-biz-link.lovable.app/explore?q={search_term_string}",
+                "query-input": "required name=search_term_string",
+              },
+            },
+          ],
+        }),
+      },
+    ],
   }),
   shellComponent: RootShell,
   component: RootComponent,
