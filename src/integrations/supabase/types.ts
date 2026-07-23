@@ -165,6 +165,7 @@ export type Database = {
           phone: string | null
           premium_until: string | null
           province: string | null
+          qr_scans_count: number
           shares_count: number
           short_intro: string | null
           slug: string
@@ -193,6 +194,7 @@ export type Database = {
           phone?: string | null
           premium_until?: string | null
           province?: string | null
+          qr_scans_count?: number
           shares_count?: number
           short_intro?: string | null
           slug: string
@@ -221,6 +223,7 @@ export type Database = {
           phone?: string | null
           premium_until?: string | null
           province?: string | null
+          qr_scans_count?: number
           shares_count?: number
           short_intro?: string | null
           slug?: string
@@ -608,6 +611,7 @@ export type Database = {
         }
         Returns: boolean
       }
+      increment_business_qr_scans: { Args: { _id: string }; Returns: undefined }
       increment_business_shares: { Args: { _id: string }; Returns: undefined }
       increment_business_views: { Args: { _id: string }; Returns: undefined }
       is_admin: { Args: never; Returns: boolean }
