@@ -15,6 +15,10 @@ import type { DemoBusiness } from "@/lib/mock-businesses";
 import { saveBusinessContact, isContactSaved } from "@/lib/contacts";
 import { useNavigate } from "@tanstack/react-router";
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
+
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+const viewedThisSession = new Set<string>();
 
 interface Props {
   business: DemoBusiness;
