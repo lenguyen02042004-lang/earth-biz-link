@@ -38,7 +38,7 @@ export function BusinessCard({ business, onClose }: Props) {
 
   useEffect(() => {
     if (profileUrl) {
-      QRCode.toDataURL(profileUrl, {
+      QRCode.toDataURL(`${profileUrl}?src=qr`, {
         margin: 1,
         color: { dark: "#c8102e", light: "#ffffff" },
         width: 220,
@@ -56,7 +56,7 @@ export function BusinessCard({ business, onClose }: Props) {
     isContactSaved(business.id).then(setSaved);
   }, [business.id]);
 
-  // Track view once per session per business
+  // Track view + QR scan (once per session per business)
   useEffect(() => {
     if (!UUID_RE.test(business.id)) return;
     if (viewedThisSession.has(business.id)) return;
@@ -64,6 +64,12 @@ export function BusinessCard({ business, onClose }: Props) {
     supabase.rpc("increment_business_views", { _id: business.id }).then(({ error }) => {
       if (error) viewedThisSession.delete(business.id);
     });
+    if (typeof window !== "undefined") {
+      const src = new URLSearchParams(window.location.search).get("src");
+      if (src === "qr") {
+        supabase.rpc("increment_business_qr_scans", { _id: business.id });
+      }
+    }
   }, [business.id]);
 
   const handleShare = async () => {
