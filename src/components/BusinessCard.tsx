@@ -67,6 +67,9 @@ export function BusinessCard({ business, onClose }: Props) {
   }, [business.id]);
 
   const handleShare = async () => {
+    if (UUID_RE.test(business.id)) {
+      supabase.rpc("increment_business_shares", { _id: business.id });
+    }
     if (navigator.share) {
       try { await navigator.share({ title: business.name, text: business.short_intro, url: profileUrl }); } catch {}
     } else {
