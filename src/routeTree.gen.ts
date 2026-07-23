@@ -26,6 +26,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as CountrySlugRouteImport } from './routes/country.$slug'
 import { Route as BusinessStatsRouteImport } from './routes/business.stats'
 import { Route as BusinessEditRouteImport } from './routes/business.edit'
+import { Route as BlogHowToFindInternationalB2bPartnersRouteImport } from './routes/blog.how-to-find-international-b2b-partners'
 import { Route as BSlugRouteImport } from './routes/b.$slug'
 
 const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
@@ -113,6 +114,12 @@ const BusinessEditRoute = BusinessEditRouteImport.update({
   path: '/business/edit',
   getParentRoute: () => rootRouteImport,
 } as any)
+const BlogHowToFindInternationalB2bPartnersRoute =
+  BlogHowToFindInternationalB2bPartnersRouteImport.update({
+    id: '/blog/how-to-find-international-b2b-partners',
+    path: '/blog/how-to-find-international-b2b-partners',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const BSlugRoute = BSlugRouteImport.update({
   id: '/b/$slug',
   path: '/b/$slug',
@@ -135,6 +142,7 @@ export interface FileRoutesByFullPath {
   '/signup': typeof SignupRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/b/$slug': typeof BSlugRoute
+  '/blog/how-to-find-international-b2b-partners': typeof BlogHowToFindInternationalB2bPartnersRoute
   '/business/edit': typeof BusinessEditRoute
   '/business/stats': typeof BusinessStatsRoute
   '/country/$slug': typeof CountrySlugRoute
@@ -155,6 +163,7 @@ export interface FileRoutesByTo {
   '/signup': typeof SignupRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/b/$slug': typeof BSlugRoute
+  '/blog/how-to-find-international-b2b-partners': typeof BlogHowToFindInternationalB2bPartnersRoute
   '/business/edit': typeof BusinessEditRoute
   '/business/stats': typeof BusinessStatsRoute
   '/country/$slug': typeof CountrySlugRoute
@@ -176,6 +185,7 @@ export interface FileRoutesById {
   '/signup': typeof SignupRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/b/$slug': typeof BSlugRoute
+  '/blog/how-to-find-international-b2b-partners': typeof BlogHowToFindInternationalB2bPartnersRoute
   '/business/edit': typeof BusinessEditRoute
   '/business/stats': typeof BusinessStatsRoute
   '/country/$slug': typeof CountrySlugRoute
@@ -198,6 +208,7 @@ export interface FileRouteTypes {
     | '/signup'
     | '/sitemap.xml'
     | '/b/$slug'
+    | '/blog/how-to-find-international-b2b-partners'
     | '/business/edit'
     | '/business/stats'
     | '/country/$slug'
@@ -218,6 +229,7 @@ export interface FileRouteTypes {
     | '/signup'
     | '/sitemap.xml'
     | '/b/$slug'
+    | '/blog/how-to-find-international-b2b-partners'
     | '/business/edit'
     | '/business/stats'
     | '/country/$slug'
@@ -238,6 +250,7 @@ export interface FileRouteTypes {
     | '/signup'
     | '/sitemap.xml'
     | '/b/$slug'
+    | '/blog/how-to-find-international-b2b-partners'
     | '/business/edit'
     | '/business/stats'
     | '/country/$slug'
@@ -259,6 +272,7 @@ export interface RootRouteChildren {
   SignupRoute: typeof SignupRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   BSlugRoute: typeof BSlugRoute
+  BlogHowToFindInternationalB2bPartnersRoute: typeof BlogHowToFindInternationalB2bPartnersRoute
   BusinessEditRoute: typeof BusinessEditRoute
   BusinessStatsRoute: typeof BusinessStatsRoute
   CountrySlugRoute: typeof CountrySlugRoute
@@ -385,6 +399,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof BusinessEditRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/blog/how-to-find-international-b2b-partners': {
+      id: '/blog/how-to-find-international-b2b-partners'
+      path: '/blog/how-to-find-international-b2b-partners'
+      fullPath: '/blog/how-to-find-international-b2b-partners'
+      preLoaderRoute: typeof BlogHowToFindInternationalB2bPartnersRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/b/$slug': {
       id: '/b/$slug'
       path: '/b/$slug'
@@ -411,6 +432,8 @@ const rootRouteChildren: RootRouteChildren = {
   SignupRoute: SignupRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   BSlugRoute: BSlugRoute,
+  BlogHowToFindInternationalB2bPartnersRoute:
+    BlogHowToFindInternationalB2bPartnersRoute,
   BusinessEditRoute: BusinessEditRoute,
   BusinessStatsRoute: BusinessStatsRoute,
   CountrySlugRoute: CountrySlugRoute,
