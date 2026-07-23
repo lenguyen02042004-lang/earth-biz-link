@@ -19,17 +19,49 @@ export const Route = createFileRoute("/b/$slug")({
     if (!mock) throw notFound();
     return { business: mock };
   },
-  head: ({ loaderData }) => ({
-    meta: loaderData
-      ? [
-          { title: `${loaderData.business.name} — GlobalBiz.Connect` },
-          { name: "description", content: loaderData.business.short_intro },
-          { property: "og:title", content: loaderData.business.name },
-          { property: "og:description", content: loaderData.business.short_intro },
-          { property: "og:image", content: loaderData.business.banner_url },
-        ]
-      : [],
-  }),
+  head: ({ loaderData, params }) => {
+    if (!loaderData) return { meta: [] };
+    const b: any = loaderData.business;
+    const url = `https://earth-biz-link.lovable.app/b/${params.slug}`;
+    const sameAs = Object.values(b.socials ?? {}).filter(Boolean) as string[];
+    const jsonLd: Record<string, unknown> = {
+      "@context": "https://schema.org",
+      "@type": "LocalBusiness",
+      name: b.name,
+      description: b.short_intro || b.description || undefined,
+      url,
+      image: b.banner_url || b.logo_url || undefined,
+      logo: b.logo_url || undefined,
+      telephone: b.phone || undefined,
+      email: b.email || undefined,
+      address: {
+        "@type": "PostalAddress",
+        streetAddress: b.address || undefined,
+        addressLocality: b.province || undefined,
+        addressCountry: b.country_code || undefined,
+      },
+      geo:
+        b.lat && b.lng
+          ? { "@type": "GeoCoordinates", latitude: b.lat, longitude: b.lng }
+          : undefined,
+      sameAs: sameAs.length ? sameAs : undefined,
+    };
+    return {
+      meta: [
+        { title: `${b.name} — GlobalBiz.Connect` },
+        { name: "description", content: b.short_intro },
+        { property: "og:title", content: b.name },
+        { property: "og:description", content: b.short_intro },
+        { property: "og:image", content: b.banner_url },
+        { property: "og:url", content: url },
+        { property: "og:type", content: "business.business" },
+        { name: "twitter:card", content: "summary_large_image" },
+        { name: "twitter:image", content: b.banner_url },
+      ],
+      links: [{ rel: "canonical", href: url }],
+      scripts: [{ type: "application/ld+json", children: JSON.stringify(jsonLd) }],
+    };
+  },
   errorComponent: ({ error }) => (
     <div className="min-h-screen bg-background">
       <Navbar />

@@ -22,6 +22,7 @@ export const Route = createFileRoute("/sitemap.xml")({
           { path: "/pricing", changefreq: "monthly", priority: "0.7" },
           { path: "/login", changefreq: "yearly", priority: "0.3" },
           { path: "/signup", changefreq: "yearly", priority: "0.5" },
+          { path: "/blog/how-to-find-international-b2b-partners", changefreq: "monthly", priority: "0.7" },
         ];
 
         for (const c of COUNTRY_LIST) {
