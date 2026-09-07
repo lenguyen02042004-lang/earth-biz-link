@@ -294,6 +294,41 @@ export type Database = {
           },
         ]
       }
+      connections: {
+        Row: {
+          business_id: string
+          created_at: string
+          id: string
+          requester_id: string
+          source: string
+          status: string
+        }
+        Insert: {
+          business_id: string
+          created_at?: string
+          id?: string
+          requester_id: string
+          source?: string
+          status?: string
+        }
+        Update: {
+          business_id?: string
+          created_at?: string
+          id?: string
+          requester_id?: string
+          source?: string
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "connections_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "businesses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       countries: {
         Row: {
           code: string
@@ -453,6 +488,60 @@ export type Database = {
           },
         ]
       }
+      personal_profiles: {
+        Row: {
+          avatar_url: string | null
+          company_name: string | null
+          created_at: string
+          email: string | null
+          facebook_url: string | null
+          full_name: string
+          id: string
+          is_public: boolean
+          job_title: string | null
+          linkedin_url: string | null
+          phone: string | null
+          slug: string
+          updated_at: string
+          user_id: string
+          zalo: string | null
+        }
+        Insert: {
+          avatar_url?: string | null
+          company_name?: string | null
+          created_at?: string
+          email?: string | null
+          facebook_url?: string | null
+          full_name: string
+          id?: string
+          is_public?: boolean
+          job_title?: string | null
+          linkedin_url?: string | null
+          phone?: string | null
+          slug: string
+          updated_at?: string
+          user_id: string
+          zalo?: string | null
+        }
+        Update: {
+          avatar_url?: string | null
+          company_name?: string | null
+          created_at?: string
+          email?: string | null
+          facebook_url?: string | null
+          full_name?: string
+          id?: string
+          is_public?: boolean
+          job_title?: string | null
+          linkedin_url?: string | null
+          phone?: string | null
+          slug?: string
+          updated_at?: string
+          user_id?: string
+          zalo?: string | null
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -599,11 +688,81 @@ export type Database = {
         }
         Relationships: []
       }
+      wallet_limits: {
+        Row: {
+          blocks_purchased: number
+          created_at: string
+          current_saved_count: number
+          id: string
+          max_saved_allowed: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          blocks_purchased?: number
+          created_at?: string
+          current_saved_count?: number
+          id?: string
+          max_saved_allowed?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          blocks_purchased?: number
+          created_at?: string
+          current_saved_count?: number
+          id?: string
+          max_saved_allowed?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
+      buy_contact_block: {
+        Args: never
+        Returns: {
+          blocks_purchased: number
+          created_at: string
+          current_saved_count: number
+          id: string
+          max_saved_allowed: number
+          updated_at: string
+          user_id: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "wallet_limits"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      connect_and_exchange: {
+        Args: { _business_id: string; _source?: string }
+        Returns: Json
+      }
+      ensure_wallet_limits: {
+        Args: { _user: string }
+        Returns: {
+          blocks_purchased: number
+          created_at: string
+          current_saved_count: number
+          id: string
+          max_saved_allowed: number
+          updated_at: string
+          user_id: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "wallet_limits"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -615,6 +774,24 @@ export type Database = {
       increment_business_shares: { Args: { _id: string }; Returns: undefined }
       increment_business_views: { Args: { _id: string }; Returns: undefined }
       is_admin: { Args: never; Returns: boolean }
+      my_wallet_limits: {
+        Args: never
+        Returns: {
+          blocks_purchased: number
+          created_at: string
+          current_saved_count: number
+          id: string
+          max_saved_allowed: number
+          updated_at: string
+          user_id: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "wallet_limits"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       send_card_visit: {
         Args: {
           _body: string
