@@ -1,131 +1,53 @@
+# Đối chiếu ứng dụng hiện tại với 2 bản đặc tả (PRD)
 
-# Kế hoạch: GlobalBiz Connect — Danh bạ doanh nghiệp toàn cầu
+## Kết luận nhanh
+Ứng dụng hiện đạt khoảng **50–55%** yêu cầu trong PRD.
 
-## Tổng quan
-Website B2B kết nối doanh nghiệp toàn cầu. Trang chủ là **quả địa cầu 3D xoay** với logo doanh nghiệp tại vị trí thực, zoom sâu chuyển sang **Google Maps 2D**. Người dùng đăng ký miễn phí → tạo "card visit" doanh nghiệp → xuất hiện trên bản đồ → kết nối với doanh nghiệp khác qua mailbox tích hợp.
+Phần đã làm tốt: nền tảng doanh nghiệp (hồ sơ, bản đồ, danh bạ, hộp thư, thống kê, admin, import hàng loạt, SEO).
+Phần còn thiếu nhiều nhất: **vai trò Cá nhân (Buyer)**, **luồng quét QR tại triển lãm**, **xác thực tích xanh**, **bản in QR/standee**, **thanh toán**.
 
-Phong cách: **Hồng tươi sáng mạnh mẽ** (hot pink → magenta gradient, nền sáng/tối tương phản, glassmorphism, micro-animation mượt).
+## Bảng đối chiếu
 
----
+| Nhóm chức năng theo PRD | Hiện trạng | Mức đạt |
+|---|---|---|
+| Tài khoản & đăng nhập (Google/Apple 3 giây) | Có đăng ký/đăng nhập email + Google. Chưa có Apple, chưa có luồng đăng nhập nhanh trong popup | 60% |
+| Hai vai trò: Cá nhân (Buyer) / Doanh nghiệp (Seller), chuyển đổi vai trò | Chưa có. Chỉ có 1 loại tài khoản gắn với doanh nghiệp | 10% |
+| Card visit Doanh nghiệp (logo, banner, liên hệ, mạng xã hội, QR, gallery) | Đã có đầy đủ và đẹp | 85% |
+| Card visit Cá nhân (avatar, họ tên, chức vụ, công ty, QR cá nhân) | Chưa có | 0% |
+| Thông tin triển lãm: tên triển lãm, số gian hàng (booth) | Chưa có trường dữ liệu | 0% |
+| Mã số thuế + khóa cứng tên/địa chỉ theo MST | Chưa có | 0% |
+| Tích xanh xác thực (email tên miền / MST / admin duyệt) | Chưa có | 0% |
+| Catalogue PDF + album ảnh + video giới thiệu | Có album 5 ảnh; chưa có PDF catalogue, chưa có video | 35% |
+| Ẩn một phần liên hệ trước khi kết nối (090xxxx123) | Chưa có — thông tin liên hệ đang hiển thị công khai | 0% |
+| Nút hành động: Gọi / Zalo / Email sau khi kết nối | Có link liên hệ và Zalo trong danh sách mạng xã hội, nhưng chưa gắn với trạng thái "đã kết nối" | 40% |
+| Ví danh bạ + xuất vCard | Có trang danh bạ + lưu liên hệ + xuất vCard | 80% |
+| Hạn mức lưu trữ 200 (cá nhân) / 1.000 (doanh nghiệp), mua thêm block +1.000 | Chưa có giới hạn lưu trữ (chỉ có hạn mức gửi card) | 20% |
+| Hạn mức 1.000 lượt kết nối chủ động/năm | Đã có bảng hạn mức và trừ lượt khi gửi card | 75% |
+| Danh sách "Khách hàng tiềm năng (Leads)" cho doanh nghiệp | Chưa có (mới chỉ có hộp thư nhận card) | 25% |
+| Luồng quét QR → mở khóa → đồng bộ 2 chiều 1-Click | Chưa có. QR hiện chỉ dẫn tới trang hồ sơ và đếm lượt quét | 20% |
+| Thông báo tức thời khi có người kết nối | Có chuông thông báo hộp thư theo thời gian thực | 80% |
+| Xuất bản in: standee A5/A6 và card visit 9x5.4cm (ảnh/PDF 300 DPI) | Chưa có | 0% |
+| Thanh toán 5 USD/năm + mua block | Chưa kích hoạt (Stripe đang chờ) | 10% |
+| Chống spam: giới hạn 5 yêu cầu/phút | Chưa có rate limit | 0% |
+| Tối ưu Mobile-first, tốc độ tải < 1.5s | Đã tối ưu LCP, SEO, responsive | 75% |
 
-## Hạ tầng cần bật
-1. **Lovable Cloud** — database, auth, storage, server functions
-2. **Google Maps connector** — cho map 2D + geocoding địa chỉ → toạ độ
-3. **Stripe Payments (seamless)** — gói thành viên + mua thêm lượt
-4. **PayPal** — cần bạn cung cấp `PAYPAL_CLIENT_ID` + `PAYPAL_CLIENT_SECRET` (tôi sẽ yêu cầu qua secrets form sau khi dựng UI)
-5. **Email domain (tuỳ chọn)** — gửi email thông báo kết nối; có thể bỏ qua giai đoạn đầu, dùng in-app mailbox
+## Việc còn lại, xếp theo thứ tự nên làm
 
----
+1. **Vai trò Cá nhân + card visit cá nhân** (hồ sơ cá nhân, QR riêng, trang công khai).
+2. **Luồng quét QR tại triển lãm**: xem hồ sơ → bấm "Kết nối giao thương" → đăng nhập nhanh → form 4 ô → mở khóa liên hệ + đồng bộ 2 chiều + đẩy lead cho doanh nghiệp.
+3. **Che/mở khóa thông tin liên hệ** theo trạng thái kết nối, kèm nút Gọi / Zalo / Email.
+4. **Trường triển lãm**: tên triển lãm, số gian hàng; hiển thị nổi bật trên card và lọc theo triển lãm.
+5. **Tích xanh xác thực**: tự động theo email tên miền, admin duyệt thủ công; MST tra cứu API để sau.
+6. **Catalogue PDF + video giới thiệu** trên hồ sơ doanh nghiệp.
+7. **Hạn mức lưu trữ danh bạ** 200/1.000 + mua block +1.000.
+8. **Xuất bản in standee A5/A6 và card visit 9x5.4cm**.
+9. **Thanh toán** (Stripe hoặc PayOS/VietQR) cho gói 5 USD/năm và block mở rộng.
+10. **Rate limit** 5 kết nối/phút.
 
-## Mô hình dữ liệu (chính)
+## Ghi chú kỹ thuật
+- Dữ liệu hiện có: `businesses`, `business_socials`, `business_gallery`, `saved_contacts`, `connect_messages`, `message_quotas`, `follows`, `subscriptions`, `payments_log`, `profiles`, `user_roles`, `industries`, `countries`.
+- Cần bổ sung: `personal_profiles`, `connections`, `wallet_limits`, `leads` (hoặc dùng chung `connections`), và các cột `tax_code`, `booth_number`, `exhibition_name`, `catalogue_url`, `video_url`, `is_verified` trên `businesses`.
+- Mọi bảng mới đều cần GRANT + RLS theo chuẩn hiện tại của dự án.
 
-```text
-profiles            (id=auth.uid, display_name, avatar_url, email)
-user_roles          (user_id, role: user|admin)  -- bảng tách riêng, có hàm has_role()
-businesses          (id, owner_id, name, slug, banner_url, logo_url,
-                     address, country, province, lat, lng,
-                     phone, email, website, short_intro,
-                     industry_id, status: draft|public,
-                     icon_tier: standard|premium, premium_until,
-                     views_count, followers_count, created_at)
-business_socials    (business_id, platform, url)   -- 15+ mạng xã hội
-business_gallery    (business_id, image_url, order_index)  -- 5 ảnh
-industries          (id, name, icon, slug)
-countries           (code, name, flag)
-follows             (follower_id, business_id)
-connect_messages    (id, from_business_id, to_business_id, subject, body,
-                     read_at, created_at)
-message_quotas      (business_id, period_year, used_count, bonus_credits)
-                     -- enforce ≤ 1000/năm + bonus đã mua
-subscriptions       (user_id, business_id, tier, provider: stripe|paypal,
-                     status, current_period_end, ...)
-payments_log        (id, user_id, amount, currency, type:
-                     membership|extra_quota|icon_premium, provider, status)
-import_jobs         (id, admin_id, file_url, status, processed, errors)
-```
-
-RLS: tất cả bảng có policy. `businesses` public read nếu `status='public'`, owner full CRUD. Mailbox chỉ owner đọc. Admin dùng `has_role()`.
-
----
-
-## Cấu trúc route
-
-```text
-/                    Globe 3D + filter (quốc gia, ngành) — landing
-/explore             Google Maps 2D + danh sách doanh nghiệp
-/b/$slug             Trang chi tiết doanh nghiệp + QR code chia sẻ
-/login, /signup, /reset-password
-/_authenticated/
-  dashboard          Tổng quan: card visit, views, followers, hộp thư
-  business/edit      Form nhập/sửa + preview/public
-  inbox              Mailbox kết nối (gửi/nhận)
-  billing            Gói thành viên, mua thêm lượt, tier icon
-  settings           Avatar, tên, đổi mật khẩu, đổi email
-  _admin/
-    dashboard        Thống kê
-    import           Upload CSV/XLSX bulk import
-    businesses       Quản lý toàn bộ
-    payments         Lịch sử giao dịch
-/api/public/
-  stripe-webhook
-  paypal-webhook
-```
-
----
-
-## Các giai đoạn triển khai
-
-### Giai đoạn 1 — Nền tảng & UI bản đồ (sẽ làm trước khi dừng để xác nhận)
-1. Bật Lovable Cloud + Google Maps connector
-2. Design system hồng tươi (tokens, gradients, shadows, animations)
-3. Schema database + RLS + seed industries/countries
-4. Trang chủ **Globe 3D** (react-globe.gl) với marker logo demo
-5. Trang `/explore` Google Maps 2D + filter quốc gia/ngành
-6. Popup chi tiết doanh nghiệp (card visit) — sang trọng, có nút follow/share/QR
-7. Auth: email/password + Google sign-in
-
-**Tôi sẽ dừng ở đây để bạn duyệt giao diện trước khi đi tiếp.**
-
-### Giai đoạn 2 — Quản lý doanh nghiệp & user
-8. Form tạo/sửa doanh nghiệp (multi-step, preview, publish)
-9. Upload banner/logo/gallery (Lovable Cloud storage)
-10. Geocode địa chỉ → lat/lng qua Google Maps server function
-11. Dashboard: views, followers, hộp thư inbox
-12. Settings tài khoản
-
-### Giai đoạn 3 — Kết nối & Mailbox
-13. Nút "Gửi card visit" trên popup → soạn message
-14. Enforce quota ≤ 1000/năm (atomic increment với RLS check)
-15. Inbox + notification badge
-
-### Giai đoạn 4 — Payments
-16. Bật Stripe Payments (seamless)
-17. Tạo products: Membership $5/yr, Extra 1000 sends $5, Premium Icon $5/yr
-18. Checkout + webhook → update subscriptions/quotas
-19. PayPal: yêu cầu secrets, dựng SDK button, webhook verify
-20. Icon tier (premium có viền gradient hồng + size lớn hơn trên bản đồ)
-
-### Giai đoạn 5 — Admin
-21. Bulk import CSV/XLSX (parse client-side, validate, batch insert, geocode)
-22. Admin dashboard & moderation
-
----
-
-## Chi tiết kỹ thuật quan trọng
-
-- **Globe 3D**: dùng `react-globe.gl` (WebGL, mượt). Marker = HTML overlay với logo. Click → mở popup. Zoom > threshold → animate chuyển sang `/explore` Google Maps.
-- **15+ social platforms**: Facebook, Instagram, X/Twitter, LinkedIn, YouTube, TikTok, Threads, Pinterest, Snapchat, WhatsApp, Telegram, WeChat, Line, Zalo, Discord, Reddit, GitHub, Behance, Dribbble.
-- **QR code**: dùng thư viện `qrcode` render trên trang `/b/$slug`, link về chính URL đó.
-- **Bulk import**: parse với `xlsx` lib trong server function, geocode song song (rate limit), insert qua admin client.
-- **Payments**: Stripe seamless (1 click bật, không cần API key). PayPal cần bạn tạo app tại developer.paypal.com.
-
----
-
-## Cần bạn xác nhận trước khi tôi bắt đầu
-
-1. **OK với kế hoạch chia 5 giai đoạn này?** (Tôi sẽ dừng sau Giai đoạn 1 để bạn duyệt UI.)
-2. **Đăng ký**: chỉ email/password hay thêm Google sign-in? (đề xuất: cả hai)
-3. **PayPal**: bạn đã có tài khoản PayPal Business + Developer App chưa? Nếu chưa, tôi sẽ làm Stripe trước và PayPal sau khi bạn sẵn sàng.
-4. **Ngôn ngữ giao diện**: tiếng Việt, tiếng Anh, hay song ngữ?
-
-Trả lời các điểm trên rồi tôi sẽ bắt đầu Giai đoạn 1 ngay.
+## Cần bạn quyết
+Bạn muốn tôi bắt tay vào nhóm nào trước — (1)+(2)+(3) là bộ ba tạo ra giá trị lớn nhất tại hội chợ, hay ưu tiên (8) bản in QR/standee để kịp in ấn?
