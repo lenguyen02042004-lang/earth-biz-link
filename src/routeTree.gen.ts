@@ -14,7 +14,9 @@ import { Route as SignupRouteImport } from './routes/signup'
 import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as PricingRouteImport } from './routes/pricing'
+import { Route as MeRouteImport } from './routes/me'
 import { Route as LoginRouteImport } from './routes/login'
+import { Route as LeadsRouteImport } from './routes/leads'
 import { Route as InboxRouteImport } from './routes/inbox'
 import { Route as FollowingRouteImport } from './routes/following'
 import { Route as ExploreRouteImport } from './routes/explore'
@@ -54,9 +56,19 @@ const PricingRoute = PricingRouteImport.update({
   path: '/pricing',
   getParentRoute: () => rootRouteImport,
 } as any)
+const MeRoute = MeRouteImport.update({
+  id: '/me',
+  path: '/me',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
   path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LeadsRoute = LeadsRouteImport.update({
+  id: '/leads',
+  path: '/leads',
   getParentRoute: () => rootRouteImport,
 } as any)
 const InboxRoute = InboxRouteImport.update({
@@ -135,7 +147,9 @@ export interface FileRoutesByFullPath {
   '/explore': typeof ExploreRoute
   '/following': typeof FollowingRoute
   '/inbox': typeof InboxRoute
+  '/leads': typeof LeadsRoute
   '/login': typeof LoginRoute
+  '/me': typeof MeRoute
   '/pricing': typeof PricingRoute
   '/reset-password': typeof ResetPasswordRoute
   '/settings': typeof SettingsRoute
@@ -156,7 +170,9 @@ export interface FileRoutesByTo {
   '/explore': typeof ExploreRoute
   '/following': typeof FollowingRoute
   '/inbox': typeof InboxRoute
+  '/leads': typeof LeadsRoute
   '/login': typeof LoginRoute
+  '/me': typeof MeRoute
   '/pricing': typeof PricingRoute
   '/reset-password': typeof ResetPasswordRoute
   '/settings': typeof SettingsRoute
@@ -178,7 +194,9 @@ export interface FileRoutesById {
   '/explore': typeof ExploreRoute
   '/following': typeof FollowingRoute
   '/inbox': typeof InboxRoute
+  '/leads': typeof LeadsRoute
   '/login': typeof LoginRoute
+  '/me': typeof MeRoute
   '/pricing': typeof PricingRoute
   '/reset-password': typeof ResetPasswordRoute
   '/settings': typeof SettingsRoute
@@ -201,7 +219,9 @@ export interface FileRouteTypes {
     | '/explore'
     | '/following'
     | '/inbox'
+    | '/leads'
     | '/login'
+    | '/me'
     | '/pricing'
     | '/reset-password'
     | '/settings'
@@ -222,7 +242,9 @@ export interface FileRouteTypes {
     | '/explore'
     | '/following'
     | '/inbox'
+    | '/leads'
     | '/login'
+    | '/me'
     | '/pricing'
     | '/reset-password'
     | '/settings'
@@ -243,7 +265,9 @@ export interface FileRouteTypes {
     | '/explore'
     | '/following'
     | '/inbox'
+    | '/leads'
     | '/login'
+    | '/me'
     | '/pricing'
     | '/reset-password'
     | '/settings'
@@ -265,7 +289,9 @@ export interface RootRouteChildren {
   ExploreRoute: typeof ExploreRoute
   FollowingRoute: typeof FollowingRoute
   InboxRoute: typeof InboxRoute
+  LeadsRoute: typeof LeadsRoute
   LoginRoute: typeof LoginRoute
+  MeRoute: typeof MeRoute
   PricingRoute: typeof PricingRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
   SettingsRoute: typeof SettingsRoute
@@ -315,11 +341,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PricingRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/me': {
+      id: '/me'
+      path: '/me'
+      fullPath: '/me'
+      preLoaderRoute: typeof MeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/login': {
       id: '/login'
       path: '/login'
       fullPath: '/login'
       preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/leads': {
+      id: '/leads'
+      path: '/leads'
+      fullPath: '/leads'
+      preLoaderRoute: typeof LeadsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/inbox': {
@@ -425,7 +465,9 @@ const rootRouteChildren: RootRouteChildren = {
   ExploreRoute: ExploreRoute,
   FollowingRoute: FollowingRoute,
   InboxRoute: InboxRoute,
+  LeadsRoute: LeadsRoute,
   LoginRoute: LoginRoute,
+  MeRoute: MeRoute,
   PricingRoute: PricingRoute,
   ResetPasswordRoute: ResetPasswordRoute,
   SettingsRoute: SettingsRoute,
