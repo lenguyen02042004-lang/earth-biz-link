@@ -42,6 +42,7 @@ function MePage() {
       if (!user) { setAuthed(false); setLoading(false); return; }
       setAuthed(true);
       setUserId(user.id);
+      setUserId(user.id);
       const p = await getMyPersonalProfile();
       if (p) {
         setProfile(p);
