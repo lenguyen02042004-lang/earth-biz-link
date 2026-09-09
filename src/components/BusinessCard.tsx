@@ -332,6 +332,16 @@ export function BusinessCard({ business, onClose }: Props) {
       {showSend && (
         <SendCardDialog toBusinessId={business.id} toBusinessName={business.name} onClose={() => setShowSend(false)} />
       )}
+
+      {showConnect && (
+        <ConnectDialog
+          businessId={business.id}
+          businessName={business.name}
+          source={typeof window !== "undefined" && new URLSearchParams(window.location.search).get("src") === "qr" ? "qr" : "manual"}
+          onClose={() => setShowConnect(false)}
+          onConnected={() => { setUnlocked(true); setSaved(true); setShowConnect(false); }}
+        />
+      )}
     </div>
   );
 }
