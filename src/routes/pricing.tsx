@@ -44,6 +44,7 @@ const TIERS = [
 
 const ADDONS = [
   { name: "Mua thêm 1,000 lượt gửi card", price: "5", desc: "Một lần thanh toán, không hết hạn." },
+  { name: "Mở rộng danh bạ +1.000 liên hệ", price: "5", desc: "Cộng thêm 1.000 chỗ lưu danh bạ, dùng vĩnh viễn.", block: true },
 ];
 
 function PricingPage() {

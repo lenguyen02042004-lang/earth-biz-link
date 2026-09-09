@@ -1,7 +1,7 @@
 import { Link, useLocation } from "@tanstack/react-router";
 import { Navbar } from "@/components/Navbar";
 import {
-  LayoutDashboard, Inbox, BookOpen, Heart, BarChart3, Pencil, Settings as SettingsIcon, Shield,
+  LayoutDashboard, Inbox, BookOpen, Heart, BarChart3, Pencil, Settings as SettingsIcon, Shield, IdCard, UserPlus,
 } from "lucide-react";
 import { useEffect, useState, type ComponentType } from "react";
 import { supabase } from "@/integrations/supabase/client";
@@ -10,7 +10,7 @@ import { useAuth } from "@/hooks/use-auth";
 export const DEMO_OWNER_PREFIX = "00000000-0000-0000-0000-0000000000";
 
 type TabDef = {
-  to: "/dashboard" | "/inbox" | "/contacts" | "/following" | "/business/stats" | "/business/edit" | "/settings" | "/admin";
+  to: "/dashboard" | "/inbox" | "/contacts" | "/following" | "/business/stats" | "/business/edit" | "/me" | "/leads" | "/settings" | "/admin";
   label: string;
   icon: ComponentType<{ className?: string }>;
   match: (path: string) => boolean;
@@ -25,6 +25,8 @@ const TABS: TabDef[] = [
   { to: "/following", label: "Đang theo dõi", icon: Heart, match: (p) => p.startsWith("/following"), group: "main" },
   { to: "/business/stats", label: "Thống kê", icon: BarChart3, match: (p) => p.startsWith("/business/stats"), group: "main" },
   { to: "/business/edit", label: "Chỉnh sửa DN", icon: Pencil, match: (p) => p.startsWith("/business/edit"), group: "main" },
+  { to: "/leads", label: "Khách tiềm năng", icon: UserPlus, match: (p) => p.startsWith("/leads"), group: "main" },
+  { to: "/me", label: "Danh thiếp cá nhân", icon: IdCard, match: (p) => p.startsWith("/me"), group: "main" },
   { to: "/settings", label: "Cài đặt", icon: SettingsIcon, match: (p) => p.startsWith("/settings"), group: "system" },
   { to: "/admin", label: "Quản trị", icon: Shield, match: (p) => p.startsWith("/admin"), adminOnly: true, group: "system" },
 ];

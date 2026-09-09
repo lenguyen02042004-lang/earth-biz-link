@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import QRCode from "qrcode";
 import {
   MapPin, Phone, Mail, Globe, Eye, Share2, X, Sparkles, Send, BookmarkPlus, BookmarkCheck,
-  Building2, Award, FileText,
+  Building2, Award, FileText, Lock, Handshake,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -16,6 +16,9 @@ import { saveBusinessContact, isContactSaved } from "@/lib/contacts";
 import { useNavigate } from "@tanstack/react-router";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { maskPhone, maskEmail } from "@/lib/mask";
+import { ConnectDialog } from "./ConnectDialog";
+import { isConnectedTo } from "@/lib/connect";
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const viewedThisSession = new Set<string>();
@@ -30,6 +33,8 @@ export function BusinessCard({ business, onClose }: Props) {
   const [showSend, setShowSend] = useState(false);
   const [saved, setSaved] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [unlocked, setUnlocked] = useState(false);
+  const [showConnect, setShowConnect] = useState(false);
   const navigate = useNavigate();
   const profileUrl = typeof window !== "undefined" ? `${window.location.origin}/b/${business.slug}` : "";
 
@@ -54,6 +59,7 @@ export function BusinessCard({ business, onClose }: Props) {
 
   useEffect(() => {
     isContactSaved(business.id).then(setSaved);
+    isConnectedTo(business.id).then(setUnlocked);
   }, [business.id]);
 
   // Track view + QR scan (once per session per business)
@@ -204,16 +210,30 @@ export function BusinessCard({ business, onClose }: Props) {
               <span className="leading-snug">{business.address}, {business.province}, {business.country_name}</span>
             </div>
             {business.phone && (
-              <a href={`tel:${business.phone}`} className="flex items-center gap-2 text-foreground/80 hover:text-primary transition-smooth">
-                <Phone className="w-4 h-4 text-primary shrink-0" />
-                <span className="truncate">{business.phone}</span>
-              </a>
+              unlocked ? (
+                <a href={`tel:${business.phone}`} className="flex items-center gap-2 text-foreground/80 hover:text-primary transition-smooth">
+                  <Phone className="w-4 h-4 text-primary shrink-0" />
+                  <span className="truncate">{business.phone}</span>
+                </a>
+              ) : (
+                <span className="flex items-center gap-2 text-muted-foreground">
+                  <Lock className="w-4 h-4 text-primary shrink-0" />
+                  <span className="truncate">{maskPhone(business.phone)}</span>
+                </span>
+              )
             )}
             {business.email && (
-              <a href={`mailto:${business.email}`} className="flex items-center gap-2 text-foreground/80 hover:text-primary transition-smooth">
-                <Mail className="w-4 h-4 text-primary shrink-0" />
-                <span className="truncate">{business.email}</span>
-              </a>
+              unlocked ? (
+                <a href={`mailto:${business.email}`} className="flex items-center gap-2 text-foreground/80 hover:text-primary transition-smooth">
+                  <Mail className="w-4 h-4 text-primary shrink-0" />
+                  <span className="truncate">{business.email}</span>
+                </a>
+              ) : (
+                <span className="flex items-center gap-2 text-muted-foreground">
+                  <Lock className="w-4 h-4 text-primary shrink-0" />
+                  <span className="truncate">{maskEmail(business.email)}</span>
+                </span>
+              )
             )}
             {business.website && (
               <a href={business.website} target="_blank" rel="noopener noreferrer"
@@ -223,6 +243,19 @@ export function BusinessCard({ business, onClose }: Props) {
               </a>
             )}
           </div>
+
+          {!unlocked && (business.phone || business.email) && (
+            <div className="rounded-xl border border-primary/30 bg-primary/5 p-3 flex flex-wrap items-center justify-between gap-3">
+              <p className="text-xs text-muted-foreground max-w-sm">
+                Liên hệ được bảo vệ. Bấm <strong className="text-foreground">Kết nối giao thương</strong> để mở khóa,
+                đồng thời gửi danh thiếp của bạn cho doanh nghiệp.
+              </p>
+              <Button size="sm" onClick={() => setShowConnect(true)} className="gap-1.5 bg-gradient-vivid text-white border-0 shadow-pink">
+                <Handshake className="w-4 h-4" /> Kết nối giao thương
+              </Button>
+            </div>
+          )}
+
 
           {/* GIỚI THIỆU */}
           <div>
@@ -298,6 +331,16 @@ export function BusinessCard({ business, onClose }: Props) {
 
       {showSend && (
         <SendCardDialog toBusinessId={business.id} toBusinessName={business.name} onClose={() => setShowSend(false)} />
+      )}
+
+      {showConnect && (
+        <ConnectDialog
+          businessId={business.id}
+          businessName={business.name}
+          source={typeof window !== "undefined" && new URLSearchParams(window.location.search).get("src") === "qr" ? "qr" : "manual"}
+          onClose={() => setShowConnect(false)}
+          onConnected={() => { setUnlocked(true); setSaved(true); setShowConnect(false); }}
+        />
       )}
     </div>
   );

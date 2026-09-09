@@ -32,6 +32,7 @@ function MePage() {
   const [saving, setSaving] = useState(false);
   const [authed, setAuthed] = useState<boolean | null>(null);
   const [qr, setQr] = useState("");
+  const [userId, setUserId] = useState("");
 
   const publicUrl = profile && typeof window !== "undefined" ? `${window.location.origin}/p/${profile.slug}` : "";
 
@@ -40,6 +41,8 @@ function MePage() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) { setAuthed(false); setLoading(false); return; }
       setAuthed(true);
+      setUserId(user.id);
+      setUserId(user.id);
       const p = await getMyPersonalProfile();
       if (p) {
         setProfile(p);
@@ -104,6 +107,7 @@ function MePage() {
             <div className="flex items-start gap-4">
               <ImageUpload
                 bucket="avatars"
+                userId={userId}
                 value={form.avatar_url || null}
                 onChange={(url) => setForm({ ...form, avatar_url: url ?? "" })}
                 label="Ảnh đại diện"
