@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import QRCode from "qrcode";
 import {
   MapPin, Phone, Mail, Globe, Eye, Share2, X, Sparkles, Send, BookmarkPlus, BookmarkCheck,
-  Building2, Award, FileText,
+  Building2, Award, FileText, Lock, Handshake,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -16,6 +16,9 @@ import { saveBusinessContact, isContactSaved } from "@/lib/contacts";
 import { useNavigate } from "@tanstack/react-router";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { maskPhone, maskEmail } from "@/lib/mask";
+import { ConnectDialog } from "./ConnectDialog";
+import { isConnectedTo } from "@/lib/connect";
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const viewedThisSession = new Set<string>();
@@ -30,6 +33,8 @@ export function BusinessCard({ business, onClose }: Props) {
   const [showSend, setShowSend] = useState(false);
   const [saved, setSaved] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [unlocked, setUnlocked] = useState(false);
+  const [showConnect, setShowConnect] = useState(false);
   const navigate = useNavigate();
   const profileUrl = typeof window !== "undefined" ? `${window.location.origin}/b/${business.slug}` : "";
 
@@ -54,6 +59,7 @@ export function BusinessCard({ business, onClose }: Props) {
 
   useEffect(() => {
     isContactSaved(business.id).then(setSaved);
+    isConnectedTo(business.id).then(setUnlocked);
   }, [business.id]);
 
   // Track view + QR scan (once per session per business)
