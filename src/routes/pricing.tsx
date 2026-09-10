@@ -52,6 +52,25 @@ const ADDONS = [
 ];
 
 function PricingPage() {
+  const navigate = useNavigate();
+  const [buying, setBuying] = useState(false);
+
+  const handleBuyBlock = async () => {
+    setBuying(true);
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      setBuying(false);
+      toast.error("Vui lòng đăng nhập để mua gói mở rộng");
+      navigate({ to: "/login" });
+      return;
+    }
+    const res = await buyContactBlock();
+    setBuying(false);
+    if (!res.ok) { toast.error(res.message); return; }
+    toast.success(`Đã mở rộng danh bạ lên ${res.wallet.max_saved_allowed.toLocaleString()} liên hệ`);
+    navigate({ to: "/contacts" });
+  };
+
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
