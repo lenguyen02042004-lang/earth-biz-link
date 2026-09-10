@@ -41,6 +41,8 @@ function ContactsPage() {
   const [loading, setLoading] = useState(true);
   const [q, setQ] = useState("");
   const [authed, setAuthed] = useState<boolean | null>(null);
+  const [wallet, setWallet] = useState<WalletLimits | null>(null);
+  const [buying, setBuying] = useState(false);
 
   const load = async () => {
     setLoading(true);
@@ -53,7 +55,17 @@ function ContactsPage() {
       .order("created_at", { ascending: false });
     if (error) toast.error(error.message);
     setItems((data as SavedContact[]) ?? []);
+    setWallet(await getMyWallet());
     setLoading(false);
+  };
+
+  const handleBuy = async () => {
+    setBuying(true);
+    const res = await buyContactBlock();
+    setBuying(false);
+    if (!res.ok) { toast.error(res.message); return; }
+    setWallet(res.wallet);
+    toast.success("Đã mở rộng thêm 500 chỗ lưu danh bạ");
   };
 
   useEffect(() => { load(); }, []);
