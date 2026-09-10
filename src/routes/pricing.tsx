@@ -1,7 +1,11 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { Navbar } from "@/components/Navbar";
 import { Button } from "@/components/ui/button";
-import { Check, Sparkles, Crown } from "lucide-react";
+import { Check, Sparkles, Crown, Plus } from "lucide-react";
+import { useState } from "react";
+import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
+import { buyContactBlock } from "@/lib/connect";
 
 export const Route = createFileRoute("/pricing")({
   component: PricingPage,
@@ -44,10 +48,29 @@ const TIERS = [
 
 const ADDONS = [
   { name: "Mua thêm 1,000 lượt gửi card", price: "5", desc: "Một lần thanh toán, không hết hạn." },
-  { name: "Mở rộng danh bạ +1.000 liên hệ", price: "5", desc: "Cộng thêm 1.000 chỗ lưu danh bạ, dùng vĩnh viễn.", block: true },
+  { name: "Mở rộng danh bạ +500 liên hệ", price: "5", desc: "Cộng thêm 500 chỗ lưu danh bạ, dùng vĩnh viễn.", block: true },
 ];
 
 function PricingPage() {
+  const navigate = useNavigate();
+  const [buying, setBuying] = useState(false);
+
+  const handleBuyBlock = async () => {
+    setBuying(true);
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      setBuying(false);
+      toast.error("Vui lòng đăng nhập để mua gói mở rộng");
+      navigate({ to: "/login" });
+      return;
+    }
+    const res = await buyContactBlock();
+    setBuying(false);
+    if (!res.ok) { toast.error(res.message); return; }
+    toast.success(`Đã mở rộng danh bạ lên ${res.wallet.max_saved_allowed.toLocaleString()} liên hệ`);
+    navigate({ to: "/contacts" });
+  };
+
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
@@ -121,8 +144,15 @@ function PricingPage() {
                   <p className="font-medium">{a.name}</p>
                   <p className="text-sm text-muted-foreground">{a.desc}</p>
                 </div>
-                <div className="text-right">
+                <div className="text-right flex items-center gap-3">
                   <p className="text-lg font-bold">${a.price}</p>
+                  {"block" in a && a.block ? (
+                    <Button size="sm" onClick={handleBuyBlock} disabled={buying} className="gap-1.5 bg-gradient-vivid text-white border-0">
+                      <Plus className="w-3.5 h-3.5" /> {buying ? "Đang xử lý…" : "Mua ngay"}
+                    </Button>
+                  ) : (
+                    <Link to="/signup"><Button size="sm" variant="outline">Mua</Button></Link>
+                  )}
                 </div>
               </div>
             ))}

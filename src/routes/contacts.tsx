@@ -5,7 +5,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Search, Trash2, Phone, Mail, Globe, MapPin, Building2 } from "lucide-react";
+import { Search, Trash2, Phone, Mail, Globe, MapPin, Building2, Plus } from "lucide-react";
+import { getMyWallet, buyContactBlock, type WalletLimits } from "@/lib/connect";
 
 export const Route = createFileRoute("/contacts")({
   component: ContactsPage,
@@ -40,6 +41,8 @@ function ContactsPage() {
   const [loading, setLoading] = useState(true);
   const [q, setQ] = useState("");
   const [authed, setAuthed] = useState<boolean | null>(null);
+  const [wallet, setWallet] = useState<WalletLimits | null>(null);
+  const [buying, setBuying] = useState(false);
 
   const load = async () => {
     setLoading(true);
@@ -52,7 +55,17 @@ function ContactsPage() {
       .order("created_at", { ascending: false });
     if (error) toast.error(error.message);
     setItems((data as SavedContact[]) ?? []);
+    setWallet(await getMyWallet());
     setLoading(false);
+  };
+
+  const handleBuy = async () => {
+    setBuying(true);
+    const res = await buyContactBlock();
+    setBuying(false);
+    if (!res.ok) { toast.error(res.message); return; }
+    setWallet(res.wallet);
+    toast.success("Đã mở rộng thêm 500 chỗ lưu danh bạ");
   };
 
   useEffect(() => { load(); }, []);
@@ -83,6 +96,28 @@ function ContactsPage() {
       title="Danh bạ doanh nghiệp"
       subtitle="Các doanh nghiệp bạn đã lưu — tìm kiếm và liên hệ nhanh sau này."
     >
+      {wallet && (
+        <div className="mb-5 rounded-2xl border border-border bg-card p-4">
+          <div className="flex flex-wrap items-center justify-between gap-3 mb-2">
+            <div>
+              <p className="text-sm font-semibold">Hạn mức lưu danh bạ</p>
+              <p className="text-xs text-muted-foreground">
+                Đã dùng {wallet.current_saved_count.toLocaleString()} / {wallet.max_saved_allowed.toLocaleString()} liên hệ
+              </p>
+            </div>
+            <Button size="sm" onClick={handleBuy} disabled={buying} className="gap-1.5 bg-gradient-vivid text-white border-0">
+              <Plus className="w-3.5 h-3.5" /> {buying ? "Đang xử lý…" : "Mua thêm +500"}
+            </Button>
+          </div>
+          <div className="h-2 rounded-full bg-muted overflow-hidden">
+            <div
+              className="h-full rounded-full bg-gradient-vivid"
+              style={{ width: `${Math.min(100, Math.round((wallet.current_saved_count / Math.max(1, wallet.max_saved_allowed)) * 100))}%` }}
+            />
+          </div>
+        </div>
+      )}
+
       <div className="relative mb-5">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
         <Input
