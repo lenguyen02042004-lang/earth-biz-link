@@ -34,7 +34,7 @@ export function Navbar() {
             {t("nav.explore")}
           </Link>
           <Link to="/countries" activeProps={{ className: "text-primary" }} className="hover:text-primary transition-smooth">
-            Quốc gia
+            {t("nav.countries")}
           </Link>
 
           <Link to="/pricing" activeProps={{ className: "text-primary" }} className="hover:text-primary transition-smooth">

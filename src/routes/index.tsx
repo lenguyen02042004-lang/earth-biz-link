@@ -1,5 +1,6 @@
 import { useState, useMemo, useEffect } from "react";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { useTranslation } from "react-i18next";
 import { useQuery } from "@tanstack/react-query";
 import { Globe3D } from "@/components/Globe3D";
 import { BusinessCard } from "@/components/BusinessCard";
@@ -53,6 +54,7 @@ function HomePage() {
   const [mounted, setMounted] = useState(false);
   const { user, loading } = useAuth();
   const navigate = useNavigate();
+  const { t } = useTranslation();
 
   const { data: stats } = useQuery({
     queryKey: ["public-stats"],
@@ -106,23 +108,23 @@ function HomePage() {
         <div className="absolute inset-0 z-20 flex items-center justify-center pointer-events-none px-4">
           <div className="max-w-3xl text-center">
             <h1 className="font-display font-bold text-white text-4xl sm:text-6xl leading-[1.05] tracking-tight drop-shadow-[0_2px_20px_rgba(0,0,0,0.35)]">
-              Bản đồ doanh nghiệp <span className="text-gradient">toàn cầu</span>
+              {t("home.heroTitlePrefix")} <span className="text-gradient">{t("home.heroTitleGradient")}</span>
             </h1>
             <p className="mt-4 text-white/80 text-base sm:text-lg max-w-2xl mx-auto">
-              Kết nối, gửi danh thiếp online và mở rộng đối tác B2B trên hơn {COUNTRY_LIST.length}+ quốc gia.
+              {t("home.heroSubtitle", { count: COUNTRY_LIST.length })}
             </p>
             <div className="mt-6 flex flex-wrap gap-3 justify-center pointer-events-auto">
               <button
                 onClick={scrollToExplore}
                 className="px-5 h-11 rounded-xl bg-gradient-vivid text-white font-semibold shadow-pink hover:opacity-90 transition-smooth inline-flex items-center gap-2"
               >
-                <Search className="w-4 h-4" /> Khám phá ngay
+                <Search className="w-4 h-4" /> {t("home.exploreBtn")}
               </button>
               <Link
                 to="/explore"
                 className="px-5 h-11 rounded-xl bg-white/10 backdrop-blur-md border border-white/25 text-white font-semibold hover:bg-white/20 transition-smooth inline-flex items-center gap-2"
               >
-                <Globe2 className="w-4 h-4" /> Bản đồ 2D
+                <Globe2 className="w-4 h-4" /> {t("home.map2dBtn")}
               </Link>
             </div>
           </div>
@@ -141,7 +143,7 @@ function HomePage() {
               <div className="font-display font-bold text-white text-lg leading-tight tracking-tight">
                 GlobalBiz<span className="text-gradient">.Connect</span>
               </div>
-              <div className="text-[10px] text-white/60 uppercase tracking-widest">Worldwide B2B Map</div>
+              <div className="text-[10px] text-white/60 uppercase tracking-widest">{t("home.worldwideB2BMap")}</div>
             </div>
           </Link>
         </div>
@@ -150,22 +152,22 @@ function HomePage() {
         <div className="absolute top-5 right-5 z-30 flex items-center gap-2">
           <Link to="/explore">
             <Button variant="ghost" size="sm" className="text-white hover:bg-white/10 hover:text-white gap-2">
-              <Globe2 className="w-4 h-4" /> <span className="hidden sm:inline">Bản đồ 2D</span>
+              <Globe2 className="w-4 h-4" /> <span className="hidden sm:inline">{t("home.map2dBtn")}</span>
             </Button>
           </Link>
           <Link to="/pricing">
             <Button variant="ghost" size="sm" className="text-white hover:bg-white/10 hover:text-white hidden sm:inline-flex">
-              Bảng giá
+              {t("nav.pricing")}
             </Button>
           </Link>
           {!loading && user ? (
             <>
               <Link to="/dashboard">
                 <Button variant="ghost" size="sm" className="text-white hover:bg-white/10 hover:text-white gap-2">
-                  <LayoutDashboard className="w-4 h-4" /> <span className="hidden sm:inline">Bảng điều khiển</span>
+                  <LayoutDashboard className="w-4 h-4" /> <span className="hidden sm:inline">{t("nav.dashboard")}</span>
                 </Button>
               </Link>
-              <Button size="icon" variant="ghost" onClick={() => supabase.auth.signOut()} className="text-white hover:bg-white/10 hover:text-white" title="Đăng xuất">
+              <Button size="icon" variant="ghost" onClick={() => supabase.auth.signOut()} className="text-white hover:bg-white/10 hover:text-white" title={t("nav.logout")}>
                 <LogOut className="w-4 h-4" />
               </Button>
             </>
@@ -173,12 +175,12 @@ function HomePage() {
             <>
               <Link to="/login">
                 <Button variant="ghost" size="sm" className="text-white hover:bg-white/10 hover:text-white gap-2">
-                  <LogIn className="w-4 h-4" /> Đăng nhập
+                  <LogIn className="w-4 h-4" /> {t("nav.login")}
                 </Button>
               </Link>
               <Link to="/signup">
                 <Button size="sm" className="gap-2 bg-gradient-vivid hover:opacity-90 text-white border-0 shadow-pink">
-                  <Sparkles className="w-4 h-4" /> Bắt đầu
+                  <Sparkles className="w-4 h-4" /> {t("nav.signup")}
                 </Button>
               </Link>
             </>
@@ -191,7 +193,7 @@ function HomePage() {
           className="absolute bottom-6 left-1/2 -translate-x-1/2 z-30 flex flex-col items-center gap-1 text-white/70 hover:text-white transition-smooth animate-fade-up"
           style={{ animationDelay: "0.3s" }}
         >
-          <span className="text-xs uppercase tracking-widest font-semibold">Tìm kiếm & Ngành nghề</span>
+          <span className="text-xs uppercase tracking-widest font-semibold">{t("home.scrollHint")}</span>
           <ChevronDown className="w-5 h-5 animate-bounce" />
         </button>
       </section>
@@ -203,12 +205,11 @@ function HomePage() {
           {/* Search row */}
           <div className="animate-fade-up">
             <h2 className="text-2xl sm:text-3xl font-display font-bold text-white mb-1">
-              Tìm doanh nghiệp trên khắp <span className="text-gradient">thế giới</span>
+              {t("home.searchFilterTitle")} <span className="text-gradient">{t("home.searchFilterGradient")}</span>
             </h2>
 
             <p className="text-white/60 text-sm mb-5">
-
-              Lọc theo tên, ngành nghề và quốc gia. {DEMO_BUSINESSES.length} doanh nghiệp đã được lập chỉ mục.
+              {t("home.searchFilterDesc", { count: DEMO_BUSINESSES.length })}
             </p>
 
             <div className="grid grid-cols-1 md:grid-cols-12 gap-2 p-2 bg-white/10 backdrop-blur-xl border border-white/15 rounded-2xl shadow-glow">
@@ -217,17 +218,17 @@ function HomePage() {
                 <Input
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
-                  placeholder="Tìm tên doanh nghiệp..."
+                  placeholder={t("home.searchPlaceholder")}
                   className="h-11 pl-10 bg-white/95 border-white/20 text-foreground placeholder:text-muted-foreground rounded-xl focus-visible:ring-2 focus-visible:ring-primary"
                 />
               </div>
               <div className="md:col-span-3">
                 <Select value={industry} onValueChange={setIndustry}>
                   <SelectTrigger className="h-11 bg-white/95 border-white/20 text-foreground rounded-xl">
-                    <SelectValue placeholder="Ngành nghề" />
+                    <SelectValue placeholder={t("common.industry")} />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="all">Tất cả ngành nghề</SelectItem>
+                    <SelectItem value="all">{t("common.allIndustries")}</SelectItem>
                     {INDUSTRY_LIST.map((i) => (
                       <SelectItem key={i.slug} value={i.slug}>{i.name}</SelectItem>
                     ))}
@@ -237,10 +238,10 @@ function HomePage() {
               <div className="md:col-span-3 flex gap-2">
                 <Select value={country} onValueChange={setCountry}>
                   <SelectTrigger className="h-11 bg-white/95 border-white/20 text-foreground rounded-xl flex-1">
-                    <SelectValue placeholder="Quốc gia" />
+                    <SelectValue placeholder={t("common.country")} />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="all">Tất cả quốc gia</SelectItem>
+                    <SelectItem value="all">{t("common.allCountries")}</SelectItem>
                     {COUNTRY_LIST.map((c) => (
                       <SelectItem key={c.code} value={c.code}>{c.name}</SelectItem>
                     ))}
@@ -250,13 +251,13 @@ function HomePage() {
             </div>
 
             <div className="mt-3 text-sm text-white/70">
-              <span className="font-semibold text-primary-glow">{filtered.length}</span> doanh nghiệp khớp bộ lọc.
+              <span className="font-semibold text-primary-glow">{filtered.length}</span> {t("home.matchedBusinesses")}
               {(industry !== "all" || country !== "all" || search) && (
                 <button
                   onClick={() => { setIndustry("all"); setCountry("all"); setSearch(""); }}
                   className="ml-3 underline text-white/60 hover:text-white"
                 >
-                  Xoá bộ lọc
+                  {t("home.clearFilter")}
                 </button>
               )}
             </div>
@@ -272,7 +273,7 @@ function HomePage() {
                 <div className="text-xl font-bold text-white tabular-nums">
                   {(stats?.businesses ?? DEMO_BUSINESSES.length).toLocaleString()}
                 </div>
-                <div className="text-xs text-white/60 uppercase tracking-wide">Doanh nghiệp</div>
+                <div className="text-xs text-white/60 uppercase tracking-wide">{t("home.statsBusinesses")}</div>
               </div>
             </div>
             <div className="rounded-2xl bg-white/10 backdrop-blur-md border border-white/15 p-4 flex items-center gap-3">
@@ -283,7 +284,7 @@ function HomePage() {
                 <div className="text-xl font-bold text-white tabular-nums">
                   {(stats?.connections ?? 0).toLocaleString()}
                 </div>
-                <div className="text-xs text-white/60 uppercase tracking-wide">Lượt kết nối card</div>
+                <div className="text-xs text-white/60 uppercase tracking-wide">{t("home.statsConnections")}</div>
               </div>
             </div>
             <div className="rounded-2xl bg-white/10 backdrop-blur-md border border-white/15 p-4 flex items-center gap-3 col-span-2 sm:col-span-1">
@@ -294,7 +295,7 @@ function HomePage() {
                 <div className="text-xl font-bold text-white tabular-nums">
                   {COUNTRY_LIST.length}+
                 </div>
-                <div className="text-xs text-white/60 uppercase tracking-wide">Quốc gia</div>
+                <div className="text-xs text-white/60 uppercase tracking-wide">{t("home.statsCountries")}</div>
               </div>
             </div>
           </div>
@@ -304,7 +305,7 @@ function HomePage() {
           <div className="mt-10 animate-fade-up" style={{ animationDelay: "0.1s" }}>
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-sm uppercase tracking-widest text-white/70 font-semibold">
-                Ngành nghề trên bản đồ
+                {t("home.industriesTitle")}
               </h3>
               <button
                 onClick={() => setIndustry("all")}
@@ -312,7 +313,7 @@ function HomePage() {
                   industry === "all" ? "text-primary-glow" : "text-white/60 hover:text-white"
                 }`}
               >
-                Hiện tất cả ({DEMO_BUSINESSES.length})
+                {t("home.showAll", { count: DEMO_BUSINESSES.length })}
               </button>
             </div>
 
@@ -339,7 +340,7 @@ function HomePage() {
                     <span className={`text-xs font-bold tabular-nums ${
                       active ? "text-white" : "text-primary-glow"
                     }`}>
-                      {count} DN
+                      {count} {t("home.businessUnit")}
                     </span>
                   </button>
                 );
@@ -351,13 +352,13 @@ function HomePage() {
           <div className="mt-12 flex flex-col sm:flex-row items-center justify-center gap-3 text-center animate-fade-up" style={{ animationDelay: "0.2s" }}>
             <Link to="/explore">
               <Button size="lg" className="bg-gradient-vivid hover:opacity-90 text-white border-0 shadow-pink gap-2">
-                <Globe2 className="w-5 h-5" /> Mở bản đồ 2D đầy đủ
+                <Globe2 className="w-5 h-5" /> {t("home.footerCtaMap")}
               </Button>
             </Link>
             {!user && (
               <Link to="/signup">
                 <Button size="lg" variant="outline" className="border-white/30 bg-white/5 text-white hover:bg-white/15 gap-2">
-                  <Sparkles className="w-5 h-5" /> Đăng ký doanh nghiệp của bạn
+                  <Sparkles className="w-5 h-5" /> {t("home.footerCtaRegister")}
                 </Button>
               </Link>
             )}

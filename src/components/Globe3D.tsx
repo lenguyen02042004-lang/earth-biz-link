@@ -6,8 +6,11 @@ interface Props {
   businesses?: DemoBusiness[];
 }
 
+import { useTranslation } from "react-i18next";
+
 // Lazy import react-globe.gl on client only (uses WebGL / Three.js).
 export function Globe3D({ onSelect, businesses = DEMO_BUSINESSES }: Props) {
+  const { t } = useTranslation();
   const containerRef = useRef<HTMLDivElement>(null);
   const globeRef = useRef<any>(null);
   const [GlobeComp, setGlobeComp] = useState<any>(null);
@@ -59,8 +62,8 @@ export function Globe3D({ onSelect, businesses = DEMO_BUSINESSES }: Props) {
           width={size.w}
           height={size.h}
           backgroundColor="rgba(0,0,0,0)"
-          globeImageUrl="https://unpkg.com/three-globe/example/img/earth-night.jpg"
-          bumpImageUrl="https://unpkg.com/three-globe/example/img/earth-topology.png"
+          globeImageUrl="https://cdn.jsdelivr.net/npm/three-globe/example/img/earth-night.jpg"
+          bumpImageUrl="https://cdn.jsdelivr.net/npm/three-globe/example/img/earth-topology.png"
           atmosphereColor="#ff3b5c"
           atmosphereAltitude={0.18}
           pointsData={points}
@@ -78,7 +81,7 @@ export function Globe3D({ onSelect, businesses = DEMO_BUSINESSES }: Props) {
       )}
       {!GlobeComp && (
         <div className="w-full h-full flex items-center justify-center text-white/60">
-          Đang tải quả địa cầu...
+          {t("home.loadingGlobe")}
         </div>
       )}
     </div>

@@ -1,7 +1,14 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
-  "name": "tanstack-start-app",
+  "name": "bizconnectone",
   "compatibility_date": "2025-09-24",
   "compatibility_flags": ["nodejs_compat"],
   "main": "src/server.ts",
+  "vars": {
+    "VITE_SUPABASE_PROJECT_ID": "umvwsgrpsjqxurehqjbs",
+    "VITE_SUPABASE_URL": "https://umvwsgrpsjqxurehqjbs.supabase.co",
+    "VITE_SUPABASE_PUBLISHABLE_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVtdndzZ3Jwc2pxeHVyZWhxamJzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODkwMDkxMDAsImV4cCI6MjEwNDU4NTEwMH0.p511jXKtrBAk5YUkgg9FUtG8syCiZLgRe8ef1au-wLI",
+    "SUPABASE_URL": "https://umvwsgrpsjqxurehqjbs.supabase.co",
+    "SUPABASE_PUBLISHABLE_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVtdndzZ3Jwc2pxeHVyZWhxamJzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODkwMDkxMDAsImV4cCI6MjEwNDU4NTEwMH0.p511jXKtrBAk5YUkgg9FUtG8syCiZLgRe8ef1au-wLI"
+  }
 }
