@@ -5,7 +5,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Search, Trash2, Phone, Mail, Globe, MapPin, Building2 } from "lucide-react";
+import { Search, Trash2, Phone, Mail, Globe, MapPin, Building2, Plus } from "lucide-react";
+import { getMyWallet, buyContactBlock, type WalletLimits } from "@/lib/connect";
 
 export const Route = createFileRoute("/contacts")({
   component: ContactsPage,
