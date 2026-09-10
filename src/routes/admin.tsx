@@ -141,7 +141,7 @@ function PaymentReviewSection() {
   const updateFn = useServerFn(adminUpdatePaymentStatus);
   const query = useQuery({ queryKey: ["admin-payments"], queryFn: () => listFn() });
   const mut = useMutation({
-    mutationFn: (args: { payment_id: string; status: "verified" | "rejected"; business_id?: string | null }) => updateFn(args),
+    mutationFn: (args: { payment_id: string; status: "verified" | "rejected"; business_id?: string | null }) => updateFn({ data: args }),
     onSuccess: () => {
       toast.success("Đã cập nhật trạng thái");
       query.refetch();

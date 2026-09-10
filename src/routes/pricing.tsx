@@ -134,7 +134,7 @@ function PricingPage() {
           amount: parseFloat(selectedTier.price),
           currency: "USD",
           provider: "manual" as any,
-          type: "subscription",
+          type: "membership",
           status: "pending",
           provider_payment_id: receiptUrl, // Store receipt URL here
         });
