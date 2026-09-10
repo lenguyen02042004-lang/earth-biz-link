@@ -119,9 +119,8 @@ function PublicPersonalCard() {
             ) : (
               <Button variant="outline" onClick={share} className="gap-1.5"><Share2 className="w-4 h-4" /> Chia sẻ</Button>
             )}
-            <Button variant="outline" onClick={share} className="gap-1.5"><Share2 className="w-4 h-4" /> Chia sẻ</Button>
-            <Link to="/print/$type/$slug" params={{ type: "personal", slug }}>
-              <Button variant="outline" className="w-full gap-1.5"><Printer className="w-4 h-4" /> In</Button>
+            <Link to="/print/$type/$slug" params={{ type: "personal", slug }} className="col-span-2">
+              <Button variant="outline" className="w-full gap-1.5"><Printer className="w-4 h-4" /> In card visit / standee</Button>
             </Link>
           </div>
         </article>
