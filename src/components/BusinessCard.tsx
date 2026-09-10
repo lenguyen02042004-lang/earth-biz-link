@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import QRCode from "qrcode";
 import {
   MapPin, Phone, Mail, Globe, Eye, Share2, X, Sparkles, Send, BookmarkPlus, BookmarkCheck,
-  Building2, Award, FileText, Lock, Handshake,
+  Building2, Award, FileText, Lock, Handshake, Printer,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -325,6 +325,15 @@ export function BusinessCard({ business, onClose }: Props) {
           </Button>
           <Button variant="outline" size="icon" className="h-10 w-10" onClick={handleShare} title="Chia sẻ">
             <Share2 className="w-4 h-4" />
+          </Button>
+          <Button
+            variant="outline"
+            size="icon"
+            className="h-10 w-10"
+            title="In card visit & bảng QR"
+            onClick={() => navigate({ to: "/print/$type/$slug", params: { type: "business", slug: business.slug } })}
+          >
+            <Printer className="w-4 h-4" />
           </Button>
         </div>
       </div>
