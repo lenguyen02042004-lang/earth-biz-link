@@ -144,8 +144,15 @@ function PricingPage() {
                   <p className="font-medium">{a.name}</p>
                   <p className="text-sm text-muted-foreground">{a.desc}</p>
                 </div>
-                <div className="text-right">
+                <div className="text-right flex items-center gap-3">
                   <p className="text-lg font-bold">${a.price}</p>
+                  {"block" in a && a.block ? (
+                    <Button size="sm" onClick={handleBuyBlock} disabled={buying} className="gap-1.5 bg-gradient-vivid text-white border-0">
+                      <Plus className="w-3.5 h-3.5" /> {buying ? "Đang xử lý…" : "Mua ngay"}
+                    </Button>
+                  ) : (
+                    <Link to="/signup"><Button size="sm" variant="outline">Mua</Button></Link>
+                  )}
                 </div>
               </div>
             ))}
