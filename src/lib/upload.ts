@@ -5,7 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
  * Returns the public URL. RLS expects folder name to equal the auth user id.
  */
 export async function uploadPublicFile(
-  bucket: "avatars" | "business-logos" | "business-banners" | "business-gallery",
+  bucket: "avatars" | "business-logos" | "business-banners" | "business-gallery" | "receipts",
   file: File,
   userId: string,
 ): Promise<string> {

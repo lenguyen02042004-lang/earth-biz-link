@@ -8,6 +8,8 @@ import {
   bulkImportBusinesses,
   adminListBusinesses,
   seedDemoAccounts,
+  adminListPayments,
+  adminUpdatePaymentStatus,
 } from "@/lib/admin.functions";
 import { parseCSV, BULK_CSV_TEMPLATE } from "@/lib/csv";
 import { DashboardShell } from "@/components/DashboardShell";
@@ -55,6 +57,7 @@ function AdminPage() {
       </div>
 
       <DemoAccountsSection seedFn={seedFn} />
+      <PaymentReviewSection />
       <BusinessTableSection listFn={listFn} />
       <BulkImportSection importFn={importFn} />
     </Shell>
@@ -124,6 +127,93 @@ function DemoAccountsSection({ seedFn }: { seedFn: ReturnType<typeof useServerFn
                   </td>
                 </tr>
               ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </section>
+  );
+}
+
+/* ---------------- Payment Review ---------------- */
+function PaymentReviewSection() {
+  const listFn = useServerFn(adminListPayments);
+  const updateFn = useServerFn(adminUpdatePaymentStatus);
+  const query = useQuery({ queryKey: ["admin-payments"], queryFn: () => listFn() });
+  const mut = useMutation({
+    mutationFn: (args: { payment_id: string; status: "verified" | "rejected"; business_id?: string | null }) => updateFn(args),
+    onSuccess: () => {
+      toast.success("Đã cập nhật trạng thái");
+      query.refetch();
+    },
+    onError: (e: any) => toast.error(e.message ?? "Lỗi cập nhật"),
+  });
+
+  const payments = query.data?.payments ?? [];
+
+  return (
+    <section className="rounded-3xl bg-card border border-border p-6 mb-6">
+      <div className="flex items-center gap-2 mb-4">
+        <Shield className="w-5 h-5 text-primary" />
+        <h2 className="font-display text-xl font-semibold">Duyệt Thanh Toán (Hậu kiểm)</h2>
+      </div>
+      
+      {query.isLoading ? <p>Đang tải...</p> : (
+        <div className="overflow-auto rounded-xl border border-border">
+          <table className="w-full text-xs text-left">
+            <thead className="bg-muted">
+              <tr>
+                <th className="p-2">Doanh nghiệp</th>
+                <th className="p-2">Số tiền</th>
+                <th className="p-2">Ngày gửi</th>
+                <th className="p-2">Biên lai</th>
+                <th className="p-2">Trạng thái</th>
+                <th className="p-2">Hành động</th>
+              </tr>
+            </thead>
+            <tbody>
+              {payments.map((p: any) => (
+                <tr key={p.id} className="border-t border-border">
+                  <td className="p-2 font-medium">{p.businesses?.name || "N/A"}</td>
+                  <td className="p-2 font-mono">${p.amount}</td>
+                  <td className="p-2">{new Date(p.created_at).toLocaleString()}</td>
+                  <td className="p-2">
+                    {p.provider_payment_id ? (
+                      <a href={p.provider_payment_id} target="_blank" rel="noreferrer" className="text-primary hover:underline flex items-center gap-1">
+                        Xem ảnh <ExternalLink className="w-3 h-3" />
+                      </a>
+                    ) : "Không có"}
+                  </td>
+                  <td className="p-2">
+                    <span className={`px-2 py-1 rounded-full text-[10px] font-bold ${
+                      p.status === "pending" ? "bg-yellow-500/20 text-yellow-600" :
+                      p.status === "verified" ? "bg-green-500/20 text-green-600" :
+                      "bg-red-500/20 text-red-600"
+                    }`}>
+                      {p.status.toUpperCase()}
+                    </span>
+                  </td>
+                  <td className="p-2 flex gap-2">
+                    {p.status === "pending" && (
+                      <>
+                        <Button size="sm" onClick={() => mut.mutate({ payment_id: p.id, status: "verified", business_id: p.business_id })} disabled={mut.isPending}>
+                          Duyệt
+                        </Button>
+                        <Button size="sm" variant="destructive" onClick={() => {
+                          if (confirm("Huỷ bỏ thanh toán này và thu hồi Premium của doanh nghiệp?")) {
+                            mut.mutate({ payment_id: p.id, status: "rejected", business_id: p.business_id });
+                          }
+                        }} disabled={mut.isPending}>
+                          Từ chối
+                        </Button>
+                      </>
+                    )}
+                  </td>
+                </tr>
+              ))}
+              {payments.length === 0 && (
+                <tr><td colSpan={6} className="p-4 text-center text-muted-foreground">Không có giao dịch nào.</td></tr>
+              )}
             </tbody>
           </table>
         </div>

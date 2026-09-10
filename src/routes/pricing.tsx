@@ -2,10 +2,21 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { Navbar } from "@/components/Navbar";
 import { Button } from "@/components/ui/button";
 import { Check, Sparkles, Crown, Plus } from "lucide-react";
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { buyContactBlock } from "@/lib/connect";
+import { uploadPublicFile } from "@/lib/upload";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
 export const Route = createFileRoute("/pricing")({
   component: PricingPage,
@@ -54,6 +65,110 @@ const ADDONS = [
 function PricingPage() {
   const navigate = useNavigate();
   const [buying, setBuying] = useState(false);
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [selectedTier, setSelectedTier] = useState<typeof TIERS[0] | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
+  const [receiptUrl, setReceiptUrl] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleSelectTier = async (tier: typeof TIERS[0]) => {
+    if (tier.price === "0") {
+      navigate({ to: "/signup" });
+      return;
+    }
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      toast.error("Vui lòng đăng nhập để nâng cấp");
+      navigate({ to: "/login" });
+      return;
+    }
+    setSelectedTier(tier);
+    setShowPaymentModal(true);
+  };
+
+  const handleUploadReceipt = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+
+    setIsUploading(true);
+    try {
+      const url = await uploadPublicFile("receipts", file, user.id);
+      setReceiptUrl(url);
+      toast.success("Tải ảnh biên lai thành công");
+    } catch (error) {
+      console.error(error);
+      toast.error("Lỗi khi tải ảnh lên");
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  const handleSubmitPayment = async () => {
+    if (!receiptUrl || !selectedTier) {
+      toast.error("Vui lòng tải lên biên lai chuyển khoản");
+      return;
+    }
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+
+    setBuying(true);
+    try {
+      // 1. Fetch user's business
+      const { data: businesses } = await supabase
+        .from("businesses")
+        .select("id")
+        .eq("owner_id", user.id)
+        .limit(1);
+      
+      const businessId = businesses?.[0]?.id;
+
+      // 2. Insert into payments_log
+      const { error: paymentError } = await supabase
+        .from("payments_log")
+        .insert({
+          user_id: user.id,
+          business_id: businessId || null,
+          amount: parseFloat(selectedTier.price),
+          currency: "USD",
+          provider: "manual" as any,
+          type: "subscription",
+          status: "pending",
+          provider_payment_id: receiptUrl, // Store receipt URL here
+        });
+
+      if (paymentError) throw paymentError;
+
+      // 3. Provisional Approval: update business if it exists
+      if (businessId) {
+        const updateData: any = {};
+        if (selectedTier.name === "Icon Premium") {
+          updateData.icon_tier = "premium";
+        } else {
+          // Premium for 1 year
+          updateData.premium_until = new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString();
+        }
+
+        const { error: updateError } = await supabase
+          .from("businesses")
+          .update(updateData)
+          .eq("id", businessId);
+          
+        if (updateError) console.warn("Failed provisional approval", updateError);
+      }
+
+      toast.success("Đã gửi yêu cầu thanh toán. Tài khoản của bạn đã được duyệt trước (Provisional Approval)!");
+      setShowPaymentModal(false);
+      navigate({ to: "/dashboard" });
+    } catch (error) {
+      console.error(error);
+      toast.error("Đã có lỗi xảy ra. Vui lòng thử lại.");
+    } finally {
+      setBuying(false);
+    }
+  };
 
   const handleBuyBlock = async () => {
     setBuying(true);
@@ -119,17 +234,16 @@ function PricingPage() {
                   </li>
                 ))}
               </ul>
-              <Link to="/signup">
-                <Button
-                  className={`w-full ${
-                    tier.featured
-                      ? "bg-white text-primary hover:bg-white/90"
-                      : "bg-gradient-vivid text-white hover:opacity-90 border-0"
-                  }`}
-                >
-                  {tier.cta}
-                </Button>
-              </Link>
+              <Button
+                onClick={() => handleSelectTier(tier)}
+                className={`w-full ${
+                  tier.featured
+                    ? "bg-white text-primary hover:bg-white/90"
+                    : "bg-gradient-vivid text-white hover:opacity-90 border-0"
+                }`}
+              >
+                {tier.cta}
+              </Button>
             </div>
           ))}
         </div>
@@ -151,7 +265,7 @@ function PricingPage() {
                       <Plus className="w-3.5 h-3.5" /> {buying ? "Đang xử lý…" : "Mua ngay"}
                     </Button>
                   ) : (
-                    <Link to="/signup"><Button size="sm" variant="outline">Mua</Button></Link>
+                    <Button size="sm" variant="outline" onClick={() => handleSelectTier(TIERS[1])}>Mua</Button>
                   )}
                 </div>
               </div>
@@ -159,6 +273,52 @@ function PricingPage() {
           </div>
         </div>
       </div>
+
+      <Dialog open={showPaymentModal} onOpenChange={setShowPaymentModal}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Thanh toán chuyển khoản</DialogTitle>
+            <DialogDescription>
+              Vui lòng chuyển khoản số tiền tương ứng với gói <strong>{selectedTier?.name}</strong> (${selectedTier?.price}) 
+              vào tài khoản dưới đây.
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="bg-muted p-4 rounded-lg text-sm mb-4 space-y-2 border">
+            <p><strong>Ngân hàng:</strong> Vietcombank (VCB)</p>
+            <p><strong>Số tài khoản:</strong> 1234567890</p>
+            <p><strong>Tên tài khoản:</strong> CTY TNHH BIZCONNECT ONE</p>
+            <p><strong>Số tiền (Tỷ giá 25k/USD):</strong> {parseInt(selectedTier?.price || "0") * 25000} VNĐ</p>
+            <p><strong>Nội dung CK:</strong> [Email đăng nhập của bạn]</p>
+          </div>
+
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label>Tải lên ảnh chụp biên lai giao dịch</Label>
+              <Input 
+                type="file" 
+                accept="image/*" 
+                ref={fileInputRef}
+                onChange={handleUploadReceipt}
+                disabled={isUploading}
+              />
+              {isUploading && <p className="text-sm text-muted-foreground">Đang tải lên...</p>}
+              {receiptUrl && (
+                <div className="mt-2 border rounded p-1 inline-block">
+                  <img src={receiptUrl} alt="Receipt" className="h-20 object-cover rounded" />
+                </div>
+              )}
+            </div>
+          </div>
+          
+          <DialogFooter className="mt-6">
+            <Button variant="outline" onClick={() => setShowPaymentModal(false)} disabled={buying}>Hủy</Button>
+            <Button onClick={handleSubmitPayment} disabled={isUploading || buying || !receiptUrl} className="bg-gradient-vivid text-white border-0">
+              {buying ? "Đang gửi..." : "Hoàn tất & Kích hoạt"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
