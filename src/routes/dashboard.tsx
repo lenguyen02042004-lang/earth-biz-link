@@ -10,6 +10,9 @@ import {
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { DashboardShell, DEMO_OWNER_PREFIX } from "@/components/DashboardShell";
+import { SubscriptionWidget } from "@/components/SubscriptionWidget";
+import { getMyQuota, getInbox } from "@/lib/messaging.functions";
+import { useNavigate } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/dashboard")({
   component: Dashboard,
@@ -17,7 +20,7 @@ export const Route = createFileRoute("/dashboard")({
     const { data, error } = await supabase.auth.getUser();
     if (error || !data.user) throw redirect({ to: "/login" });
   },
-  head: () => ({ meta: [{ title: "Bảng điều khiển — GlobalBiz.Connect" }] }),
+  head: () => ({ meta: [{ title: "Bảng điều khiển — BizConnect.One" }] }),
 });
 
 type Biz = {
@@ -27,62 +30,59 @@ type Biz = {
   views_count: number; followers_count: number;
 };
 
-type Stats = { unread: number; used: number; limit: number; contacts: number; following: number; };
+type Stats = { unread: number; used: number; limit: number; contacts: number; following: number; tier: "free" | "b2b_premium"; };
 
 function Dashboard() {
   const { user } = useAuth();
-  const [profile, setProfile] = useState<{ display_name: string | null; email: string | null } | null>(null);
+  const navigate = useNavigate();
+  const [profile, setProfile] = useState<{ display_name: string | null; email: string | null; account_type?: string } | null>(null);
   const [businesses, setBusinesses] = useState<Biz[]>([]);
   const [loadingBiz, setLoadingBiz] = useState(true);
-  const [stats, setStats] = useState<Stats>({ unread: 0, used: 0, limit: 100, contacts: 0, following: 0 });
+  const [stats, setStats] = useState<Stats>({ unread: 0, used: 0, limit: 100, contacts: 0, following: 0, tier: "free" });
 
   useEffect(() => {
     if (!user) return;
     let cancelled = false;
     (async () => {
-      const [{ data: prof }, { data: bizes }, { count: contactsCount }, { count: followingCount }] =
+      const [{ data: prof }, { data: bizes }, { count: contactsCount }, { count: followingCount }, myQuotaRes, inboxRes] =
         await Promise.all([
-          supabase.from("profiles").select("display_name, email").eq("id", user.id).single(),
+          supabase.from("profiles").select("display_name, email, account_type").eq("id", user.id).single(),
           supabase.from("businesses")
             .select("id, slug, name, logo_url, status, icon_tier, country_code, province, views_count, followers_count")
             .eq("owner_id", user.id)
             .order("created_at", { ascending: false }),
           supabase.from("saved_contacts").select("*", { count: "exact", head: true }).eq("user_id", user.id),
           supabase.from("follows").select("*", { count: "exact", head: true }).eq("follower_id", user.id),
+          getMyQuota(),
+          getInbox({}),
         ]);
       if (cancelled) return;
+      
+      if (prof?.account_type === "personal") {
+        navigate({ to: "/me" });
+        return;
+      }
       setProfile(prof);
+      
       // Hide system-seeded demo businesses from the user's own dashboard
       const list = ((bizes ?? []) as Biz[]).filter((b) => !b.id.startsWith(DEMO_OWNER_PREFIX));
       setBusinesses(list);
       setLoadingBiz(false);
+      
+      const unread = inboxRes?.messages?.filter((m: any) => !m.read_at).length ?? 0;
+      const quota = myQuotaRes as any;
 
-      const ids = list.map((b) => b.id);
-      if (ids.length > 0) {
-        const year = new Date().getFullYear();
-        const [{ count: unread }, { data: quotas }] = await Promise.all([
-          supabase.from("connect_messages").select("*", { count: "exact", head: true })
-            .in("to_business_id", ids).is("read_at", null),
-          supabase.from("message_quotas").select("used_count, bonus_credits")
-            .in("business_id", ids).eq("period_year", year),
-        ]);
-        if (cancelled) return;
-        const used = (quotas ?? []).reduce((s, q) => s + (q.used_count ?? 0), 0);
-        const bonus = (quotas ?? []).reduce((s, q) => s + (q.bonus_credits ?? 0), 0);
-        setStats({
-          unread: unread ?? 0,
-          used,
-          limit: 100 * ids.length + bonus,
-          contacts: contactsCount ?? 0,
-          following: followingCount ?? 0,
-        });
-      } else {
-        setStats((s) => ({ ...s, contacts: contactsCount ?? 0, following: followingCount ?? 0 }));
-      }
+      setStats({
+        unread,
+        used: quota?.used_count ?? 0,
+        limit: quota?.limit ?? 100,
+        tier: (quota?.limit ?? 100) > 100 ? "b2b_premium" : "free",
+        contacts: contactsCount ?? 0,
+        following: followingCount ?? 0,
+      });
     })();
     return () => { cancelled = true; };
-  }, [user]);
-
+  }, [user, navigate]);
   const totalViews = useMemo(() => businesses.reduce((s, b) => s + (b.views_count ?? 0), 0), [businesses]);
   const totalFollowers = useMemo(() => businesses.reduce((s, b) => s + (b.followers_count ?? 0), 0), [businesses]);
   const publicBiz = businesses.find((b) => b.status === "public");
@@ -105,25 +105,27 @@ function Dashboard() {
       title={`Xin chào, ${profile?.display_name ?? user?.email?.split("@")[0] ?? ""} 👋`}
       subtitle="Quản lý danh thiếp, kết nối và hoạt động doanh nghiệp của bạn."
       actions={
-        <Link to="/business/edit">
-          <Button size="sm" className="gap-1.5 bg-gradient-vivid text-white border-0 shadow-pink">
-            <Plus className="w-4 h-4" /> Tạo danh thiếp
-          </Button>
-        </Link>
+        businesses.length === 0 ? (
+          <Link to="/business/edit">
+            <Button size="sm" className="gap-1.5 bg-gradient-vivid text-white border-0 shadow-pink">
+              <Plus className="w-4 h-4" /> Tạo danh thiếp
+            </Button>
+          </Link>
+        ) : null
       }
     >
       {/* KPI grid */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-8">
         <KpiCard icon={Eye} label="Lượt xem" value={totalViews.toLocaleString()} accent="from-rose-600 to-red-500" />
         <KpiCard icon={Users} label="Người theo dõi" value={totalFollowers.toLocaleString()} accent="from-pink-600 to-rose-500" />
-        <KpiCard icon={Send} label="Card đã gửi" value={`${stats.used} / ${stats.limit || 100}`} accent="from-orange-500 to-rose-500" />
-        <KpiCard icon={Mail} label="Tin chưa đọc" value={stats.unread.toLocaleString()} accent="from-red-700 to-rose-500" highlight={stats.unread > 0} />
+        <KpiCard icon={Send} label={stats.tier === "b2b_premium" ? "Danh thiếp đã gửi (B2B)" : "Danh thiếp đã gửi (Free)"} value={`${stats.used} / ${stats.limit || 200}`} accent="from-orange-500 to-rose-500" highlight={stats.used >= stats.limit * 0.8} />
+        <KpiCard icon={Mail} label="Lời ngỏ chưa đọc" value={stats.unread.toLocaleString()} accent="from-red-700 to-rose-500" highlight={stats.unread > 0} />
       </div>
 
       {/* Shortcuts */}
       <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-3 mb-10">
         <ShortcutCard to="/inbox" icon={Inbox} title="Hộp thư"
-          description={stats.unread > 0 ? `${stats.unread} tin chưa đọc` : "Không có tin mới"}
+          description={stats.unread > 0 ? `${stats.unread} lời ngỏ chưa đọc` : "Không có lời ngỏ mới"}
           badge={stats.unread > 0 ? stats.unread : undefined} />
         <ShortcutCard to="/contacts" icon={BookOpen} title="Danh bạ"
           description={`${stats.contacts} liên hệ đã lưu`} />
@@ -154,6 +156,24 @@ function Dashboard() {
           </div>
         </div>
       )}
+
+      {/* Upgrade banner for free users */}
+      {stats.tier === "free" && businesses.length > 0 && (
+        <div className="mb-6 rounded-2xl border border-primary/30 bg-gradient-to-br from-primary/5 to-rose-500/5 p-4 flex flex-wrap items-center gap-3">
+          <div className="flex-1 min-w-0">
+            <p className="font-semibold text-sm">🚀 Mua thêm Block Giao thương (Block 500) — <span className="text-primary">$5/năm</span></p>
+            <p className="text-xs text-muted-foreground mt-0.5">Tài khoản Free chỉ có 200 lượt gửi/năm. Mua thêm block 500 để mở rộng ngay lập tức giới hạn gửi và lưu danh bạ.</p>
+          </div>
+          <Link to="/pricing">
+            <Button size="sm" className="bg-gradient-vivid text-white border-0 gap-1.5 flex-shrink-0">
+              <Sparkles className="w-3.5 h-3.5" /> Nâng cấp ngay
+            </Button>
+          </Link>
+        </div>
+      )}
+
+      {/* Subscription tracker */}
+      {businesses.length > 0 && <SubscriptionWidget />}
 
       <div className="mb-6 flex items-center justify-between">
         <h2 className="font-display text-xl font-bold">Doanh nghiệp của bạn</h2>

@@ -8,9 +8,9 @@ export const getBusinessBySlug = createServerFn({ method: "GET" })
     z.object({ slug: z.string().min(1).max(120).regex(slugRe) }).parse(input),
   )
   .handler(async ({ data }) => {
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { supabase } = await import("@/integrations/supabase/client");
 
-    const { data: biz, error } = await supabaseAdmin
+    const { data: biz, error } = await supabase
       .from("businesses")
       .select("*, industries(name, slug), countries(name)")
       .eq("slug", data.slug)
@@ -21,8 +21,8 @@ export const getBusinessBySlug = createServerFn({ method: "GET" })
     if (biz.status !== "public") return { business: null };
 
     const [{ data: socials }, { data: gallery }] = await Promise.all([
-      supabaseAdmin.from("business_socials").select("platform, url").eq("business_id", biz.id),
-      supabaseAdmin.from("business_gallery").select("image_url").eq("business_id", biz.id).order("order_index"),
+      supabase.from("business_socials").select("platform, url").eq("business_id", biz.id),
+      supabase.from("business_gallery").select("image_url").eq("business_id", biz.id).order("order_index"),
     ]);
 
     const industry = (biz as any).industries?.name ?? "Doanh nghiệp";
@@ -55,5 +55,34 @@ export const getBusinessBySlug = createServerFn({ method: "GET" })
         socials: Object.fromEntries((socials ?? []).map((s) => [s.platform, s.url])),
         gallery: (gallery ?? []).map((g) => g.image_url),
       },
+    };
+  });
+
+export const getExploreBusinesses = createServerFn({ method: "GET" })
+  .handler(async () => {
+    const { supabase } = await import("@/integrations/supabase/client");
+    const { data: bizes, error } = await supabase
+      .from("businesses")
+      .select("id, name, slug, logo_url, country_code, lat, lng, views_count, icon_tier, status, industries(name, slug), countries(name)")
+      .eq("status", "public")
+      .limit(1000);
+    
+    if (error) throw new Error(error.message);
+
+    return {
+      businesses: (bizes ?? []).map((biz) => ({
+        id: biz.id,
+        name: biz.name,
+        slug: biz.slug,
+        logo_url: biz.logo_url ?? "",
+        country_code: biz.country_code ?? "",
+        country_name: (biz as any).countries?.name ?? biz.country_code ?? "",
+        industry: (biz as any).industries?.name ?? "Doanh nghiệp",
+        industry_slug: (biz as any).industries?.slug ?? "other",
+        lat: biz.lat ?? 0,
+        lng: biz.lng ?? 0,
+        views_count: biz.views_count ?? 0,
+        icon_tier: (biz.icon_tier as "standard" | "premium") ?? "standard",
+      })),
     };
   });

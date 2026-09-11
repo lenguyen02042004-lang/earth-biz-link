@@ -49,9 +49,32 @@ export type WalletLimits = {
 };
 
 export async function getMyWallet(): Promise<WalletLimits | null> {
-  const { data, error } = await supabase.rpc("my_wallet_limits");
-  if (error || !data) return null;
-  return data as unknown as WalletLimits;
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return null;
+
+  const [{ count }, { data: subs }] = await Promise.all([
+    supabase.from("saved_contacts").select("*", { count: "exact", head: true }).eq("user_id", user.id),
+    supabase.from("subscriptions").select("status, sub_type, current_period_end").eq("user_id", user.id).eq("status", "active")
+  ]);
+
+  let activeBlocks = 0;
+  let addonBlocks = 0;
+  if (subs) {
+    for (const sub of subs) {
+      if (!sub.current_period_end || new Date(sub.current_period_end) > new Date()) {
+        if (sub.sub_type === "b2b_block_500") activeBlocks++;
+        if (sub.sub_type === "contact_block_addon") addonBlocks++;
+      }
+    }
+  }
+
+  const limit = 200 + (activeBlocks * 500) + (addonBlocks * 500);
+  
+  return {
+    current_saved_count: count ?? 0,
+    max_saved_allowed: limit,
+    blocks_purchased: activeBlocks,
+  };
 }
 
 export async function buyContactBlock() {

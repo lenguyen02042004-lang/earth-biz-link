@@ -53,13 +53,13 @@ export const Route = createFileRoute("/country/$slug")({
     if (!loaderData) {
       return {
         meta: [
-          { title: "Không tìm thấy quốc gia — GlobalBiz.Connect" },
+          { title: "Không tìm thấy quốc gia — BizConnect.One" },
           { name: "robots", content: "noindex" },
         ],
       };
     }
     const { country } = loaderData;
-    const title = `Doanh nghiệp ${country.name} — GlobalBiz.Connect`;
+    const title = `Doanh nghiệp ${country.name} — BizConnect.One`;
     const description = `Khám phá doanh nghiệp tại ${country.name} (${country.code}) trên bản đồ doanh nghiệp toàn cầu.`;
     return {
       meta: [

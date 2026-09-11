@@ -12,17 +12,23 @@ export const sendCardVisit = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input) =>
     z.object({
-      from_business: uuidLike,
-      to_business: uuidLike,
+      from_business: uuidLike.optional(),
+      to_business: uuidLike.optional(),
+      from_user: uuidLike.optional(),
+      to_user: uuidLike.optional(),
       subject: z.string().trim().min(1).max(200),
       body: z.string().trim().min(1).max(2000),
-    }).parse(input)
+    }).refine((data) => data.from_business || data.from_user, { message: "Phải chọn người gửi" })
+      .refine((data) => data.to_business || data.to_user, { message: "Phải chọn người nhận" })
+      .parse(input)
   )
   .handler(async ({ data, context }) => {
     const { supabase } = context;
     const { data: msgId, error } = await supabase.rpc("send_card_visit", {
-      _from_business: data.from_business,
-      _to_business: data.to_business,
+      _from_business: data.from_business || null,
+      _to_business: data.to_business || null,
+      _from_user: data.from_user || null,
+      _to_user: data.to_user || null,
       _subject: data.subject,
       _body: data.body,
     });
@@ -32,24 +38,43 @@ export const sendCardVisit = createServerFn({ method: "POST" })
 
 export const getInbox = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((input) => z.object({ business_id: uuidLike }).parse(input))
+  .inputValidator((input) => z.object({ business_id: uuidLike.optional() }).parse(input))
   .handler(async ({ data, context }) => {
     const { supabase } = context;
+    // We fetch all messages the user has access to (personal + all their businesses)
+    // The RLS policy guarantees we only see our own messages.
     const { data: messages, error } = await supabase
       .from("connect_messages")
-      .select("id, subject, body, created_at, read_at, from_business_id, to_business_id")
-      .or(`from_business_id.eq.${data.business_id},to_business_id.eq.${data.business_id}`)
+      .select("id, subject, body, created_at, read_at, from_business_id, to_business_id, from_user_id, to_user_id")
       .order("created_at", { ascending: false })
       .limit(100);
     if (error) throw new Error(error.message);
 
-    const ids = Array.from(new Set(messages?.flatMap((m) => [m.from_business_id, m.to_business_id]) ?? []));
-    const { data: bizes } = await supabase
+    const bIds = Array.from(new Set(messages?.flatMap((m) => [m.from_business_id, m.to_business_id]).filter(Boolean) as string[]));
+    const uIds = Array.from(new Set(messages?.flatMap((m) => [m.from_user_id, m.to_user_id]).filter(Boolean) as string[]));
+
+    const { data: bizes } = bIds.length ? await supabase
       .from("businesses")
       .select("id, name, logo_url, slug, phone, email, website, address, province, country_code")
-      .in("id", ids);
-    const map = new Map((bizes ?? []).map((b) => [b.id, b]));
-    return { messages: (messages ?? []).map((m) => ({ ...m, from: map.get(m.from_business_id), to: map.get(m.to_business_id) })) };
+      .in("id", bIds) : { data: [] };
+      
+    const { data: users } = uIds.length ? await supabase
+      .from("personal_profiles")
+      .select("id, full_name, avatar_url, slug, job_title, company_name")
+      .in("id", uIds) : { data: [] };
+
+    const bMap = new Map((bizes ?? []).map((b) => [b.id, b]));
+    const uMap = new Map((users ?? []).map((u) => [u.id, u]));
+
+    return { 
+      messages: (messages ?? []).map((m) => ({ 
+        ...m, 
+        from_business: m.from_business_id ? bMap.get(m.from_business_id) : null, 
+        to_business: m.to_business_id ? bMap.get(m.to_business_id) : null,
+        from_user: m.from_user_id ? uMap.get(m.from_user_id) : null,
+        to_user: m.to_user_id ? uMap.get(m.to_user_id) : null,
+      })) 
+    };
   });
 
 export const markMessageRead = createServerFn({ method: "POST" })
@@ -66,36 +91,50 @@ export const markMessageRead = createServerFn({ method: "POST" })
 
 export const getMyQuota = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((input) => z.object({ business_id: uuidLike }).parse(input))
-  .handler(async ({ data, context }) => {
-    const year = new Date().getFullYear();
-    const { data: row } = await context.supabase
-      .from("message_quotas")
-      .select("used_count, bonus_credits")
-      .eq("business_id", data.business_id)
-      .eq("period_year", year)
-      .maybeSingle();
+  .handler(async ({ context }) => {
+    const { data: quota, error } = await context.supabase.rpc("get_my_quota");
 
-    // Tier-based base limit: Member (active sub) = 1000, Free = 100
-    const { data: sub } = await context.supabase
-      .from("subscriptions")
-      .select("status, current_period_end")
-      .eq("user_id", context.userId)
-      .eq("status", "active")
-      .order("current_period_end", { ascending: false })
-      .limit(1)
-      .maybeSingle();
+    if (error) {
+      // Fallback manual calculation if RPC fails
+      const year = new Date().getFullYear();
+      const { data: row } = await context.supabase
+        .from("message_quotas")
+        .select("used_count, bonus_credits")
+        .eq("user_id", context.userId)
+        .eq("period_year", year)
+        .maybeSingle();
 
-    const isMember = !!sub && (!sub.current_period_end || new Date(sub.current_period_end) > new Date());
-    const base = isMember ? 1000 : 100;
-    const used = row?.used_count ?? 0;
-    const bonus = row?.bonus_credits ?? 0;
-    const limit = base + bonus;
-    return {
-      used, bonus, limit, remaining: limit - used,
-      tier: isMember ? ("member" as const) : ("free" as const),
-    };
+      // 2. Count active b2b_block_500 subscriptions
+      const { data: subs } = await context.supabase
+        .from("subscriptions")
+        .select("status, sub_type, current_period_end")
+        .eq("user_id", context.userId)
+        .eq("status", "active")
+        .eq("sub_type", "b2b_block_500");
+
+      let activeBlocks = 0;
+      if (subs) {
+        for (const sub of subs) {
+          if (!sub.current_period_end || new Date(sub.current_period_end) > new Date()) {
+            activeBlocks++;
+          }
+        }
+      }
+
+      const base = 200;
+      const used = row?.used_count ?? 0;
+      const bonus = row?.bonus_credits ?? 0;
+      const limit = base + (activeBlocks * 500); // 200 + 500 * blocks
+      return {
+        used_count: used,
+        bonus_credits: bonus,
+        limit,
+      };
+    }
+    
+    return quota as { used_count: number; bonus_credits: number; limit: number };
   });
+
 
 export const getMyBusinesses = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])

@@ -9,9 +9,9 @@ import countriesOg from "@/assets/countries-og.jpg";
 export const Route = createFileRoute("/countries")({
   head: () => ({
     meta: [
-      { title: "Danh mục quốc gia có doanh nghiệp — GlobalBiz.Connect" },
+      { title: "Danh mục quốc gia có doanh nghiệp — BizConnect.One" },
       { name: "description", content: "Duyệt danh mục doanh nghiệp theo từng quốc gia trên bản đồ B2B toàn cầu. Chọn thị trường bạn quan tâm để khám phá đối tác tiềm năng." },
-      { property: "og:title", content: "Danh mục quốc gia có doanh nghiệp — GlobalBiz.Connect" },
+      { property: "og:title", content: "Danh mục quốc gia có doanh nghiệp — BizConnect.One" },
       { property: "og:description", content: "Duyệt danh mục doanh nghiệp theo từng quốc gia trên bản đồ B2B toàn cầu — chọn thị trường bạn quan tâm để khám phá đối tác." },
       { property: "og:url", content: "https://earth-biz-link.lovable.app/countries" },
       { property: "og:type", content: "website" },

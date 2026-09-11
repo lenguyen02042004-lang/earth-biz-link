@@ -9,6 +9,8 @@ import { ImageUpload } from "@/components/ImageUpload";
 import { toast } from "sonner";
 import { Loader2, Save, KeyRound, User, Mail } from "lucide-react";
 import { DashboardShell } from "@/components/DashboardShell";
+import { useTranslation } from "react-i18next";
+import i18n from "@/i18n";
 
 export const Route = createFileRoute("/settings")({
   component: SettingsPage,
@@ -16,10 +18,11 @@ export const Route = createFileRoute("/settings")({
     const { data } = await supabase.auth.getSession();
     if (!data.session) throw redirect({ to: "/login" });
   },
-  head: () => ({ meta: [{ title: "Cài đặt tài khoản — GlobalBiz.Connect" }] }),
+  head: () => ({ meta: [{ title: i18n.t("settings.titleMeta", { defaultValue: "Cài đặt tài khoản — BizConnect.One" }) }] }),
 });
 
 function SettingsPage() {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const [displayName, setDisplayName] = useState("");
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
@@ -51,25 +54,25 @@ function SettingsPage() {
     }).eq("id", user.id);
     setSaving(false);
     if (error) toast.error(error.message);
-    else toast.success("Đã cập nhật hồ sơ");
+    else toast.success(t("settings.profileUpdated"));
   };
 
   const updateEmail = async () => {
     if (!email.trim() || email === user.email) return;
     const { error } = await supabase.auth.updateUser({ email });
     if (error) toast.error(error.message);
-    else toast.success("Vui lòng kiểm tra email để xác nhận thay đổi");
+    else toast.success(t("settings.emailCheckInbox"));
   };
 
   const updatePassword = async () => {
     if (newPassword.length < 6) {
-      toast.error("Mật khẩu tối thiểu 6 ký tự");
+      toast.error(t("settings.pwdMinLength"));
       return;
     }
     const { error } = await supabase.auth.updateUser({ password: newPassword });
     if (error) toast.error(error.message);
     else {
-      toast.success("Đã đổi mật khẩu");
+      toast.success(t("settings.pwdChanged"));
       setNewPassword("");
     }
   };
@@ -77,27 +80,27 @@ function SettingsPage() {
   return (
     <DashboardShell
       maxWidth="4xl"
-      title="Cài đặt tài khoản"
-      subtitle="Quản lý hồ sơ, email và mật khẩu"
+      title={t("settings.title")}
+      subtitle={t("settings.subtitle")}
     >
       <div className="space-y-6">
         {/* Profile */}
         <div className="bg-card border border-border rounded-3xl p-6 shadow-card">
-          <h2 className="font-semibold flex items-center gap-2 mb-4"><User className="w-4 h-4 text-primary" /> Hồ sơ</h2>
+          <h2 className="font-semibold flex items-center gap-2 mb-4"><User className="w-4 h-4 text-primary" /> {t("settings.profile")}</h2>
           <div className="grid sm:grid-cols-[160px_1fr] gap-5">
             <ImageUpload
               bucket="avatars" userId={user.id}
               value={avatarUrl} onChange={setAvatarUrl}
-              label="Ảnh đại diện" aspect="square"
+              label={t("settings.avatar")} aspect="square"
             />
             <div className="space-y-3">
               <div>
-                <Label htmlFor="dn">Tên hiển thị</Label>
-                <Input id="dn" value={displayName} onChange={(e) => setDisplayName(e.target.value)} placeholder="Nguyễn Văn A" />
+                <Label htmlFor="dn">{t("settings.displayName")}</Label>
+                <Input id="dn" value={displayName} onChange={(e) => setDisplayName(e.target.value)} placeholder={t("settings.displayNamePlaceholder")} />
               </div>
               <Button onClick={saveProfile} disabled={saving} className="gap-2 bg-gradient-vivid text-white border-0 shadow-pink">
                 {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-                Lưu thay đổi
+                {t("settings.saveChanges")}
               </Button>
             </div>
           </div>
@@ -105,20 +108,20 @@ function SettingsPage() {
 
         {/* Email */}
         <div className="bg-card border border-border rounded-3xl p-6 shadow-card">
-          <h2 className="font-semibold flex items-center gap-2 mb-4"><Mail className="w-4 h-4 text-primary" /> Email đăng nhập</h2>
+          <h2 className="font-semibold flex items-center gap-2 mb-4"><Mail className="w-4 h-4 text-primary" /> {t("settings.loginEmail")}</h2>
           <div className="flex gap-2">
             <Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} />
-            <Button onClick={updateEmail} variant="outline" disabled={email === user.email}>Cập nhật</Button>
+            <Button onClick={updateEmail} variant="outline" disabled={email === user.email}>{t("settings.updateBtn")}</Button>
           </div>
-          <p className="text-xs text-muted-foreground mt-2">Sẽ gửi email xác nhận trước khi áp dụng thay đổi.</p>
+          <p className="text-xs text-muted-foreground mt-2">{t("settings.emailCheckNotice")}</p>
         </div>
 
         {/* Password */}
         <div className="bg-card border border-border rounded-3xl p-6 shadow-card">
-          <h2 className="font-semibold flex items-center gap-2 mb-4"><KeyRound className="w-4 h-4 text-primary" /> Đổi mật khẩu</h2>
+          <h2 className="font-semibold flex items-center gap-2 mb-4"><KeyRound className="w-4 h-4 text-primary" /> {t("settings.changePwd")}</h2>
           <div className="flex gap-2">
-            <Input type="password" placeholder="Mật khẩu mới (tối thiểu 6 ký tự)" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} />
-            <Button onClick={updatePassword} variant="outline" disabled={!newPassword}>Đổi</Button>
+            <Input type="password" placeholder={t("settings.newPwdPlaceholder")} value={newPassword} onChange={(e) => setNewPassword(e.target.value)} />
+            <Button onClick={updatePassword} variant="outline" disabled={!newPassword}>{t("settings.changeBtn")}</Button>
           </div>
         </div>
       </div>

@@ -17,7 +17,6 @@ import { useNavigate } from "@tanstack/react-router";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { maskPhone, maskEmail } from "@/lib/mask";
-import { ConnectDialog } from "./ConnectDialog";
 import { isConnectedTo } from "@/lib/connect";
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -34,7 +33,6 @@ export function BusinessCard({ business, onClose }: Props) {
   const [saved, setSaved] = useState(false);
   const [saving, setSaving] = useState(false);
   const [unlocked, setUnlocked] = useState(false);
-  const [showConnect, setShowConnect] = useState(false);
   const navigate = useNavigate();
   const profileUrl = typeof window !== "undefined" ? `${window.location.origin}/b/${business.slug}` : "";
 
@@ -250,7 +248,7 @@ export function BusinessCard({ business, onClose }: Props) {
                 Liên hệ được bảo vệ. Bấm <strong className="text-foreground">Kết nối giao thương</strong> để mở khóa,
                 đồng thời gửi danh thiếp của bạn cho doanh nghiệp.
               </p>
-              <Button size="sm" onClick={() => setShowConnect(true)} className="gap-1.5 bg-gradient-vivid text-white border-0 shadow-pink">
+              <Button size="sm" onClick={() => setShowSend(true)} className="gap-1.5 bg-gradient-vivid text-white border-0 shadow-pink">
                 <Handshake className="w-4 h-4" /> Kết nối giao thương
               </Button>
             </div>
@@ -339,16 +337,16 @@ export function BusinessCard({ business, onClose }: Props) {
       </div>
 
       {showSend && (
-        <SendCardDialog toBusinessId={business.id} toBusinessName={business.name} onClose={() => setShowSend(false)} />
-      )}
-
-      {showConnect && (
-        <ConnectDialog
-          businessId={business.id}
-          businessName={business.name}
-          source={typeof window !== "undefined" && new URLSearchParams(window.location.search).get("src") === "qr" ? "qr" : "manual"}
-          onClose={() => setShowConnect(false)}
-          onConnected={() => { setUnlocked(true); setSaved(true); setShowConnect(false); }}
+        <SendCardDialog 
+          toId={business.id} 
+          toName={business.name} 
+          toType="business" 
+          onClose={() => {
+            setShowSend(false);
+            // Optionally set unlocked true if they successfully send? 
+            // The dialog closes regardless of success/fail, but if it succeeded, it shows a toast.
+            // Ideally we check if it sent successfully, but for now just leave it.
+          }} 
         />
       )}
     </div>

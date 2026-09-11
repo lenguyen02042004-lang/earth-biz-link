@@ -19,7 +19,7 @@ export const geocodeAddress = createServerFn({ method: "POST" })
 
     const res = await fetch(url.toString(), {
       headers: {
-        "User-Agent": "GlobalBizConnect/1.0 (contact@globalbiz.connect)",
+        "User-Agent": "BizConnectOne/1.0 (contact@bizconnect.one)",
         "Accept-Language": "vi,en",
       },
     });

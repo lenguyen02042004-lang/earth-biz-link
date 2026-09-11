@@ -4,8 +4,9 @@ import QRCode from "qrcode";
 import { Button } from "@/components/ui/button";
 import { Navbar } from "@/components/Navbar";
 import { getPersonalBySlug } from "@/lib/personal-public.functions";
-import { Phone, Mail, MessageCircle, Download, Share2, Printer, Facebook, Linkedin } from "lucide-react";
+import { Phone, Mail, MessageCircle, Download, Share2, Printer, Facebook, Linkedin, Send } from "lucide-react";
 import { toast } from "sonner";
+import { SendCardDialog } from "@/components/SendCardDialog";
 
 export const Route = createFileRoute("/p/$slug")({
   loader: async ({ params }) => {
@@ -41,6 +42,7 @@ function PublicPersonalCard() {
   const { profile } = Route.useLoaderData();
   const { slug } = Route.useParams();
   const [qr, setQr] = useState("");
+  const [showSend, setShowSend] = useState(false);
 
   const url = typeof window !== "undefined" ? `${window.location.origin}/p/${slug}` : "";
 
@@ -77,54 +79,112 @@ function PublicPersonalCard() {
   const zalo = (profile.zalo || profile.phone || "").replace(/\D/g, "");
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background relative overflow-hidden">
+      {/* Animated Mesh-like Background */}
+      <div className="absolute top-0 left-0 w-[500px] h-[500px] bg-rose-500/20 rounded-full blur-[100px] -translate-x-1/2 -translate-y-1/2 animate-pulse" />
+      <div className="absolute bottom-0 right-0 w-[500px] h-[500px] bg-pink-500/20 rounded-full blur-[100px] translate-x-1/2 translate-y-1/2 animate-pulse" style={{ animationDelay: '2s' }} />
+      
       <Navbar />
-      <main className="pt-24 pb-16 px-4">
-        <article className="max-w-md mx-auto rounded-3xl overflow-hidden border border-border bg-card shadow-lg">
-          <div className="bg-gradient-vivid text-white p-6 flex items-center gap-4">
+      
+      <main className="relative pt-24 pb-16 px-4 z-10">
+        <article className="max-w-sm mx-auto rounded-[2.5rem] overflow-hidden border border-white/20 bg-card/40 backdrop-blur-xl shadow-2xl relative">
+          
+          {/* Glass Header */}
+          <div className="absolute top-0 left-0 right-0 h-40 bg-gradient-vivid opacity-90" />
+          <div className="absolute top-0 left-0 right-0 h-40 bg-white/10 backdrop-blur-md border-b border-white/20" />
+          
+          <div className="relative pt-12 pb-6 px-6 flex flex-col items-center text-center">
             {profile.avatar_url ? (
-              <img src={profile.avatar_url} alt={`Ảnh đại diện của ${profile.full_name}`} className="w-20 h-20 rounded-full object-cover border-2 border-white/80" />
+              <img src={profile.avatar_url} alt={`Ảnh đại diện của ${profile.full_name}`} className="w-28 h-28 rounded-full object-cover border-4 border-background/80 shadow-2xl z-10 transition-transform hover:scale-105 duration-500" />
             ) : (
-              <div className="w-20 h-20 rounded-full bg-white/20 flex items-center justify-center text-2xl font-bold">{profile.full_name.slice(0, 1)}</div>
+              <div className="w-28 h-28 rounded-full bg-white/20 border-4 border-background/80 backdrop-blur-sm shadow-2xl flex items-center justify-center text-4xl font-bold text-white z-10">
+                {profile.full_name.slice(0, 1)}
+              </div>
             )}
-            <div className="min-w-0">
-              <h1 className="text-xl font-display font-bold leading-tight">{profile.full_name}</h1>
-              <p className="text-sm text-white/90">{[profile.job_title, profile.company_name].filter(Boolean).join(" · ")}</p>
+            
+            <div className="mt-5 w-full">
+              <h1 className="text-2xl font-display font-bold leading-tight text-foreground tracking-tight">{profile.full_name}</h1>
+              <p className="text-sm font-medium text-muted-foreground mt-1.5">
+                {[profile.job_title, profile.company_name].filter(Boolean).join(" tại ")}
+              </p>
             </div>
           </div>
 
-          <div className="p-5 space-y-2 text-sm">
+          <div className="px-6 py-4 space-y-3">
             {profile.phone && (
-              <a href={`tel:${profile.phone}`} className="flex items-center gap-2 hover:text-primary"><Phone className="w-4 h-4 text-primary" />{profile.phone}</a>
+              <a href={`tel:${profile.phone}`} className="flex items-center gap-3 p-3.5 rounded-2xl bg-white/50 dark:bg-black/20 hover:bg-white/80 dark:hover:bg-black/40 border border-white/20 transition-all duration-300 group">
+                <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center group-hover:scale-110 transition-transform">
+                  <Phone className="w-4 h-4 text-primary" />
+                </div>
+                <span className="font-semibold text-sm tracking-wide">{profile.phone}</span>
+              </a>
             )}
             {profile.email && (
-              <a href={`mailto:${profile.email}`} className="flex items-center gap-2 hover:text-primary break-all"><Mail className="w-4 h-4 text-primary" />{profile.email}</a>
+              <a href={`mailto:${profile.email}`} className="flex items-center gap-3 p-3.5 rounded-2xl bg-white/50 dark:bg-black/20 hover:bg-white/80 dark:hover:bg-black/40 border border-white/20 transition-all duration-300 group">
+                <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center group-hover:scale-110 transition-transform">
+                  <Mail className="w-4 h-4 text-primary" />
+                </div>
+                <span className="font-semibold text-sm truncate">{profile.email}</span>
+              </a>
             )}
-            {(profile.facebook_url || profile.linkedin_url) && (
-              <div className="flex gap-2 pt-1">
-                {profile.facebook_url && <a href={profile.facebook_url} target="_blank" rel="noopener noreferrer" aria-label="Facebook"><Button variant="outline" size="icon" className="h-9 w-9"><Facebook className="w-4 h-4" /></Button></a>}
-                {profile.linkedin_url && <a href={profile.linkedin_url} target="_blank" rel="noopener noreferrer" aria-label="LinkedIn"><Button variant="outline" size="icon" className="h-9 w-9"><Linkedin className="w-4 h-4" /></Button></a>}
-              </div>
+            {zalo && (
+              <a href={`https://zalo.me/${zalo}`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 p-3.5 rounded-2xl bg-blue-500/5 hover:bg-blue-500/10 border border-blue-500/20 transition-all duration-300 group">
+                <div className="w-10 h-10 rounded-xl bg-blue-500/10 flex items-center justify-center group-hover:scale-110 transition-transform">
+                  <MessageCircle className="w-4 h-4 text-blue-600" />
+                </div>
+                <span className="font-semibold text-sm text-blue-700 dark:text-blue-400">Chat Zalo</span>
+              </a>
             )}
+            <div className="flex gap-3 pt-2">
+              {profile.facebook_url && (
+                <a href={profile.facebook_url} target="_blank" rel="noopener noreferrer" className="flex-1 flex justify-center items-center h-12 rounded-2xl bg-white/50 dark:bg-black/20 hover:bg-blue-50 hover:text-blue-600 border border-white/20 transition-all duration-300 shadow-sm">
+                  <Facebook className="w-5 h-5" />
+                </a>
+              )}
+              {profile.linkedin_url && (
+                <a href={profile.linkedin_url} target="_blank" rel="noopener noreferrer" className="flex-1 flex justify-center items-center h-12 rounded-2xl bg-white/50 dark:bg-black/20 hover:bg-blue-50 hover:text-blue-700 border border-white/20 transition-all duration-300 shadow-sm">
+                  <Linkedin className="w-5 h-5" />
+                </a>
+              )}
+              <Link to="/print/$type/$slug" params={{ type: "personal", slug }} className="flex-1 flex justify-center items-center h-12 rounded-2xl bg-white/50 dark:bg-black/20 hover:bg-gray-100 dark:hover:bg-gray-800 border border-white/20 transition-all duration-300 shadow-sm" title="In thẻ / Bảng QR">
+                <Printer className="w-5 h-5" />
+              </Link>
+            </div>
           </div>
 
-          <div className="px-5 pb-5 text-center">
-            {qr && <img src={qr} alt="Mã QR danh thiếp" className="w-40 h-40 mx-auto rounded-xl bg-white p-1 border border-border" />}
+          <div className="px-6 pb-6 pt-2 space-y-3">
+            <div className="grid grid-cols-2 gap-3">
+              <Button onClick={saveVcf} variant="outline" className="h-12 rounded-2xl bg-white/50 dark:bg-black/20 backdrop-blur border-white/20 shadow-sm hover:shadow transition-all">
+                <Download className="w-4 h-4 mr-2 text-primary" /> Lưu VCF
+              </Button>
+              <Button onClick={share} variant="outline" className="h-12 rounded-2xl bg-white/50 dark:bg-black/20 backdrop-blur border-white/20 shadow-sm hover:shadow transition-all">
+                <Share2 className="w-4 h-4 mr-2 text-primary" /> Chia sẻ
+              </Button>
+            </div>
+            <Button onClick={() => setShowSend(true)} className="w-full h-14 rounded-2xl bg-gradient-vivid text-white shadow-pink hover:shadow-lg hover:scale-[1.02] transition-all duration-300 text-base font-semibold border-0">
+              <Send className="w-5 h-5 mr-2" /> Gửi danh thiếp cho tôi
+            </Button>
           </div>
-
-          <div className="p-4 border-t border-border grid grid-cols-2 gap-2">
-            <Button onClick={saveVcf} className="gap-1.5 bg-gradient-vivid text-white border-0"><Download className="w-4 h-4" /> Lưu danh bạ</Button>
-            {zalo ? (
-              <a href={`https://zalo.me/${zalo}`} target="_blank" rel="noopener noreferrer"><Button variant="outline" className="w-full gap-1.5"><MessageCircle className="w-4 h-4" /> Zalo</Button></a>
+          
+          <div className="border-t border-white/10 p-6 bg-black/5 dark:bg-white/5 text-center">
+            {qr ? (
+              <img src={qr} alt="QR Code" className="w-32 h-32 mx-auto rounded-2xl bg-white p-2 shadow-inner border border-border/50" />
             ) : (
-              <Button variant="outline" onClick={share} className="gap-1.5"><Share2 className="w-4 h-4" /> Chia sẻ</Button>
+              <div className="w-32 h-32 mx-auto rounded-2xl bg-black/10 animate-pulse" />
             )}
-            <Link to="/print/$type/$slug" params={{ type: "personal", slug }} className="col-span-2">
-              <Button variant="outline" className="w-full gap-1.5"><Printer className="w-4 h-4" /> In card visit / standee</Button>
-            </Link>
+            <p className="text-xs text-muted-foreground mt-4 font-medium tracking-wide">Quét mã để mở danh thiếp này</p>
           </div>
         </article>
       </main>
+
+      {showSend && (
+        <SendCardDialog 
+          toId={profile.user_id} 
+          toName={profile.full_name} 
+          toType="personal" 
+          onClose={() => setShowSend(false)} 
+        />
+      )}
     </div>
   );
 }

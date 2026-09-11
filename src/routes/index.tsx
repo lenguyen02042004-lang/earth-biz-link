@@ -25,9 +25,9 @@ export const Route = createFileRoute("/")({
   component: HomePage,
   head: () => ({
     meta: [
-      { title: "GlobalBiz.Connect — Bản đồ doanh nghiệp toàn cầu 3D" },
+      { title: "BizConnect.One — Bản đồ doanh nghiệp toàn cầu 3D" },
       { name: "description", content: "Bản đồ 3D tương tác kết nối hàng ngàn doanh nghiệp toàn cầu theo quốc gia và ngành nghề. Tạo danh thiếp online, gửi card visit và mở rộng đối tác B2B quốc tế chỉ từ $5/năm." },
-      { property: "og:title", content: "GlobalBiz.Connect — Bản đồ doanh nghiệp toàn cầu 3D" },
+      { property: "og:title", content: "BizConnect.One — Bản đồ doanh nghiệp toàn cầu 3D" },
       { property: "og:description", content: "Bản đồ 3D tương tác kết nối doanh nghiệp toàn cầu theo quốc gia & ngành nghề. Tạo danh thiếp online, gửi card visit, mở rộng đối tác B2B quốc tế." },
       { property: "og:url", content: "https://earth-biz-link.lovable.app/" },
       { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/00a22ce0-49e6-49b7-90b4-01df776e6cc4/id-preview-2ea6aefd--f585c186-6c05-4cf6-909f-f5ed83a67e7f.lovable.app-1780538420894.png" },
@@ -76,7 +76,7 @@ function HomePage() {
       if (industry !== "all" && b.industry_slug !== industry) return false;
       if (country !== "all" && b.country_code !== country) return false;
       if (q) {
-        const indName = INDUSTRY_LIST.find((i) => i.slug === b.industry_slug)?.name.toLowerCase() ?? "";
+        const indName = t("industry." + b.industry_slug).toLowerCase();
         const cName = COUNTRY_LIST.find((c) => c.code === b.country_code)?.name.toLowerCase() ?? "";
         if (
           !b.name.toLowerCase().includes(q) &&
@@ -86,7 +86,7 @@ function HomePage() {
       }
       return true;
     });
-  }, [industry, country, search]);
+  }, [industry, country, search, t]);
 
   function scrollToExplore() {
     document.getElementById("explore-panel")?.scrollIntoView({ behavior: "smooth", block: "start" });
@@ -141,7 +141,7 @@ function HomePage() {
             </div>
             <div className="hidden sm:block">
               <div className="font-display font-bold text-white text-lg leading-tight tracking-tight">
-                GlobalBiz<span className="text-gradient">.Connect</span>
+                BizConnect<span className="text-gradient">.One</span>
               </div>
               <div className="text-[10px] text-white/60 uppercase tracking-widest">{t("home.worldwideB2BMap")}</div>
             </div>
@@ -230,7 +230,7 @@ function HomePage() {
                   <SelectContent>
                     <SelectItem value="all">{t("common.allIndustries")}</SelectItem>
                     {INDUSTRY_LIST.map((i) => (
-                      <SelectItem key={i.slug} value={i.slug}>{i.name}</SelectItem>
+                      <SelectItem key={i.slug} value={i.slug}>{t("industry." + i.slug, { defaultValue: i.name })}</SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
@@ -335,7 +335,7 @@ function HomePage() {
                   >
                     <Icon className="w-6 h-6 shrink-0" />
                     <span className="text-xs font-medium leading-tight text-center line-clamp-2">
-                      {ind.name}
+                      {t("industry." + ind.slug, { defaultValue: ind.name })}
                     </span>
                     <span className={`text-xs font-bold tabular-nums ${
                       active ? "text-white" : "text-primary-glow"

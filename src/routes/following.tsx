@@ -16,8 +16,8 @@ export const Route = createFileRoute("/following")({
   },
   head: () => ({
     meta: [
-      { title: "Doanh nghiệp tôi theo dõi — GlobalBiz.Connect" },
-      { name: "description", content: "Quản lý danh sách doanh nghiệp bạn đang theo dõi trên GlobalBiz.Connect — cập nhật hoạt động, tin tức và liên hệ nhanh." },
+      { title: "Doanh nghiệp tôi theo dõi — BizConnect.One" },
+      { name: "description", content: "Quản lý danh sách doanh nghiệp bạn đang theo dõi trên BizConnect.One — cập nhật hoạt động, tin tức và liên hệ nhanh." },
       { name: "robots", content: "noindex" },
     ],
   }),

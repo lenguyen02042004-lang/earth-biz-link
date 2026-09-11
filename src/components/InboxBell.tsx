@@ -47,7 +47,7 @@ export function InboxBell() {
           const row = payload.new as { to_business_id: string; subject?: string; from_business_id?: string };
           if (!idSet.has(row.to_business_id)) return;
           setUnread((u) => u + 1);
-          toast("📩 Tin nhắn mới", {
+          toast("📩 Lời ngỏ giao thương mới", {
             description: row.subject ?? "Bạn có yêu cầu kết nối mới.",
             action: { label: "Mở hộp thư", onClick: () => (window.location.href = "/inbox") },
           });
@@ -77,7 +77,7 @@ export function InboxBell() {
       </Button>
       {unread > 0 && (
         <span
-          aria-label={`${unread} tin chưa đọc`}
+          aria-label={`${unread} lời ngỏ chưa đọc`}
           className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] px-1 rounded-full bg-primary text-primary-foreground text-[10px] font-bold flex items-center justify-center shadow-pink border-2 border-background pointer-events-none"
         >
           {unread > 99 ? "99+" : unread}

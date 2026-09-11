@@ -22,6 +22,7 @@ export async function uploadPublicFile(
 }
 
 export function slugify(input: string): string {
+  if (!input) return "business";
   return input
     .toLowerCase()
     .normalize("NFD")

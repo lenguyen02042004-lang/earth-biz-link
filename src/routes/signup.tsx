@@ -5,18 +5,19 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
-import { lovable } from "@/integrations/lovable";
 import { toast } from "sonner";
-import { Sparkles } from "lucide-react";
+import { Sparkles, User, Building2 } from "lucide-react";
+import { useTranslation } from "react-i18next";
+import i18n from "@/i18n";
 
 export const Route = createFileRoute("/signup")({
   component: SignupPage,
   head: () => ({
     meta: [
-      { title: "Đăng ký doanh nghiệp miễn phí — GlobalBiz.Connect" },
-      { name: "description", content: "Tạo tài khoản doanh nghiệp miễn phí trên GlobalBiz.Connect: thiết kế danh thiếp online, hiển thị trên bản đồ toàn cầu và kết nối với đối tác B2B quốc tế." },
-      { property: "og:title", content: "Đăng ký doanh nghiệp miễn phí — GlobalBiz.Connect" },
-      { property: "og:description", content: "Tạo tài khoản doanh nghiệp miễn phí: danh thiếp online, hiển thị trên bản đồ toàn cầu và kết nối đối tác B2B quốc tế." },
+      { title: i18n.t("auth.signupTitle", { defaultValue: "Đăng ký doanh nghiệp miễn phí — BizConnect.One" }) },
+      { name: "description", content: i18n.t("auth.signupDesc", { defaultValue: "Tạo tài khoản doanh nghiệp miễn phí trên BizConnect.One: thiết kế danh thiếp online, hiển thị trên bản đồ toàn cầu và kết nối với đối tác B2B quốc tế." }) },
+      { property: "og:title", content: i18n.t("auth.signupTitle", { defaultValue: "Đăng ký doanh nghiệp miễn phí — BizConnect.One" }) },
+      { property: "og:description", content: i18n.t("auth.signupOgDesc", { defaultValue: "Tạo tài khoản doanh nghiệp miễn phí: danh thiếp online, hiển thị trên bản đồ toàn cầu và kết nối đối tác B2B quốc tế." }) },
       { property: "og:url", content: "https://earth-biz-link.lovable.app/signup" },
     ],
     links: [{ rel: "canonical", href: "https://earth-biz-link.lovable.app/signup" }],
@@ -25,10 +26,12 @@ export const Route = createFileRoute("/signup")({
 });
 
 function SignupPage() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [accountType, setAccountType] = useState<"personal" | "business">("personal");
   const [loading, setLoading] = useState(false);
 
   const handleSignup = async (e: React.FormEvent) => {
@@ -37,21 +40,15 @@ function SignupPage() {
     const { error } = await supabase.auth.signUp({
       email, password,
       options: {
-        emailRedirectTo: `${window.location.origin}/dashboard`,
-        data: { display_name: name },
+        data: { display_name: name, account_type: accountType },
       },
     });
     setLoading(false);
     if (error) toast.error(error.message);
     else {
-      toast.success("Đăng ký thành công! Kiểm tra email để xác nhận.");
-      navigate({ to: "/dashboard" });
+      toast.success(t("auth.signupSuccess"));
+      navigate({ to: accountType === "personal" ? "/me" : "/dashboard" });
     }
-  };
-
-  const handleGoogle = async () => {
-    const result = await lovable.auth.signInWithOAuth("google", { redirect_uri: window.location.origin });
-    if (result.error) toast.error("Đăng ký Google thất bại");
   };
 
   return (
@@ -60,38 +57,50 @@ function SignupPage() {
       <div className="pt-24 px-4 flex items-center justify-center min-h-screen">
         <div className="w-full max-w-md">
           <div className="text-center mb-8">
-            <h1 className="text-3xl font-display font-bold">Bắt đầu miễn phí</h1>
-            <p className="text-muted-foreground mt-2">Đăng ký nhanh — đưa doanh nghiệp lên bản đồ thế giới</p>
+            <h1 className="text-3xl font-display font-bold">{t("auth.signupHeading")}</h1>
+            <p className="text-muted-foreground mt-2">{t("auth.signupSubheading")}</p>
           </div>
           <div className="bg-card border border-border rounded-3xl p-8 shadow-card">
-            <Button type="button" variant="outline" onClick={handleGoogle} className="w-full mb-4 h-11 gap-2">
-              <svg width="18" height="18" viewBox="0 0 48 48"><path fill="#FFC107" d="M43.611 20.083H42V20H24v8h11.303c-1.649 4.657-6.08 8-11.303 8c-6.627 0-12-5.373-12-12s5.373-12 12-12c3.059 0 5.842 1.154 7.961 3.039l5.657-5.657C34.046 6.053 29.268 4 24 4C12.955 4 4 12.955 4 24s8.955 20 20 20s20-8.955 20-20c0-1.341-.138-2.65-.389-3.917z"/><path fill="#FF3D00" d="m6.306 14.691l6.571 4.819C14.655 15.108 18.961 12 24 12c3.059 0 5.842 1.154 7.961 3.039l5.657-5.657C34.046 6.053 29.268 4 24 4C16.318 4 9.656 8.337 6.306 14.691z"/><path fill="#4CAF50" d="M24 44c5.166 0 9.86-1.977 13.409-5.192l-6.19-5.238A11.91 11.91 0 0 1 24 36c-5.202 0-9.619-3.317-11.283-7.946l-6.522 5.025C9.505 39.556 16.227 44 24 44z"/><path fill="#1976D2" d="M43.611 20.083H42V20H24v8h11.303a12.04 12.04 0 0 1-4.087 5.571l6.19 5.238C36.971 39.205 44 34 44 24c0-1.341-.138-2.65-.389-3.917z"/></svg>
-              Tiếp tục với Google
-            </Button>
-            <div className="relative my-5">
-              <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-border" /></div>
-              <div className="relative flex justify-center text-xs"><span className="px-2 bg-card text-muted-foreground">hoặc</span></div>
+            <div className="flex gap-2 mb-6 p-1 bg-muted rounded-xl">
+              <button
+                type="button"
+                onClick={() => setAccountType("personal")}
+                className={`flex-1 flex items-center justify-center gap-2 py-2 text-sm font-medium rounded-lg transition-all ${
+                  accountType === "personal" ? "bg-background shadow text-foreground" : "text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                <User className="w-4 h-4" /> {t("auth.personal")}
+              </button>
+              <button
+                type="button"
+                onClick={() => setAccountType("business")}
+                className={`flex-1 flex items-center justify-center gap-2 py-2 text-sm font-medium rounded-lg transition-all ${
+                  accountType === "business" ? "bg-background shadow text-foreground" : "text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                <Building2 className="w-4 h-4" /> {t("auth.business")}
+              </button>
             </div>
             <form onSubmit={handleSignup} className="space-y-4">
               <div>
-                <Label htmlFor="name">Họ và tên</Label>
-                <Input id="name" required value={name} onChange={(e) => setName(e.target.value)} placeholder="Nguyễn Văn A" />
+                <Label htmlFor="name">{t("auth.fullName")}</Label>
+                <Input id="name" required value={name} onChange={(e) => setName(e.target.value)} placeholder={t("auth.namePlaceholder")} />
               </div>
               <div>
-                <Label htmlFor="email">Email</Label>
-                <Input id="email" type="email" required value={email} onChange={(e) => setEmail(e.target.value)} placeholder="ban@congty.com" />
+                <Label htmlFor="email">{t("auth.email")}</Label>
+                <Input id="email" type="email" required value={email} onChange={(e) => setEmail(e.target.value)} placeholder={t("auth.emailPlaceholder")} />
               </div>
               <div>
-                <Label htmlFor="password">Mật khẩu</Label>
+                <Label htmlFor="password">{t("auth.password")}</Label>
                 <Input id="password" type="password" required minLength={6} value={password} onChange={(e) => setPassword(e.target.value)} />
-                <p className="text-xs text-muted-foreground mt-1">Tối thiểu 6 ký tự</p>
+                <p className="text-xs text-muted-foreground mt-1">{t("auth.passwordHint")}</p>
               </div>
               <Button type="submit" disabled={loading} className="w-full h-11 bg-gradient-vivid hover:opacity-90 text-white border-0 shadow-pink gap-2">
-                <Sparkles className="w-4 h-4" /> {loading ? "Đang tạo tài khoản..." : "Đăng ký miễn phí"}
+                <Sparkles className="w-4 h-4" /> {loading ? t("auth.creatingAccount") : t("auth.signupFree")}
               </Button>
             </form>
             <p className="text-center text-sm text-muted-foreground mt-5">
-              Đã có tài khoản? <Link to="/login" className="text-primary font-medium hover:underline">Đăng nhập</Link>
+              {t("auth.alreadyHaveAccount")} <Link to="/login" className="text-primary font-medium hover:underline">{t("auth.loginHere")}</Link>
             </p>
           </div>
         </div>

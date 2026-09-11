@@ -68,25 +68,28 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
   );
 }
 
+import i18n from "@/i18n";
+
 export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()({
   head: () => ({
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "GlobalBiz.Connect — Bản đồ doanh nghiệp toàn cầu" },
-      { name: "description", content: "Kết nối doanh nghiệp toàn cầu qua bản đồ tương tác 3D. Quảng bá thương hiệu, mở rộng giao thương quốc tế chỉ từ $5/năm." },
+      { title: i18n.t("meta.homeTitle", { defaultValue: "BizConnect.One — Bản đồ doanh nghiệp toàn cầu" }) },
+      { name: "description", content: i18n.t("meta.homeDesc", { defaultValue: "Kết nối doanh nghiệp toàn cầu qua bản đồ tương tác 3D. Quảng bá thương hiệu, mở rộng giao thương quốc tế chỉ từ $5/năm." }) },
       { name: "theme-color", content: "#c8102e" },
       { property: "og:type", content: "website" },
-      { property: "og:title", content: "GlobalBiz.Connect — Bản đồ doanh nghiệp toàn cầu" },
-      { property: "og:description", content: "Kết nối doanh nghiệp toàn cầu qua bản đồ tương tác 3D. Quảng bá thương hiệu, mở rộng giao thương quốc tế chỉ từ $5/năm." },
+      { property: "og:title", content: i18n.t("meta.homeTitle", { defaultValue: "BizConnect.One — Bản đồ doanh nghiệp toàn cầu" }) },
+      { property: "og:description", content: i18n.t("meta.homeDesc", { defaultValue: "Kết nối doanh nghiệp toàn cầu qua bản đồ tương tác 3D. Quảng bá thương hiệu, mở rộng giao thương quốc tế chỉ từ $5/năm." }) },
       { name: "twitter:card", content: "summary_large_image" },
-      { name: "twitter:title", content: "GlobalBiz.Connect — Bản đồ doanh nghiệp toàn cầu" },
-      { name: "twitter:description", content: "Kết nối doanh nghiệp toàn cầu qua bản đồ tương tác 3D. Quảng bá thương hiệu, mở rộng giao thương quốc tế chỉ từ $5/năm." },
-      { property: "og:site_name", content: "GlobalBiz.Connect" },
+      { name: "twitter:title", content: i18n.t("meta.homeTitle", { defaultValue: "BizConnect.One — Bản đồ doanh nghiệp toàn cầu" }) },
+      { name: "twitter:description", content: i18n.t("meta.homeDesc", { defaultValue: "Kết nối doanh nghiệp toàn cầu qua bản đồ tương tác 3D. Quảng bá thương hiệu, mở rộng giao thương quốc tế chỉ từ $5/năm." }) },
+      { property: "og:site_name", content: "BizConnect.One" },
 
     ],
     links: [
       { rel: "stylesheet", href: appCss },
+      { rel: "stylesheet", href: "https://unpkg.com/leaflet@1.9.4/dist/leaflet.css", integrity: "sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=", crossOrigin: "" },
       { rel: "preconnect", href: "https://fonts.googleapis.com" },
       { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
       { rel: "stylesheet", href: "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" },
@@ -100,7 +103,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
             {
               "@type": "Organization",
               "@id": "https://earth-biz-link.lovable.app/#org",
-              name: "GlobalBiz.Connect",
+              name: "BizConnect.One",
               url: "https://earth-biz-link.lovable.app/",
               logo: "https://earth-biz-link.lovable.app/favicon.ico",
               description:
@@ -110,7 +113,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
               "@type": "WebSite",
               "@id": "https://earth-biz-link.lovable.app/#website",
               url: "https://earth-biz-link.lovable.app/",
-              name: "GlobalBiz.Connect",
+              name: "BizConnect.One",
               publisher: { "@id": "https://earth-biz-link.lovable.app/#org" },
               potentialAction: {
                 "@type": "SearchAction",

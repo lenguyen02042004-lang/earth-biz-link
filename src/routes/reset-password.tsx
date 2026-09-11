@@ -7,13 +7,16 @@ import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { KeyRound, Mail } from "lucide-react";
+import { useTranslation } from "react-i18next";
+import i18n from "@/i18n";
 
 export const Route = createFileRoute("/reset-password")({
   component: ResetPasswordPage,
-  head: () => ({ meta: [{ title: "Đặt lại mật khẩu — GlobalBiz.Connect" }] }),
+  head: () => ({ meta: [{ title: i18n.t("auth.resetTitle", { defaultValue: "Đặt lại mật khẩu — BizConnect.One" }) }] }),
 });
 
 function ResetPasswordPage() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const [mode, setMode] = useState<"request" | "update">("request");
   const [email, setEmail] = useState("");
@@ -44,18 +47,18 @@ function ResetPasswordPage() {
     if (error) {
       toast.error(error.message);
     } else {
-      toast.success("Đã gửi email khôi phục. Vui lòng kiểm tra hộp thư.");
+      toast.success(t("auth.resetEmailSent"));
     }
   };
 
   const handleUpdatePassword = async (e: React.FormEvent) => {
     e.preventDefault();
     if (password.length < 6) {
-      toast.error("Mật khẩu phải có ít nhất 6 ký tự");
+      toast.error(t("auth.pwdMinLength"));
       return;
     }
     if (password !== confirm) {
-      toast.error("Mật khẩu xác nhận không khớp");
+      toast.error(t("auth.pwdMismatch"));
       return;
     }
     setLoading(true);
@@ -64,7 +67,7 @@ function ResetPasswordPage() {
     if (error) {
       toast.error(error.message);
     } else {
-      toast.success("Mật khẩu đã được cập nhật!");
+      toast.success(t("auth.pwdUpdated"));
       navigate({ to: "/dashboard" });
     }
   };
@@ -76,12 +79,12 @@ function ResetPasswordPage() {
         <div className="w-full max-w-md">
           <div className="text-center mb-8">
             <h1 className="text-3xl font-display font-bold">
-              {mode === "update" ? "Đặt mật khẩu mới" : "Quên mật khẩu?"}
+              {mode === "update" ? t("auth.setNewPwd") : t("auth.forgotPwd")}
             </h1>
             <p className="text-muted-foreground mt-2">
               {mode === "update"
-                ? "Nhập mật khẩu mới cho tài khoản của bạn."
-                : "Nhập email để chúng tôi gửi liên kết khôi phục."}
+                ? t("auth.enterNewPwd")
+                : t("auth.enterEmailForLink")}
             </p>
           </div>
 
@@ -89,31 +92,31 @@ function ResetPasswordPage() {
             {mode === "request" ? (
               <form onSubmit={handleSendEmail} className="space-y-4">
                 <div>
-                  <Label htmlFor="email">Email</Label>
-                  <Input id="email" type="email" required value={email} onChange={(e) => setEmail(e.target.value)} placeholder="ban@congty.com" />
+                  <Label htmlFor="email">{t("auth.email")}</Label>
+                  <Input id="email" type="email" required value={email} onChange={(e) => setEmail(e.target.value)} placeholder={t("auth.emailPlaceholder")} />
                 </div>
                 <Button type="submit" disabled={loading} className="w-full h-11 bg-gradient-vivid hover:opacity-90 text-white border-0 shadow-pink gap-2">
-                  <Mail className="w-4 h-4" /> {loading ? "Đang gửi..." : "Gửi email khôi phục"}
+                  <Mail className="w-4 h-4" /> {loading ? t("auth.sending") : t("auth.sendRecoveryEmail")}
                 </Button>
               </form>
             ) : (
               <form onSubmit={handleUpdatePassword} className="space-y-4">
                 <div>
-                  <Label htmlFor="password">Mật khẩu mới</Label>
+                  <Label htmlFor="password">{t("auth.newPwd")}</Label>
                   <Input id="password" type="password" required value={password} onChange={(e) => setPassword(e.target.value)} />
                 </div>
                 <div>
-                  <Label htmlFor="confirm">Xác nhận mật khẩu</Label>
+                  <Label htmlFor="confirm">{t("auth.confirmPwd")}</Label>
                   <Input id="confirm" type="password" required value={confirm} onChange={(e) => setConfirm(e.target.value)} />
                 </div>
                 <Button type="submit" disabled={loading} className="w-full h-11 bg-gradient-vivid hover:opacity-90 text-white border-0 shadow-pink gap-2">
-                  <KeyRound className="w-4 h-4" /> {loading ? "Đang cập nhật..." : "Cập nhật mật khẩu"}
+                  <KeyRound className="w-4 h-4" /> {loading ? t("auth.updating") : t("auth.updatePwd")}
                 </Button>
               </form>
             )}
 
             <p className="text-center text-sm text-muted-foreground mt-5">
-              <Link to="/login" className="text-primary font-medium hover:underline">← Quay lại đăng nhập</Link>
+              <Link to="/login" className="text-primary font-medium hover:underline">{t("auth.backToLogin")}</Link>
             </p>
           </div>
         </div>

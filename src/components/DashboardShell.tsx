@@ -16,19 +16,20 @@ type TabDef = {
   match: (path: string) => boolean;
   adminOnly?: boolean;
   group: "main" | "system";
+  allowType: "both" | "personal" | "business";
 };
 
 const TABS: TabDef[] = [
-  { to: "/dashboard", label: "Tổng quan", icon: LayoutDashboard, match: (p) => p === "/dashboard", group: "main" },
-  { to: "/inbox", label: "Hộp thư", icon: Inbox, match: (p) => p.startsWith("/inbox"), group: "main" },
-  { to: "/contacts", label: "Danh bạ", icon: BookOpen, match: (p) => p.startsWith("/contacts"), group: "main" },
-  { to: "/following", label: "Đang theo dõi", icon: Heart, match: (p) => p.startsWith("/following"), group: "main" },
-  { to: "/business/stats", label: "Thống kê", icon: BarChart3, match: (p) => p.startsWith("/business/stats"), group: "main" },
-  { to: "/business/edit", label: "Chỉnh sửa DN", icon: Pencil, match: (p) => p.startsWith("/business/edit"), group: "main" },
-  { to: "/leads", label: "Khách tiềm năng", icon: UserPlus, match: (p) => p.startsWith("/leads"), group: "main" },
-  { to: "/me", label: "Danh thiếp cá nhân", icon: IdCard, match: (p) => p.startsWith("/me"), group: "main" },
-  { to: "/settings", label: "Cài đặt", icon: SettingsIcon, match: (p) => p.startsWith("/settings"), group: "system" },
-  { to: "/admin", label: "Quản trị", icon: Shield, match: (p) => p.startsWith("/admin"), adminOnly: true, group: "system" },
+  { to: "/dashboard", label: "Tổng quan", icon: LayoutDashboard, match: (p) => p === "/dashboard", group: "main", allowType: "business" },
+  { to: "/inbox", label: "Hộp thư", icon: Inbox, match: (p) => p.startsWith("/inbox"), group: "main", allowType: "both" },
+  { to: "/contacts", label: "Danh bạ", icon: BookOpen, match: (p) => p.startsWith("/contacts"), group: "main", allowType: "both" },
+  { to: "/following", label: "Đang theo dõi", icon: Heart, match: (p) => p.startsWith("/following"), group: "main", allowType: "both" },
+  { to: "/business/stats", label: "Thống kê", icon: BarChart3, match: (p) => p.startsWith("/business/stats"), group: "main", allowType: "business" },
+  { to: "/business/edit", label: "Chỉnh sửa DN", icon: Pencil, match: (p) => p.startsWith("/business/edit"), group: "main", allowType: "business" },
+  { to: "/leads", label: "Khách tiềm năng", icon: UserPlus, match: (p) => p.startsWith("/leads"), group: "main", allowType: "business" },
+  { to: "/me", label: "Hồ sơ cá nhân", icon: IdCard, match: (p) => p.startsWith("/me"), group: "main", allowType: "personal" },
+  { to: "/settings", label: "Cài đặt", icon: SettingsIcon, match: (p) => p.startsWith("/settings"), group: "system", allowType: "both" },
+  { to: "/admin", label: "Quản trị", icon: Shield, match: (p) => p.startsWith("/admin"), adminOnly: true, group: "system", allowType: "both" },
 ];
 
 interface Props {
@@ -64,8 +65,14 @@ export function DashboardShell({ title, subtitle, actions, children, maxWidth = 
   const location = useLocation();
   const path = location.pathname;
   const widthCls = WIDTH_CLS[maxWidth];
+  const { accountType } = useAuth();
   const isAdmin = useIsAdmin();
-  const visible = TABS.filter((t) => !t.adminOnly || isAdmin);
+  
+  const visible = TABS.filter((t) => {
+    if (t.adminOnly && !isAdmin) return false;
+    if (t.allowType !== "both" && t.allowType !== accountType) return false;
+    return true;
+  });
   const mainTabs = visible.filter((t) => t.group === "main");
   const systemTabs = visible.filter((t) => t.group === "system");
 
@@ -97,7 +104,7 @@ export function DashboardShell({ title, subtitle, actions, children, maxWidth = 
         <aside className="hidden lg:flex flex-col w-60 shrink-0 border-r border-border bg-card/40 sticky top-16 h-[calc(100vh-4rem)] py-6 px-3 overflow-y-auto">
           <div className="px-3 mb-3">
             <p className="text-[11px] uppercase tracking-wider font-semibold text-muted-foreground">
-              Tài khoản doanh nghiệp
+              {accountType === "business" ? "Tài khoản doanh nghiệp" : "Tài khoản cá nhân"}
             </p>
           </div>
           <nav className="flex flex-col gap-0.5">{mainTabs.map(renderLink)}</nav>

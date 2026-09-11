@@ -10,7 +10,7 @@ export const Route = createFileRoute("/blog/how-to-find-international-b2b-partne
   component: ArticlePage,
   head: () => ({
     meta: [
-      { title: `${TITLE} — GlobalBiz.Connect` },
+      { title: `${TITLE} — BizConnect.One` },
       { name: "description", content: DESCRIPTION },
       { property: "og:title", content: TITLE },
       { property: "og:description", content: DESCRIPTION },
@@ -27,10 +27,10 @@ export const Route = createFileRoute("/blog/how-to-find-international-b2b-partne
           "@type": "Article",
           headline: TITLE,
           description: DESCRIPTION,
-          author: { "@type": "Organization", name: "GlobalBiz.Connect" },
+          author: { "@type": "Organization", name: "BizConnect.One" },
           publisher: {
             "@type": "Organization",
-            name: "GlobalBiz.Connect",
+            name: "BizConnect.One",
             logo: {
               "@type": "ImageObject",
               url: "https://earth-biz-link.lovable.app/favicon.ico",
@@ -60,7 +60,7 @@ function ArticlePage() {
           A global business directory is the fastest way to build a shortlist of potential
           partners across markets you don&apos;t yet know. Directories aggregate verified
           company profiles, industries, contact details and social presence in one place.
-          On <Link to="/explore">GlobalBiz.Connect</Link> you can filter companies by
+          On <Link to="/explore">BizConnect.One</Link> you can filter companies by
           country and industry on an interactive map and open a full online business card
           in one click.
         </p>
@@ -102,9 +102,9 @@ function ArticlePage() {
           trust is established.
         </p>
 
-        <h2>Where GlobalBiz.Connect fits in</h2>
+        <h2>Where BizConnect.One fits in</h2>
         <p>
-          GlobalBiz.Connect is a worldwide B2B directory built around an interactive 3D
+          BizConnect.One is a worldwide B2B directory built around an interactive 3D
           map. You can browse companies by <Link to="/countries">country</Link> or by
           industry, save contacts, exchange digital business cards and follow suppliers
           you want to monitor — all from one profile.

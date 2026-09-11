@@ -14,7 +14,7 @@ export const Route = createFileRoute("/leads")({
   component: LeadsPage,
   head: () => ({
     meta: [
-      { title: "Khách hàng tiềm năng — GlobalBiz.Connect" },
+      { title: "Khách hàng tiềm năng — BizConnect.One" },
       { name: "description", content: "Danh sách khách đã quét mã QR và kết nối giao thương với doanh nghiệp của bạn." },
       { name: "robots", content: "noindex" },
     ],

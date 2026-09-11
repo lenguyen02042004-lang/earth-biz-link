@@ -48,7 +48,7 @@ export const Route = createFileRoute("/b/$slug")({
     };
     return {
       meta: [
-        { title: `${b.name} — GlobalBiz.Connect` },
+        { title: `${b.name} — BizConnect.One` },
         { name: "description", content: b.short_intro },
         { property: "og:title", content: b.name },
         { property: "og:description", content: b.short_intro },

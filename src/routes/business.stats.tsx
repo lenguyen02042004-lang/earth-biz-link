@@ -14,7 +14,7 @@ export const Route = createFileRoute("/business/stats")({
     const { data } = await supabase.auth.getSession();
     if (!data.session) throw redirect({ to: "/login" });
   },
-  head: () => ({ meta: [{ title: "Thống kê doanh nghiệp — GlobalBiz.Connect" }] }),
+  head: () => ({ meta: [{ title: "Thống kê doanh nghiệp — BizConnect.One" }] }),
 });
 
 function StatsPage() {

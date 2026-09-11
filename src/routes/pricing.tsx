@@ -1,11 +1,10 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { Navbar } from "@/components/Navbar";
 import { Button } from "@/components/ui/button";
-import { Check, Sparkles, Crown, Plus } from "lucide-react";
-import { useState, useRef } from "react";
+import { Check, Sparkles, Crown, Plus, QrCode, Copy, Upload, Loader2, X } from "lucide-react";
+import { useState, useRef, useEffect } from "react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
-import { buyContactBlock } from "@/lib/connect";
 import { uploadPublicFile } from "@/lib/upload";
 import {
   Dialog,
@@ -13,312 +12,488 @@ import {
   DialogHeader,
   DialogTitle,
   DialogDescription,
-  DialogFooter,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { useTranslation } from "react-i18next";
+import i18n from "@/i18n";
 
 export const Route = createFileRoute("/pricing")({
   component: PricingPage,
   head: () => ({
     meta: [
-      { title: "Bảng giá gói thành viên — GlobalBiz.Connect" },
-      { name: "description", content: "Chọn gói phù hợp cho doanh nghiệp của bạn: miễn phí để bắt đầu, hoặc Thành viên chỉ từ $5/năm với 1.000 lượt gửi card visit và hỗ trợ ưu tiên." },
-      { property: "og:title", content: "Bảng giá gói thành viên — GlobalBiz.Connect" },
-      { property: "og:description", content: "Chọn gói phù hợp cho doanh nghiệp: miễn phí để bắt đầu, hoặc Thành viên $5/năm với 1.000 lượt gửi card visit và hỗ trợ ưu tiên." },
-      { property: "og:url", content: "https://earth-biz-link.lovable.app/pricing" },
+      { title: i18n.t("pricing.titleMeta", { defaultValue: "Bảng giá gói thành viên — BizConnect.One" }) },
+      { name: "description", content: i18n.t("pricing.descMeta", { defaultValue: "Chọn gói phù hợp: miễn phí để bắt đầu, B2B Premium $5/năm với 500 lượt gửi card chủ động, Icon Premium nổi bật trên bản đồ." }) },
+      { property: "og:title", content: i18n.t("pricing.ogTitle", { defaultValue: "Bảng giá — BizConnect.One" }) },
     ],
     links: [{ rel: "canonical", href: "https://earth-biz-link.lovable.app/pricing" }],
   }),
-
 });
 
-const TIERS = [
-  {
-    name: "Miễn phí",
-    price: "0",
-    description: "Tạo danh thiếp cơ bản và hiển thị trên bản đồ.",
-    features: ["1 danh thiếp doanh nghiệp", "Hiển thị icon trên bản đồ", "Bộ lọc & tìm kiếm", "Trang chi tiết + QR code", "100 lượt gửi card / năm"],
-    cta: "Bắt đầu miễn phí", featured: false,
-  },
-  {
-    name: "Thành viên",
-    price: "5",
-    description: "Đầy đủ tính năng kết nối B2B toàn cầu.",
-    features: ["Tất cả tính năng miễn phí", "1,000 lượt gửi card / năm", "Quản lý hộp thư kết nối", "Phân tích lượt xem chi tiết", "Hỗ trợ ưu tiên"],
-    cta: "Đăng ký $5/năm", featured: true,
-  },
-  {
-    name: "Icon Premium",
-    price: "+5",
-    description: "Nổi bật trên bản đồ với icon to và viền gradient.",
-    features: ["Cộng thêm vào gói thành viên", "Icon kích thước 30% lớn hơn", "Viền gradient hồng động", "Xếp hạng cao hơn trong tìm kiếm", "Huy hiệu Premium"],
-    cta: "Nâng cấp Premium", featured: false, premium: true,
-  },
-];
+// ─── Bank config (update these with real info) ───────────────────────────────
+const BANK = {
+  name: "Vietcombank (VCB)",
+  account: "1234567890",             // TODO: replace with real account number
+  owner: "CTY TNHH BIZCONNECT ONE",  // TODO: replace with real account name
+  bin: "970436",                     // Vietcombank BIN for VietQR
+  vndRate: 1,                        // Direct VND payment
+};
 
-const ADDONS = [
-  { name: "Mua thêm 1,000 lượt gửi card", price: "5", desc: "Một lần thanh toán, không hết hạn." },
-  { name: "Mở rộng danh bạ +500 liên hệ", price: "5", desc: "Cộng thêm 500 chỗ lưu danh bạ, dùng vĩnh viễn.", block: true },
-];
+// Generate VietQR URL (https://vietqr.io/danh-sach-api/create-qr/)
+function vietQrUrl(amount: number, content: string, bankInfo: typeof BANK) {
+  const vnd = amount * bankInfo.vndRate;
+  return `https://img.vietqr.io/image/${bankInfo.bin}-${bankInfo.account}-compact2.png?amount=${vnd}&addInfo=${encodeURIComponent(content)}&accountName=${encodeURIComponent(bankInfo.owner)}`;
+}
+
+type PaymentTarget = {
+  name: string;
+  price: number;
+  subType?: string;
+  isAddon?: boolean;
+  addonId?: string;
+};
 
 function PricingPage() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
-  const [buying, setBuying] = useState(false);
-  const [showPaymentModal, setShowPaymentModal] = useState(false);
-  const [selectedTier, setSelectedTier] = useState<typeof TIERS[0] | null>(null);
+  const [showModal, setShowModal] = useState(false);
+  const [target, setTarget] = useState<PaymentTarget | null>(null);
+  const [userEmail, setUserEmail] = useState<string>("");
   const [isUploading, setIsUploading] = useState(false);
   const [receiptUrl, setReceiptUrl] = useState<string | null>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [submitting, setSubmitting] = useState(false);
+  const [qrLoaded, setQrLoaded] = useState(false);
+  const fileRef = useRef<HTMLInputElement>(null);
 
-  const handleSelectTier = async (tier: typeof TIERS[0]) => {
-    if (tier.price === "0") {
-      navigate({ to: "/signup" });
-      return;
-    }
+  const [bankInfo, setBankInfo] = useState(BANK);
+
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data }) => {
+      setUserEmail(data.user?.email ?? "");
+    });
+    supabase.from("app_settings").select("value").eq("key", "bank_info").single().then(({ data }) => {
+      if (data?.value) setBankInfo({ ...BANK, ...(data.value as any) });
+    });
+  }, []);
+
+  const openPayment = async (t: PaymentTarget) => {
+    if (t.price === 0) { navigate({ to: "/signup" }); return; }
     const { data: { user } } = await supabase.auth.getUser();
-    if (!user) {
-      toast.error("Vui lòng đăng nhập để nâng cấp");
-      navigate({ to: "/login" });
-      return;
-    }
-    setSelectedTier(tier);
-    setShowPaymentModal(true);
+    if (!user) { toast.error(t("pricing.loginToUpgrade")); navigate({ to: "/login" }); return; }
+    setTarget(t);
+    setReceiptUrl(null);
+    setQrLoaded(false);
+    setShowModal(true);
   };
 
-  const handleUploadReceipt = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
-
     setIsUploading(true);
     try {
       const url = await uploadPublicFile("receipts", file, user.id);
       setReceiptUrl(url);
-      toast.success("Tải ảnh biên lai thành công");
-    } catch (error) {
-      console.error(error);
-      toast.error("Lỗi khi tải ảnh lên");
-    } finally {
-      setIsUploading(false);
-    }
+      toast.success(t("pricing.uploadSuccess"));
+    } catch { toast.error(t("pricing.uploadError")); }
+    finally { setIsUploading(false); }
   };
 
-  const handleSubmitPayment = async () => {
-    if (!receiptUrl || !selectedTier) {
-      toast.error("Vui lòng tải lên biên lai chuyển khoản");
-      return;
-    }
+  const handleSubmit = async () => {
+    if (!receiptUrl || !target) { toast.error(t("pricing.requireReceipt")); return; }
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
-
-    setBuying(true);
+    setSubmitting(true);
     try {
-      // 1. Fetch user's business
       const { data: businesses } = await supabase
-        .from("businesses")
-        .select("id")
-        .eq("owner_id", user.id)
-        .limit(1);
+        .from("businesses").select("id").eq("owner_id", user.id).limit(1);
+      const businessId = businesses?.[0]?.id ?? null;
+
+      const subType = target.subType ?? "membership";
+
+      // 1. Tạo payments_log (với trạng thái pending chờ admin check)
+      const { error: pErr } = await supabase.from("payments_log").insert({
+        user_id: user.id,
+        business_id: businessId,
+        amount: target.price,
+        currency: "USD",
+        provider: "manual" as any,
+        type: subType as any,
+        status: "pending",
+        provider_payment_id: receiptUrl,
+        receipt_url: receiptUrl,
+      }).select("id").single();
+      if (pErr) throw pErr;
+
+      // 2. NGAY LẬP TỨC CẤP QUYỀN (trải nghiệm nhanh, admin duyệt sau)
+      const end = new Date();
+      end.setFullYear(end.getFullYear() + 1);
       
-      const businessId = businesses?.[0]?.id;
+      const { error: sErr } = await supabase.from("subscriptions").insert({
+        user_id: user.id,
+        status: "active", // Kích hoạt ngay
+        sub_type: subType,
+        current_period_start: new Date().toISOString(),
+        current_period_end: end.toISOString(),
+      });
+      if (sErr) throw sErr;
 
-      // 2. Insert into payments_log
-      const { error: paymentError } = await supabase
-        .from("payments_log")
-        .insert({
-          user_id: user.id,
-          business_id: businessId || null,
-          amount: parseFloat(selectedTier.price),
-          currency: "USD",
-          provider: "manual" as any,
-          type: "membership",
-          status: "pending",
-          provider_payment_id: receiptUrl, // Store receipt URL here
-        });
-
-      if (paymentError) throw paymentError;
-
-      // 3. Provisional Approval: update business if it exists
-      if (businessId) {
-        const updateData: any = {};
-        if (selectedTier.name === "Icon Premium") {
-          updateData.icon_tier = "premium";
-        } else {
-          // Premium for 1 year
-          updateData.premium_until = new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString();
-        }
-
-        const { error: updateError } = await supabase
-          .from("businesses")
-          .update(updateData)
-          .eq("id", businessId);
-          
-        if (updateError) console.warn("Failed provisional approval", updateError);
-      }
-
-      toast.success("Đã gửi yêu cầu thanh toán. Tài khoản của bạn đã được duyệt trước (Provisional Approval)!");
-      setShowPaymentModal(false);
+      toast.success(t("pricing.upgradeSuccess"));
+      setShowModal(false);
       navigate({ to: "/dashboard" });
-    } catch (error) {
-      console.error(error);
-      toast.error("Đã có lỗi xảy ra. Vui lòng thử lại.");
-    } finally {
-      setBuying(false);
-    }
+    } catch (err: any) {
+      toast.error(err.message ?? t("pricing.generalError"));
+    } finally { setSubmitting(false); }
   };
 
-  const handleBuyBlock = async () => {
-    setBuying(true);
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) {
-      setBuying(false);
-      toast.error("Vui lòng đăng nhập để mua gói mở rộng");
-      navigate({ to: "/login" });
-      return;
-    }
-    const res = await buyContactBlock();
-    setBuying(false);
-    if (!res.ok) { toast.error(res.message); return; }
-    toast.success(`Đã mở rộng danh bạ lên ${res.wallet.max_saved_allowed.toLocaleString()} liên hệ`);
-    navigate({ to: "/contacts" });
-  };
+  const paymentContent = target
+    ? `BIZCONNECT ${target.name} ${userEmail}`.substring(0, 50)
+    : "";
+  const qrSrc = target ? vietQrUrl(target.price, paymentContent, bankInfo) : "";
+
+  // ─── Plan definitions (using t) ─────────────────────────────────────────────────────────
+  const PERSONAL_PLANS = [
+    {
+      id: "personal_free",
+      name: t("pricing.plans.personalFree.name"),
+      price: 0,
+      period: "",
+      badge: null,
+      description: t("pricing.plans.personalFree.desc"),
+      features: [
+        t("pricing.plans.personalFree.f1"),
+        t("pricing.plans.personalFree.f2"),
+        t("pricing.plans.personalFree.f3"),
+        t("pricing.plans.personalFree.f4"),
+      ],
+      cta: t("pricing.plans.personalFree.cta"),
+      featured: false,
+      disabled: true,
+    },
+  ];
+
+  const PERSONAL_ADDONS = [
+    { id: "contact_block_addon", name: t("pricing.addons.contactBlock.name"), price: 150000, desc: t("pricing.addons.contactBlock.desc"), block: true },
+  ];
+
+  const BUSINESS_PLANS = [
+    {
+      id: "biz_free",
+      name: t("pricing.plans.bizFree.name"),
+      price: 0,
+      period: "",
+      badge: null,
+      description: t("pricing.plans.bizFree.desc"),
+      features: [
+        t("pricing.plans.bizFree.f1"),
+        t("pricing.plans.bizFree.f2"),
+        t("pricing.plans.bizFree.f3"),
+        t("pricing.plans.bizFree.f4"),
+        t("pricing.plans.bizFree.f5"),
+      ],
+      cta: t("pricing.plans.bizFree.cta"),
+      featured: false,
+      disabled: true,
+    },
+    {
+      id: "b2b_block_500",
+      name: t("pricing.plans.bizBlock500.name"),
+      price: 150000,
+      period: t("pricing.plans.bizBlock500.period"),
+      badge: t("pricing.plans.bizBlock500.badge"),
+      description: t("pricing.plans.bizBlock500.desc"),
+      features: [
+        t("pricing.plans.bizBlock500.f1"),
+        t("pricing.plans.bizBlock500.f2"),
+        t("pricing.plans.bizBlock500.f3"),
+        t("pricing.plans.bizBlock500.f4"),
+        t("pricing.plans.bizBlock500.f5"),
+        t("pricing.plans.bizBlock500.f6"),
+      ],
+      cta: t("pricing.plans.bizBlock500.cta"),
+      featured: true,
+      disabled: false,
+      subType: "b2b_block_500",
+    },
+    {
+      id: "icon_premium",
+      name: t("pricing.plans.bizIconPremium.name"),
+      price: 150000,
+      period: t("pricing.plans.bizIconPremium.period"),
+      badge: null,
+      description: t("pricing.plans.bizIconPremium.desc"),
+      features: [
+        t("pricing.plans.bizIconPremium.f1"),
+        t("pricing.plans.bizIconPremium.f2"),
+        t("pricing.plans.bizIconPremium.f3"),
+        t("pricing.plans.bizIconPremium.f4"),
+      ],
+      cta: t("pricing.plans.bizIconPremium.cta"),
+      featured: false,
+      disabled: false,
+      subType: "icon_premium",
+    },
+  ];
+
+  const BUSINESS_ADDONS = [] as any[];
 
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
-      <div className="pt-24 px-4 sm:px-6 lg:px-8 max-w-6xl mx-auto pb-16">
-        <div className="text-center mb-12 animate-fade-up">
+      <div className="pt-24 pb-20 px-4 sm:px-6 lg:px-8 max-w-6xl mx-auto">
+
+        {/* Header */}
+        <div className="text-center mb-14 animate-fade-up">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-accent text-accent-foreground text-xs font-medium mb-4">
-            <Sparkles className="w-3 h-3 text-primary" /> Giá đơn giản, minh bạch
+            <Sparkles className="w-3 h-3 text-primary" /> {t("pricing.headerTag")}
           </div>
           <h1 className="text-4xl sm:text-5xl font-display font-bold mb-3">
-            Bắt đầu chỉ với <span className="text-gradient">$5/năm</span>
+            {t("pricing.headerTitle")} <span className="text-gradient">{t("pricing.headerPrice")}</span>
           </h1>
-          <p className="text-muted-foreground max-w-xl mx-auto">
-            Không phí ẩn. Không cam kết dài hạn. Hủy bất cứ lúc nào.
+          <p className="text-muted-foreground max-w-xl mx-auto mb-8">
+            {t("pricing.headerDesc")}
           </p>
+          <img src="/pricing.png" className="w-full max-w-4xl mx-auto h-auto rounded-3xl shadow-lg border border-border object-cover" alt="BizConnect.One Plans" />
         </div>
 
-        <div className="grid md:grid-cols-3 gap-6 mb-10">
-          {TIERS.map((tier) => (
-            <div
-              key={tier.name}
-              className={`relative rounded-3xl p-6 border ${
-                tier.featured
-                  ? "bg-gradient-vivid text-white border-transparent shadow-glow scale-105"
-                  : "bg-card border-border shadow-card"
-              }`}
-            >
-              {tier.featured && (
-                <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 rounded-full bg-white text-primary text-xs font-bold shadow-pink">
-                  PHỔ BIẾN NHẤT
-                </div>
-              )}
-              <div className="flex items-center gap-2 mb-2">
-                {tier.premium && <Crown className="w-5 h-5 text-primary" />}
-                <h3 className="text-xl font-bold">{tier.name}</h3>
-              </div>
-              <div className="mb-3">
-                <span className="text-4xl font-bold">${tier.price}</span>
-                <span className={tier.featured ? "opacity-80" : "text-muted-foreground"}>/năm</span>
-              </div>
-              <p className={`text-sm mb-5 ${tier.featured ? "opacity-90" : "text-muted-foreground"}`}>{tier.description}</p>
-              <ul className="space-y-2.5 mb-6 text-sm">
-                {tier.features.map((f) => (
-                  <li key={f} className="flex items-start gap-2">
-                    <Check className={`w-4 h-4 mt-0.5 flex-shrink-0 ${tier.featured ? "text-white" : "text-primary"}`} />
-                    <span>{f}</span>
-                  </li>
-                ))}
-              </ul>
-              <Button
-                onClick={() => handleSelectTier(tier)}
-                className={`w-full ${
-                  tier.featured
-                    ? "bg-white text-primary hover:bg-white/90"
-                    : "bg-gradient-vivid text-white hover:opacity-90 border-0"
+        {/* ── Tài khoản Doanh nghiệp ── */}
+        <div className="mb-3">
+          <h2 className="text-xl font-bold flex items-center gap-2 mb-4">
+            🏢 {t("pricing.bizAccount")}
+          </h2>
+          <div className="grid md:grid-cols-3 gap-5 mb-6">
+            {BUSINESS_PLANS.map((plan) => (
+              <div
+                key={plan.id}
+                className={`relative rounded-3xl p-6 border transition-smooth ${
+                  plan.featured
+                    ? "bg-gradient-vivid text-white border-transparent shadow-glow scale-105"
+                    : "bg-card border-border shadow-card hover:border-primary/30"
                 }`}
               >
-                {tier.cta}
-              </Button>
-            </div>
-          ))}
-        </div>
-
-        {/* Add-ons */}
-        <div className="bg-card border border-border rounded-2xl p-6">
-          <h3 className="font-bold text-lg mb-4">Gói mở rộng</h3>
-          <div className="space-y-3">
-            {ADDONS.map((a) => (
-              <div key={a.name} className="flex items-center justify-between p-4 rounded-xl bg-muted/50">
-                <div>
-                  <p className="font-medium">{a.name}</p>
-                  <p className="text-sm text-muted-foreground">{a.desc}</p>
+                {plan.badge && (
+                  <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 rounded-full bg-white text-primary text-xs font-bold shadow-pink">
+                    {plan.badge}
+                  </div>
+                )}
+                <div className="flex items-center gap-2 mb-2">
+                  {plan.id === "icon_premium" && <Crown className="w-5 h-5 text-primary" />}
+                  <h3 className="text-lg font-bold">{plan.name}</h3>
                 </div>
-                <div className="text-right flex items-center gap-3">
-                  <p className="text-lg font-bold">${a.price}</p>
-                  {"block" in a && a.block ? (
-                    <Button size="sm" onClick={handleBuyBlock} disabled={buying} className="gap-1.5 bg-gradient-vivid text-white border-0">
-                      <Plus className="w-3.5 h-3.5" /> {buying ? "Đang xử lý…" : "Mua ngay"}
-                    </Button>
-                  ) : (
-                    <Button size="sm" variant="outline" onClick={() => handleSelectTier(TIERS[1])}>Mua</Button>
-                  )}
+                <div className="mb-3">
+                  <span className="text-4xl font-bold">{plan.price === 0 ? "0" : (plan.price / 1000) + "k"}</span>
+                  <span className={plan.featured ? "opacity-80" : "text-muted-foreground"}>{plan.period}</span>
                 </div>
+                <p className={`text-sm mb-5 ${plan.featured ? "opacity-90" : "text-muted-foreground"}`}>{plan.description}</p>
+                <ul className="space-y-2.5 mb-6 text-sm">
+                  {plan.features.map((f) => (
+                    <li key={f} className="flex items-start gap-2">
+                      <Check className={`w-4 h-4 mt-0.5 flex-shrink-0 ${plan.featured ? "text-white" : "text-primary"}`} />
+                      <span>{f}</span>
+                    </li>
+                  ))}
+                </ul>
+                <Button
+                  onClick={() => openPayment({ name: plan.name, price: plan.price, subType: plan.subType })}
+                  disabled={plan.disabled}
+                  className={`w-full ${
+                    plan.featured
+                      ? "bg-white text-primary hover:bg-white/90"
+                      : "bg-gradient-vivid text-white hover:opacity-90 border-0"
+                  } disabled:opacity-50`}
+                >
+                  {plan.disabled ? t("pricing.default") : plan.cta}
+                </Button>
               </div>
             ))}
+          </div>
+
+          {/* Biz Add-ons */}
+          <div className="bg-card border border-border rounded-2xl p-5">
+            <h3 className="font-bold mb-3 text-sm text-muted-foreground uppercase tracking-wide">{t("pricing.bizAddons")}</h3>
+            <div className="space-y-3">
+              {BUSINESS_ADDONS.map((a) => (
+                <div key={a.id} className="flex items-center justify-between p-3 rounded-xl bg-muted/50">
+                  <div>
+                    <p className="font-medium text-sm">{a.name}</p>
+                    <p className="text-xs text-muted-foreground">{a.desc}</p>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <p className="text-lg font-bold">{a.price === 0 ? "0" : (a.price / 1000) + "k"}</p>
+                    <Button size="sm" onClick={() => openPayment({ name: a.name, price: a.price, subType: a.id, isAddon: true })} className="gap-1 bg-gradient-vivid text-white border-0">
+                      <Plus className="w-3.5 h-3.5" /> {t("pricing.buyBtn")}
+                    </Button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* ── Tài khoản Cá nhân ── */}
+        <div className="mt-10">
+          <h2 className="text-xl font-bold flex items-center gap-2 mb-4">
+            👤 {t("pricing.personalAccount")}
+          </h2>
+          <div className="grid md:grid-cols-2 gap-5 mb-6">
+            {PERSONAL_PLANS.map((plan) => (
+              <div key={plan.id} className="bg-card border border-border shadow-card rounded-3xl p-6">
+                <h3 className="text-lg font-bold mb-2">{plan.name}</h3>
+                <div className="mb-3">
+                  <span className="text-4xl font-bold">{plan.price === 0 ? "0" : (plan.price / 1000) + "k"}</span>
+                  <span className="text-muted-foreground"> {t("pricing.forever")}</span>
+                </div>
+                <p className="text-sm text-muted-foreground mb-5">{plan.description}</p>
+                <ul className="space-y-2 mb-6 text-sm">
+                  {plan.features.map((f) => (
+                    <li key={f} className="flex items-start gap-2">
+                      <Check className="w-4 h-4 mt-0.5 flex-shrink-0 text-primary" />
+                      <span>{f}</span>
+                    </li>
+                  ))}
+                </ul>
+                <Link to="/signup">
+                  <Button className="w-full bg-gradient-vivid text-white border-0">
+                    {plan.cta}
+                  </Button>
+                </Link>
+              </div>
+            ))}
+
+            {/* Personal add-on */}
+            <div className="bg-card border border-border rounded-3xl p-6 flex flex-col justify-center">
+              <h3 className="font-bold mb-3 text-sm text-muted-foreground uppercase tracking-wide">{t("pricing.personalAddons")}</h3>
+              {PERSONAL_ADDONS.map((a) => (
+                <div key={a.id} className="flex items-center justify-between p-3 rounded-xl bg-muted/50">
+                  <div>
+                    <p className="font-medium text-sm">{a.name}</p>
+                    <p className="text-xs text-muted-foreground">{a.desc}</p>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <p className="text-lg font-bold">{a.price === 0 ? "0" : (a.price / 1000) + "k"}</p>
+                    <Button size="sm" onClick={() => openPayment({ name: a.name, price: a.price, subType: a.id, isAddon: true })} className="gap-1 bg-gradient-vivid text-white border-0">
+                      <Plus className="w-3.5 h-3.5" /> {t("pricing.buyBtn")}
+                    </Button>
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       </div>
 
-      <Dialog open={showPaymentModal} onOpenChange={setShowPaymentModal}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>Thanh toán chuyển khoản</DialogTitle>
-            <DialogDescription>
-              Vui lòng chuyển khoản số tiền tương ứng với gói <strong>{selectedTier?.name}</strong> (${selectedTier?.price}) 
-              vào tài khoản dưới đây.
-            </DialogDescription>
-          </DialogHeader>
-          
-          <div className="bg-muted p-4 rounded-lg text-sm mb-4 space-y-2 border">
-            <p><strong>Ngân hàng:</strong> Vietcombank (VCB)</p>
-            <p><strong>Số tài khoản:</strong> 1234567890</p>
-            <p><strong>Tên tài khoản:</strong> CTY TNHH BIZCONNECT ONE</p>
-            <p><strong>Số tiền (Tỷ giá 25k/USD):</strong> {parseInt(selectedTier?.price || "0") * 25000} VNĐ</p>
-            <p><strong>Nội dung CK:</strong> [Email đăng nhập của bạn]</p>
+      {/* ── Payment Modal ── */}
+      <Dialog open={showModal} onOpenChange={setShowModal}>
+        <DialogContent className="sm:max-w-lg p-0 overflow-hidden rounded-3xl">
+          <div className="bg-gradient-vivid p-6 text-white">
+            <DialogHeader>
+              <div className="flex items-center gap-2 mb-1">
+                <QrCode className="w-5 h-5" />
+                <DialogTitle className="text-white text-lg">{t("pricing.paymentTransfer")}</DialogTitle>
+              </div>
+              <DialogDescription className="text-white/80 text-sm">
+                {t("pricing.plan")}: <strong>{target?.name}</strong> — <strong>{((target?.price ?? 0) * BANK.vndRate).toLocaleString("vi-VN")} VNĐ</strong>
+              </DialogDescription>
+            </DialogHeader>
           </div>
 
-          <div className="space-y-4">
-            <div className="space-y-2">
-              <Label>Tải lên ảnh chụp biên lai giao dịch</Label>
-              <Input 
-                type="file" 
-                accept="image/*" 
-                ref={fileInputRef}
-                onChange={handleUploadReceipt}
-                disabled={isUploading}
-              />
-              {isUploading && <p className="text-sm text-muted-foreground">Đang tải lên...</p>}
-              {receiptUrl && (
-                <div className="mt-2 border rounded p-1 inline-block">
-                  <img src={receiptUrl} alt="Receipt" className="h-20 object-cover rounded" />
-                </div>
-              )}
+          <div className="p-6 space-y-5">
+            {/* QR Code */}
+            <div className="flex flex-col sm:flex-row gap-5 items-start">
+              <div className="relative flex-shrink-0 bg-white rounded-2xl p-2 border-2 border-primary/20 shadow-sm mx-auto sm:mx-0">
+                {!qrLoaded && (
+                  <div className="w-44 h-44 flex items-center justify-center">
+                    <Loader2 className="w-8 h-8 animate-spin text-primary/40" />
+                  </div>
+                )}
+                <img
+                  src={qrSrc}
+                  alt="QR thanh toán"
+                  className={`w-44 h-44 object-contain rounded-xl ${qrLoaded ? "block" : "hidden"}`}
+                  onLoad={() => setQrLoaded(true)}
+                  onError={() => setQrLoaded(true)}
+                />
+              </div>
+
+              <div className="flex-1 space-y-2 text-sm min-w-0">
+                <InfoRow label={t("pricing.bank")} value={BANK.name} />
+                <InfoRow label={t("pricing.accountNum")} value={BANK.account} copyable />
+                <InfoRow label={t("pricing.accountName")} value={BANK.owner} />
+                <InfoRow
+                  label={t("pricing.amount")}
+                  value={`${((target?.price ?? 0) * BANK.vndRate).toLocaleString("vi-VN")} VNĐ`}
+                  highlight
+                />
+                <InfoRow label={t("pricing.transferContent")} value={paymentContent} copyable />
+              </div>
+            </div>
+
+            <div className="bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-xl p-3 text-xs text-amber-700 dark:text-amber-400">
+              {t("pricing.transferNotice")}
+            </div>
+
+            {/* Upload receipt */}
+            <div>
+              <Label className="text-sm font-semibold mb-2 block">{t("pricing.uploadReceipt")}</Label>
+              <div
+                className="border-2 border-dashed border-border rounded-xl p-4 text-center cursor-pointer hover:border-primary/50 transition-smooth"
+                onClick={() => fileRef.current?.click()}
+              >
+                {receiptUrl ? (
+                  <div className="relative inline-block">
+                    <img src={receiptUrl} alt="Biên lai" className="h-24 object-contain rounded-lg mx-auto" />
+                    <button
+                      onClick={(e) => { e.stopPropagation(); setReceiptUrl(null); }}
+                      className="absolute -top-2 -right-2 bg-destructive text-white rounded-full p-0.5"
+                    >
+                      <X className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                ) : isUploading ? (
+                  <div className="py-4"><Loader2 className="w-6 h-6 animate-spin text-primary mx-auto" /></div>
+                ) : (
+                  <div className="py-4 text-muted-foreground text-sm">
+                    <Upload className="w-6 h-6 mx-auto mb-2 opacity-50" />
+                    {t("pricing.clickToUpload")}
+                  </div>
+                )}
+              </div>
+              <Input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={handleUpload} />
+            </div>
+
+            {/* Actions */}
+            <div className="flex gap-3 pt-1">
+              <Button variant="outline" className="flex-1" onClick={() => setShowModal(false)} disabled={submitting}>
+                {t("pricing.cancel")}
+              </Button>
+              <Button
+                className="flex-1 bg-gradient-vivid text-white border-0"
+                onClick={handleSubmit}
+                disabled={!receiptUrl || submitting || isUploading}
+              >
+                {submitting ? <><Loader2 className="w-4 h-4 animate-spin mr-2" /> {t("pricing.sending")}</> : t("pricing.confirmPayment")}
+              </Button>
             </div>
           </div>
-          
-          <DialogFooter className="mt-6">
-            <Button variant="outline" onClick={() => setShowPaymentModal(false)} disabled={buying}>Hủy</Button>
-            <Button onClick={handleSubmitPayment} disabled={isUploading || buying || !receiptUrl} className="bg-gradient-vivid text-white border-0">
-              {buying ? "Đang gửi..." : "Hoàn tất & Kích hoạt"}
-            </Button>
-          </DialogFooter>
         </DialogContent>
       </Dialog>
+    </div>
+  );
+}
+
+function InfoRow({ label, value, copyable, highlight }: { label: string; value: string; copyable?: boolean; highlight?: boolean }) {
+  const { t } = useTranslation();
+  const copy = () => { navigator.clipboard.writeText(value); toast.success(`${t("pricing.copied")} ${label}`); };
+  return (
+    <div className={`rounded-lg px-3 py-1.5 flex items-center justify-between gap-2 ${highlight ? "bg-primary/10 border border-primary/20" : "bg-muted/40"}`}>
+      <span className="text-muted-foreground text-xs flex-shrink-0">{label}</span>
+      <span className={`font-semibold text-right truncate ${highlight ? "text-primary" : ""}`}>{value}</span>
+      {copyable && (
+        <button onClick={copy} className="flex-shrink-0 text-muted-foreground hover:text-primary transition-colors">
+          <Copy className="w-3.5 h-3.5" />
+        </button>
+      )}
     </div>
   );
 }

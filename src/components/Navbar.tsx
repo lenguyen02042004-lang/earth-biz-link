@@ -8,7 +8,7 @@ import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { InboxBell } from "@/components/InboxBell";
 
 export function Navbar() {
-  const { user, loading } = useAuth();
+  const { user, loading, accountType } = useAuth();
   const { t } = useTranslation();
 
   return (
@@ -22,7 +22,7 @@ export function Navbar() {
             </div>
           </div>
           <span className="font-display font-bold text-lg tracking-tight">
-            GlobalBiz<span className="text-gradient">.Connect</span>
+            BizConnect<span className="text-gradient">.One</span>
           </span>
         </Link>
 
@@ -47,9 +47,12 @@ export function Navbar() {
           {!loading && user ? (
             <>
               <InboxBell />
-              <Link to="/dashboard">
+              <Link to={accountType === "personal" ? "/me" : "/dashboard"}>
                 <Button variant="ghost" size="sm" className="gap-2">
-                  <LayoutDashboard className="w-4 h-4" /> <span className="hidden sm:inline">{t("nav.dashboard")}</span>
+                  <LayoutDashboard className="w-4 h-4" />{" "}
+                  <span className="hidden sm:inline">
+                    {accountType === "personal" ? "Quản lý cá nhân" : t("nav.dashboard")}
+                  </span>
                 </Button>
               </Link>
               <Button

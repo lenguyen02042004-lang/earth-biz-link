@@ -6,9 +6,9 @@ import { MapView } from "@/components/MapView";
 import { BusinessCard } from "@/components/BusinessCard";
 import { FilterBar } from "@/components/FilterBar";
 import { FollowButton } from "@/components/FollowButton";
-import { DEMO_BUSINESSES, type DemoBusiness } from "@/lib/mock-businesses";
-import { COUNTRY_LIST, INDUSTRY_LIST } from "@/lib/constants";
+import { getExploreBusinesses } from "@/lib/business-public.functions";
 import { formatCount } from "@/lib/format";
+import { COUNTRY_LIST, INDUSTRY_LIST } from "@/lib/constants";
 import { Eye } from "lucide-react";
 
 const exploreSearchSchema = z.object({
@@ -20,11 +20,14 @@ const exploreSearchSchema = z.object({
 export const Route = createFileRoute("/explore")({
   component: ExplorePage,
   validateSearch: (s) => exploreSearchSchema.parse(s),
+  loader: async () => {
+    return getExploreBusinesses();
+  },
   head: () => ({
     meta: [
-      { title: "Khám phá doanh nghiệp trên bản đồ — GlobalBiz.Connect" },
+      { title: "Khám phá doanh nghiệp trên bản đồ — BizConnect.One" },
       { name: "description", content: "Bản đồ 2D doanh nghiệp toàn cầu — lọc theo quốc gia, ngành nghề, tìm kiếm nhanh và theo dõi các doanh nghiệp phù hợp với bạn." },
-      { property: "og:title", content: "Khám phá doanh nghiệp trên bản đồ — GlobalBiz.Connect" },
+      { property: "og:title", content: "Khám phá doanh nghiệp trên bản đồ — BizConnect.One" },
       { property: "og:description", content: "Bản đồ 2D doanh nghiệp toàn cầu — lọc theo quốc gia, ngành nghề, tìm kiếm nhanh và theo dõi các doanh nghiệp phù hợp với bạn." },
       { property: "og:url", content: "https://earth-biz-link.lovable.app/explore" },
     ],
@@ -35,17 +38,18 @@ export const Route = createFileRoute("/explore")({
 
 function ExplorePage() {
   const sp = Route.useSearch();
-  const [selected, setSelected] = useState<DemoBusiness | null>(null);
+  const { businesses } = Route.useLoaderData();
+  const [selected, setSelected] = useState<any | null>(null);
   const [country, setCountry] = useState(sp.country ?? "all");
   const [industry, setIndustry] = useState(sp.industry ?? "all");
   const [search, setSearch] = useState(sp.q ?? "");
 
-  const filtered = useMemo(() => DEMO_BUSINESSES.filter((b) => {
+  const filtered = useMemo(() => businesses.filter((b) => {
     if (country !== "all" && b.country_code !== country) return false;
     if (industry !== "all" && b.industry_slug !== industry) return false;
     if (search && !b.name.toLowerCase().includes(search.toLowerCase())) return false;
     return true;
-  }), [country, industry, search]);
+  }), [businesses, country, industry, search]);
 
   return (
     <div className="min-h-screen bg-background">
