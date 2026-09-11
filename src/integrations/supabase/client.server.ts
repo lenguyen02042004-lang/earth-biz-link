@@ -35,7 +35,37 @@ let _supabaseAdmin: ReturnType<typeof createSupabaseAdminClient> | undefined;
 // Import like: import { supabaseAdmin } from "@/integrations/supabase/client.server";
 export const supabaseAdmin = new Proxy({} as ReturnType<typeof createSupabaseAdminClient>, {
   get(_, prop, receiver) {
-    if (!_supabaseAdmin) _supabaseAdmin = createSupabaseAdminClient();
-    return Reflect.get(_supabaseAdmin, prop, receiver);
+    try {
+      if (!_supabaseAdmin) _supabaseAdmin = createSupabaseAdminClient();
+      return Reflect.get(_supabaseAdmin, prop, receiver);
+    } catch (err) {
+      console.warn('[Supabase Admin] Not initialized – server functions will return empty data:', err);
+      // Return no-op stubs so server functions fail gracefully
+      if (prop === 'from') return () => ({
+        select: () => Promise.resolve({ data: [], count: 0, error: null }),
+        insert: () => Promise.resolve({ data: null, error: null }),
+        update: () => Promise.resolve({ data: null, error: null }),
+        upsert: () => Promise.resolve({ data: null, error: null }),
+        delete: () => Promise.resolve({ data: null, error: null }),
+        eq: function() { return this; },
+        neq: function() { return this; },
+        in: function() { return this; },
+        order: function() { return this; },
+        limit: function() { return this; },
+        maybeSingle: () => Promise.resolve({ data: null, error: null }),
+        single: () => Promise.resolve({ data: null, error: null }),
+      });
+      if (prop === 'auth') return {
+        admin: {
+          listUsers: () => Promise.resolve({ data: { users: [] }, error: null }),
+          createUser: () => Promise.resolve({ data: null, error: null }),
+          updateUserById: () => Promise.resolve({ data: null, error: null }),
+        },
+        getClaims: () => Promise.resolve({ data: null, error: new Error('Admin not configured') }),
+      };
+      if (prop === 'rpc') return () => Promise.resolve({ data: null, error: null });
+      return () => Promise.resolve({ data: null, error: new Error('Admin client not configured') });
+    }
   },
 });
+

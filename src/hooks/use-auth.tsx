@@ -10,36 +10,49 @@ export function useAuth() {
 
   useEffect(() => {
     let active = true;
+    let subscription: { unsubscribe: () => void } | null = null;
 
     async function fetchAccountType(userId: string) {
-      const { data } = await supabase
-        .from("profiles")
-        .select("account_type")
-        .eq("id", userId)
-        .maybeSingle();
-      if (active) {
-        setAccountType(data?.account_type ?? "personal");
+      try {
+        const { data } = await supabase
+          .from("profiles")
+          .select("account_type")
+          .eq("id", userId)
+          .maybeSingle();
+        if (active) {
+          setAccountType(data?.account_type ?? "personal");
+        }
+      } catch {
+        if (active) setAccountType("personal");
       }
     }
 
-    // CRITICAL: set up the listener BEFORE getSession to avoid races.
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_evt, s) => {
-      setSession(s);
-      setUser(s?.user ?? null);
-      if (s?.user) fetchAccountType(s.user.id);
-      else if (active) setAccountType(null);
-    });
+    try {
+      // CRITICAL: set up the listener BEFORE getSession to avoid races.
+      const { data } = supabase.auth.onAuthStateChange((_evt, s) => {
+        setSession(s);
+        setUser(s?.user ?? null);
+        if (s?.user) fetchAccountType(s.user.id);
+        else if (active) setAccountType(null);
+      });
+      subscription = data.subscription;
 
-    supabase.auth.getSession().then(({ data: { session: s } }) => {
-      setSession(s);
-      setUser(s?.user ?? null);
-      if (s?.user) fetchAccountType(s.user.id).then(() => { if (active) setLoading(false); });
-      else if (active) { setAccountType(null); setLoading(false); }
-    });
+      supabase.auth.getSession().then(({ data: { session: s } }) => {
+        setSession(s);
+        setUser(s?.user ?? null);
+        if (s?.user) fetchAccountType(s.user.id).then(() => { if (active) setLoading(false); });
+        else if (active) { setAccountType(null); setLoading(false); }
+      }).catch(() => {
+        if (active) { setAccountType(null); setLoading(false); }
+      });
+    } catch (err) {
+      console.warn("[useAuth] Supabase not initialized, running unauthenticated:", err);
+      if (active) { setAccountType(null); setLoading(false); }
+    }
 
     return () => {
       active = false;
-      subscription.unsubscribe();
+      subscription?.unsubscribe();
     };
   }, []);
 

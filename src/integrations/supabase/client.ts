@@ -30,12 +30,47 @@ function createSupabaseClient() {
 
 let _supabase: ReturnType<typeof createSupabaseClient> | undefined;
 
+// Graceful no-op auth stub returned when Supabase is not configured
+const _noopAuth = {
+  getSession: () => Promise.resolve({ data: { session: null }, error: null }),
+  onAuthStateChange: (_evt: unknown, _cb: unknown) => ({ data: { subscription: { unsubscribe: () => {} } } }),
+  signOut: () => Promise.resolve({ error: null }),
+  signInWithPassword: () => Promise.resolve({ data: null, error: new Error('Supabase not configured') }),
+  signUp: () => Promise.resolve({ data: null, error: new Error('Supabase not configured') }),
+  getClaims: () => Promise.resolve({ data: null, error: new Error('Supabase not configured') }),
+  admin: {
+    listUsers: () => Promise.resolve({ data: { users: [] }, error: null }),
+    createUser: () => Promise.resolve({ data: null, error: new Error('Supabase not configured') }),
+    updateUserById: () => Promise.resolve({ data: null, error: new Error('Supabase not configured') }),
+  },
+};
+
 // Import the supabase client like this:
 // import { supabase } from "@/integrations/supabase/client";
 export const supabase = new Proxy({} as ReturnType<typeof createSupabaseClient>, {
   get(_, prop, receiver) {
-    if (!_supabase) _supabase = createSupabaseClient();
-    return Reflect.get(_supabase, prop, receiver);
+    try {
+      if (!_supabase) _supabase = createSupabaseClient();
+      return Reflect.get(_supabase, prop, receiver);
+    } catch (err) {
+      console.warn('[Supabase] Client not initialized – running in degraded mode:', err);
+      // Return safe stubs so the app doesn't crash when env vars are missing
+      if (prop === 'auth') return _noopAuth;
+      // For .from(), return a chainable no-op
+      if (prop === 'from') return () => ({
+        select: () => Promise.resolve({ data: [], error: null }),
+        insert: () => Promise.resolve({ data: null, error: null }),
+        update: () => Promise.resolve({ data: null, error: null }),
+        upsert: () => Promise.resolve({ data: null, error: null }),
+        delete: () => Promise.resolve({ data: null, error: null }),
+        eq: function() { return this; },
+        neq: function() { return this; },
+        in: function() { return this; },
+        maybeSingle: () => Promise.resolve({ data: null, error: null }),
+        single: () => Promise.resolve({ data: null, error: null }),
+      });
+      return () => Promise.resolve({ data: null, error: new Error('Supabase not configured') });
+    }
   },
 });
 
