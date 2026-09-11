@@ -285,7 +285,7 @@ export function BusinessCard({ business, onClose }: Props) {
             </div>
           )}
 
-          {Object.keys(business.socials).length > 0 && (
+          {business.socials && Object.keys(business.socials).length > 0 && (
             <div>
               <p className="text-[10px] sm:text-xs font-semibold tracking-wider text-muted-foreground mb-1.5">KẾT NỐI</p>
               <SocialIconList socials={business.socials} size="sm" />
