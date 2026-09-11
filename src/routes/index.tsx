@@ -8,11 +8,12 @@ import { DEMO_BUSINESSES, type DemoBusiness } from "@/lib/mock-businesses";
 import { INDUSTRY_LIST, COUNTRY_LIST } from "@/lib/constants";
 import { getPublicStats } from "@/lib/stats.functions";
 import {
-  Search, Globe2, LogIn, Sparkles, LayoutDashboard, LogOut, ChevronDown,
+  Search, Globe2, LogIn, Sparkles, LayoutDashboard, LogOut, ChevronDown, MapPin,
   Cpu, Landmark, Building2, Factory, ShoppingBag, Plane, GraduationCap,
   HeartPulse, UtensilsCrossed, Truck, Wheat, Zap, Megaphone, Scale,
   HardHat, Shirt, Music, Car, MoreHorizontal, Send, Users,
 } from "lucide-react";
+import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -148,11 +149,17 @@ function HomePage() {
           </Link>
         </div>
 
-        {/* Top-right auth */}
-        <div className="absolute top-5 right-5 z-30 flex items-center gap-2">
+        {/* Top-right nav — synced with Navbar.tsx */}
+        <div className="absolute top-5 right-5 z-30 flex items-center gap-1">
+          <LanguageSwitcher />
           <Link to="/explore">
-            <Button variant="ghost" size="sm" className="text-white hover:bg-white/10 hover:text-white gap-2">
-              <Globe2 className="w-4 h-4" /> <span className="hidden sm:inline">{t("home.map2dBtn")}</span>
+            <Button variant="ghost" size="sm" className="text-white hover:bg-white/10 hover:text-white gap-1.5">
+              <Globe2 className="w-4 h-4" /> <span className="hidden md:inline">{t("nav.explore")}</span>
+            </Button>
+          </Link>
+          <Link to="/countries">
+            <Button variant="ghost" size="sm" className="text-white hover:bg-white/10 hover:text-white gap-1.5 hidden md:inline-flex">
+              <MapPin className="w-4 h-4" /> {t("nav.countries")}
             </Button>
           </Link>
           <Link to="/pricing">
@@ -163,7 +170,7 @@ function HomePage() {
           {!loading && user ? (
             <>
               <Link to="/dashboard">
-                <Button variant="ghost" size="sm" className="text-white hover:bg-white/10 hover:text-white gap-2">
+                <Button variant="ghost" size="sm" className="text-white hover:bg-white/10 hover:text-white gap-1.5">
                   <LayoutDashboard className="w-4 h-4" /> <span className="hidden sm:inline">{t("nav.dashboard")}</span>
                 </Button>
               </Link>
@@ -174,13 +181,13 @@ function HomePage() {
           ) : !loading ? (
             <>
               <Link to="/login">
-                <Button variant="ghost" size="sm" className="text-white hover:bg-white/10 hover:text-white gap-2">
+                <Button variant="ghost" size="sm" className="text-white hover:bg-white/10 hover:text-white gap-1.5 hidden sm:inline-flex">
                   <LogIn className="w-4 h-4" /> {t("nav.login")}
                 </Button>
               </Link>
               <Link to="/signup">
-                <Button size="sm" className="gap-2 bg-gradient-vivid hover:opacity-90 text-white border-0 shadow-pink">
-                  <Sparkles className="w-4 h-4" /> {t("nav.signup")}
+                <Button size="sm" className="gap-1.5 bg-gradient-vivid hover:opacity-90 text-white border-0 shadow-pink">
+                  <Sparkles className="w-4 h-4" /> <span className="hidden xs:inline">{t("nav.signup")}</span>
                 </Button>
               </Link>
             </>
