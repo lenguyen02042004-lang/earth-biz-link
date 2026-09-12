@@ -126,7 +126,7 @@ function InboxPage() {
                         <UserPlus className="w-3.5 h-3.5" /> Lưu danh bạ (VCF)
                       </Button>
                       <Button size="sm" variant="ghost" className="h-8" asChild>
-                        <Link to={peerIsBiz ? "/b/$slug" : "/p/$slug"} params={{ slug: peer.slug }}>Xem card</Link>
+                        <Link to={peerIsBiz ? "/business/$slug" : "/p/$slug"} params={{ slug: peer.slug }}>Xem card</Link>
                       </Button>
                     </div>
                   )}

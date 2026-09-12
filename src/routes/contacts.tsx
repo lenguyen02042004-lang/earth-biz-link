@@ -211,7 +211,7 @@ function ContactsPage() {
                     )}
                     <div className="flex-1 min-w-0">
                       {c.business_slug ? (
-                        <Link to={c.personal_profile_id ? "/p/$slug" : "/b/$slug"} params={{ slug: c.business_slug }} className="font-semibold leading-tight hover:text-primary line-clamp-2">
+                        <Link to={c.personal_profile_id ? "/p/$slug" : "/business/$slug"} params={{ slug: c.business_slug }} className="font-semibold leading-tight hover:text-primary line-clamp-2">
                           {c.business_name}
                         </Link>
                       ) : (

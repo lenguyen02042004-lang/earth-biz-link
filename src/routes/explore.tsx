@@ -6,9 +6,8 @@ import { MapView } from "@/components/MapView";
 import { BusinessCard } from "@/components/BusinessCard";
 import { FilterBar } from "@/components/FilterBar";
 import { FollowButton } from "@/components/FollowButton";
-import { getExploreBusinesses } from "@/lib/business-public.functions";
+import { getExploreBusinesses, getGlobalLists } from "@/lib/business-public.functions";
 import { formatCount } from "@/lib/format";
-import { COUNTRY_LIST, INDUSTRY_LIST } from "@/lib/constants";
 import { Eye } from "lucide-react";
 
 const exploreSearchSchema = z.object({
@@ -21,7 +20,15 @@ export const Route = createFileRoute("/explore")({
   component: ExplorePage,
   validateSearch: (s) => exploreSearchSchema.parse(s),
   loader: async () => {
-    return getExploreBusinesses();
+    const [bizRes, listRes] = await Promise.all([
+      getExploreBusinesses(),
+      getGlobalLists()
+    ]);
+    return {
+      businesses: bizRes.businesses,
+      countries: listRes.countries,
+      industries: listRes.industries
+    };
   },
   head: () => ({
     meta: [
@@ -38,7 +45,7 @@ export const Route = createFileRoute("/explore")({
 
 function ExplorePage() {
   const sp = Route.useSearch();
-  const { businesses } = Route.useLoaderData();
+  const { businesses, countries: dbCountries, industries: dbIndustries } = Route.useLoaderData();
   const [selected, setSelected] = useState<any | null>(null);
   const [country, setCountry] = useState(sp.country ?? "all");
   const [industry, setIndustry] = useState(sp.industry ?? "all");
@@ -63,7 +70,7 @@ function ExplorePage() {
               {filtered.length} doanh nghiệp được hiển thị
             </p>
             <FilterBar
-              countries={COUNTRY_LIST} industries={INDUSTRY_LIST}
+              countries={dbCountries as any} industries={dbIndustries as any}
               country={country} industry={industry} search={search}
               onCountry={setCountry} onIndustry={setIndustry} onSearch={setSearch}
             />

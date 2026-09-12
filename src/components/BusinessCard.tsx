@@ -10,8 +10,7 @@ import { SocialIconList } from "./SocialIconList";
 import { SendCardDialog } from "./SendCardDialog";
 import { FollowButton } from "./FollowButton";
 import { formatCount } from "@/lib/format";
-import { DEFAULT_DESCRIPTION, DEFAULT_CERTIFICATIONS } from "@/lib/mock-businesses";
-import type { DemoBusiness } from "@/lib/mock-businesses";
+import type { BusinessProfile } from "@/types/business";
 import { saveBusinessContact, isContactSaved } from "@/lib/contacts";
 import { useNavigate } from "@tanstack/react-router";
 import { toast } from "sonner";
@@ -23,7 +22,7 @@ const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/
 const viewedThisSession = new Set<string>();
 
 interface Props {
-  business: DemoBusiness;
+  business: BusinessProfile;
   onClose: () => void;
 }
 
@@ -36,8 +35,8 @@ export function BusinessCard({ business, onClose }: Props) {
   const navigate = useNavigate();
   const profileUrl = typeof window !== "undefined" ? `${window.location.origin}/b/${business.slug}` : "";
 
-  const description = business.description ?? DEFAULT_DESCRIPTION;
-  const certifications = business.certifications ?? DEFAULT_CERTIFICATIONS;
+  const description = business.description || business.short_intro || "";
+  const certifications = business.certifications?.length > 0 ? business.certifications : [];
 
   useEffect(() => {
     if (profileUrl) {
@@ -159,7 +158,9 @@ export function BusinessCard({ business, onClose }: Props) {
 
               <div className="flex items-center gap-3 text-[10px] sm:text-xs text-white/80 mt-1.5">
                 <span className="flex items-center gap-1"><Eye className="w-3 h-3" />{formatCount(business.views_count)}</span>
-                <span className="truncate">{business.province}, {business.country_name}</span>
+                <span className="truncate">
+                  {[business.province, business.country_name].filter(Boolean).join(", ")}
+                </span>
               </div>
 
               {/* Follow button — vị trí nổi bật ngay dưới identity */}
@@ -205,7 +206,9 @@ export function BusinessCard({ business, onClose }: Props) {
           <div className="grid sm:grid-cols-2 gap-2 text-xs sm:text-sm">
             <div className="flex items-start gap-2 text-foreground/80">
               <MapPin className="w-4 h-4 mt-0.5 text-primary shrink-0" />
-              <span className="leading-snug">{business.address}, {business.province}, {business.country_name}</span>
+              <span className="leading-snug">
+                {[business.address, business.province, business.country_name].filter(Boolean).join(", ")}
+              </span>
             </div>
             {business.phone && (
               unlocked ? (

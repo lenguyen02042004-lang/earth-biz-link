@@ -143,7 +143,7 @@ function Dashboard() {
             </div>
             <div className="min-w-0">
               <p className="text-sm font-semibold">Liên kết danh thiếp của bạn</p>
-              <p className="text-xs text-muted-foreground truncate">/b/{publicBiz.slug}</p>
+              <p className="text-xs text-muted-foreground truncate">/business/{publicBiz.slug}</p>
             </div>
           </div>
           <div className="flex gap-2">
@@ -241,7 +241,7 @@ function Dashboard() {
                 </Link>
                 {b.status === "public" && (
                   <>
-                    <Link to="/b/$slug" params={{ slug: b.slug }}>
+                    <Link to="/business/$slug" params={{ slug: b.slug }}>
                       <Button size="sm" variant="ghost" className="gap-1"><Eye className="w-3 h-3" /> Xem</Button>
                     </Link>
                     <Button size="sm" variant="ghost" onClick={() => shareLink(b.slug)} className="gap-1">

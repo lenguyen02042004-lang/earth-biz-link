@@ -63,7 +63,7 @@ export const getExploreBusinesses = createServerFn({ method: "GET" })
     const { supabase } = await import("@/integrations/supabase/client");
     const { data: bizes, error } = await supabase
       .from("businesses")
-      .select("id, name, slug, logo_url, country_code, lat, lng, views_count, icon_tier, status, industries(name, slug), countries(name)")
+      .select("id, name, slug, logo_url, country_code, lat, lng, views_count, icon_tier, status, short_intro, website, industries(name, slug), countries(name)")
       .eq("status", "public")
       .limit(1000);
     
@@ -83,6 +83,26 @@ export const getExploreBusinesses = createServerFn({ method: "GET" })
         lng: biz.lng ?? 0,
         views_count: biz.views_count ?? 0,
         icon_tier: (biz.icon_tier as "standard" | "premium") ?? "standard",
+        short_intro: biz.short_intro ?? "",
+        description: "",
+        certifications: [],
+        address: "",
+        province: "",
+        phone: "",
+        email: "",
+        website: biz.website ?? "",
+        banner_url: "",
+        socials: {},
+        gallery: []
       })),
     };
   });
+
+export const getGlobalLists = createServerFn({ method: "GET" }).handler(async () => {
+  const { supabase } = await import("@/integrations/supabase/client");
+  const [{ data: countries }, { data: industries }] = await Promise.all([
+    supabase.from("countries").select("code, name, flag").order("name"),
+    supabase.from("industries").select("slug, name, icon").order("name"),
+  ]);
+  return { countries: countries ?? [], industries: industries ?? [] };
+});

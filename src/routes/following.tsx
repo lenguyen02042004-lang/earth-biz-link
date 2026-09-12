@@ -133,7 +133,7 @@ function FollowingPage() {
                 className="group rounded-2xl border border-border/60 bg-card p-4 hover:border-primary/40 hover:shadow-soft transition-smooth flex gap-3"
               >
                 <Link
-                  to="/b/$slug"
+                  to="/business/$slug"
                   params={{ slug: b.slug }}
                   className={`shrink-0 ${b.icon_tier === "premium" ? "ring-premium" : ""}`}
                 >
@@ -154,7 +154,7 @@ function FollowingPage() {
                       <Badge variant="outline" className="h-5 px-1.5 text-[10px]">Bản nháp</Badge>
                     )}
                   </div>
-                  <Link to="/b/$slug" params={{ slug: b.slug }}
+                  <Link to="/business/$slug" params={{ slug: b.slug }}
                         className="font-semibold text-sm truncate block hover:text-primary transition-smooth mt-0.5">
                     {b.name}
                   </Link>
@@ -172,7 +172,7 @@ function FollowingPage() {
                     <span className="flex items-center gap-1"><Heart className="w-3 h-3" />{formatCount(b.followers_count)}</span>
                   </div>
                   <div className="flex gap-1.5 mt-2.5">
-                    <Link to="/b/$slug" params={{ slug: b.slug }} className="flex-1">
+                    <Link to="/business/$slug" params={{ slug: b.slug }} className="flex-1">
                       <Button size="sm" variant="outline" className="w-full gap-1 h-8 text-xs">
                         <ExternalLink className="w-3 h-3" /> Xem
                       </Button>

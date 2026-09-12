@@ -47,7 +47,7 @@ export const Route = createFileRoute("/print/$type/$slug")({
       extra: [business.address, business.province, business.country_name].filter(Boolean).join(", "),
       tagline: business.short_intro ?? "",
       image: business.logo_url,
-      path: `/b/${params.slug}`,
+      path: `/business/${params.slug}`,
     };
   },
   head: () => ({

@@ -9,15 +9,14 @@ import { FollowButton } from "@/components/FollowButton";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
-import { DEMO_BUSINESSES, type DemoBusiness } from "@/lib/mock-businesses";
-import { COUNTRY_LIST, INDUSTRY_LIST } from "@/lib/constants";
+import { getExploreBusinesses, getGlobalLists } from "@/lib/business-public.functions";
 import { formatCount } from "@/lib/format";
 import { Eye, Search, MapPin, Building2, ArrowLeft, Globe2, Map as MapIcon } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
-async function shareBusiness(b: DemoBusiness) {
+async function shareBusiness(b: BusinessProfile) {
   if (UUID_RE.test(b.id)) {
     supabase.rpc("increment_business_shares", { _id: b.id });
   }
@@ -40,14 +39,17 @@ async function shareBusiness(b: DemoBusiness) {
 }
 
 export const Route = createFileRoute("/country/$slug")({
-  loader: ({ params }) => {
+  loader: async ({ params }) => {
     const key = params.slug.toLowerCase();
     // Accept both SEO slug and legacy ISO code for backward compatibility.
-    const country = COUNTRY_LIST.find(
-      (c) => c.slug === key || c.code.toLowerCase() === key,
+    const listRes = await getGlobalLists();
+    const country = listRes.countries.find(
+      (c) => c.code.toLowerCase() === key || c.name.toLowerCase().replace(/\s+/g, '-') === key,
     );
     if (!country) throw notFound();
-    return { country };
+    const bizesRes = await getExploreBusinesses();
+    const inCountry = bizesRes.businesses.filter(b => b.country_code === country.code);
+    return { country, inCountry, industries: listRes.industries, countries: listRes.countries };
   },
   head: ({ loaderData }) => {
     if (!loaderData) {
@@ -98,18 +100,13 @@ function CountryNotFound() {
 }
 
 function CountryPage() {
-  const { country } = Route.useLoaderData();
-  const [selected, setSelected] = useState<DemoBusiness | null>(null);
+  const { country, inCountry, industries, countries } = Route.useLoaderData();
+  const [selected, setSelected] = useState<any | null>(null);
   const [industry, setIndustry] = useState("all");
   const [search, setSearch] = useState("");
   const [view, setView] = useState<"grid" | "list">("grid");
   const [page, setPage] = useState(1);
   const PAGE_SIZE = 12;
-
-  const inCountry = useMemo(
-    () => DEMO_BUSINESSES.filter((b) => b.country_code === country.code),
-    [country.code],
-  );
 
   const filtered = useMemo(
     () =>
@@ -128,7 +125,7 @@ function CountryPage() {
     return m;
   }, [inCountry]);
 
-  const availableIndustries = INDUSTRY_LIST.filter((i) => industryCounts.has(i.slug));
+  const availableIndustries = industries.filter((i: any) => industryCounts.has(i.slug));
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
   useEffect(() => { if (page > totalPages) setPage(1); }, [page, totalPages]);
@@ -218,14 +215,14 @@ function CountryPage() {
                 <SelectTrigger className="sm:w-[200px]">
                   <SelectValue placeholder="Ngành nghề" />
                 </SelectTrigger>
-                <SelectContent className="max-h-72">
-                  <SelectItem value="all">Tất cả ngành ({inCountry.length})</SelectItem>
-                  {availableIndustries.map((i) => (
-                    <SelectItem key={i.slug} value={i.slug}>
-                      {i.name} ({industryCounts.get(i.slug)})
-                    </SelectItem>
-                  ))}
-                </SelectContent>
+                <SelectContent>
+                <SelectItem value="all">Tất cả ngành nghề</SelectItem>
+                {industries.map((ind) => (
+                  <SelectItem key={ind.slug} value={ind.slug}>
+                    {ind.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
               </Select>
               <div className="inline-flex rounded-md border border-border overflow-hidden">
                 <button
@@ -436,11 +433,11 @@ function CountryPage() {
         <section className="max-w-7xl mx-auto px-4 pb-16">
           <h2 className="font-display text-xl font-bold mb-4">Khám phá quốc gia khác</h2>
           <div className="flex flex-wrap gap-2">
-            {COUNTRY_LIST.filter((c) => c.code !== country.code).map((c) => (
+            {countries.filter((c: any) => c.code !== country.code).map((c: any) => (
               <Link
                 key={c.code}
                 to="/country/$slug"
-                params={{ slug: c.slug }}
+                params={{ slug: c.code.toLowerCase() }}
                 className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-card hover:bg-accent border border-border/50 text-sm transition-smooth"
               >
                 <span className="text-[10px] font-mono font-bold px-1.5 py-0.5 rounded bg-muted text-muted-foreground">{c.code}</span>

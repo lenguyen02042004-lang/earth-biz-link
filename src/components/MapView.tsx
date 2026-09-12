@@ -1,12 +1,12 @@
 import { useEffect, useRef } from "react";
-import { DEMO_BUSINESSES, type DemoBusiness } from "@/lib/mock-businesses";
+import type { BusinessProfile } from "@/types/business";
 
 interface Props {
-  onSelect: (b: DemoBusiness) => void;
-  businesses?: DemoBusiness[];
+  onSelect: (b: BusinessProfile) => void;
+  businesses?: BusinessProfile[];
 }
 
-export function MapView({ onSelect, businesses = DEMO_BUSINESSES }: Props) {
+export function MapView({ onSelect, businesses = [] }: Props) {
   const ref = useRef<HTMLDivElement>(null);
   const mapRef = useRef<any>(null);
 

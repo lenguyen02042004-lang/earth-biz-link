@@ -4,9 +4,8 @@ import { useTranslation } from "react-i18next";
 import { useQuery } from "@tanstack/react-query";
 import { Globe3D } from "@/components/Globe3D";
 import { BusinessCard } from "@/components/BusinessCard";
-import { DEMO_BUSINESSES, type DemoBusiness } from "@/lib/mock-businesses";
-import { INDUSTRY_LIST, COUNTRY_LIST } from "@/lib/constants";
 import { getPublicStats } from "@/lib/stats.functions";
+import { getExploreBusinesses, getGlobalLists } from "@/lib/business-public.functions";
 import {
   Search, Globe2, LogIn, Sparkles, LayoutDashboard, LogOut, ChevronDown, MapPin,
   Cpu, Landmark, Building2, Factory, ShoppingBag, Plane, GraduationCap,
@@ -36,6 +35,17 @@ export const Route = createFileRoute("/")({
     ],
     links: [{ rel: "canonical", href: "https://earth-biz-link.lovable.app/" }],
   }),
+  loader: async () => {
+    const [bizRes, listRes] = await Promise.all([
+      getExploreBusinesses(),
+      getGlobalLists()
+    ]);
+    return {
+      businesses: bizRes.businesses,
+      countries: listRes.countries,
+      industries: listRes.industries
+    };
+  }
 });
 
 
@@ -48,7 +58,8 @@ const INDUSTRY_ICONS: Record<string, React.ComponentType<{ className?: string }>
 };
 
 function HomePage() {
-  const [selected, setSelected] = useState<DemoBusiness | null>(null);
+  const { businesses, countries, industries } = Route.useLoaderData();
+  const [selected, setSelected] = useState<any | null>(null);
   const [industry, setIndustry] = useState("all");
   const [country, setCountry] = useState("all");
   const [search, setSearch] = useState("");
@@ -67,18 +78,18 @@ function HomePage() {
 
   const counts = useMemo(() => {
     const m: Record<string, number> = {};
-    for (const b of DEMO_BUSINESSES) m[b.industry_slug] = (m[b.industry_slug] || 0) + 1;
+    for (const b of businesses) m[b.industry_slug] = (m[b.industry_slug] || 0) + 1;
     return m;
-  }, []);
+  }, [businesses]);
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
-    return DEMO_BUSINESSES.filter((b) => {
+    return businesses.filter((b) => {
       if (industry !== "all" && b.industry_slug !== industry) return false;
       if (country !== "all" && b.country_code !== country) return false;
       if (q) {
         const indName = t("industry." + b.industry_slug).toLowerCase();
-        const cName = COUNTRY_LIST.find((c) => c.code === b.country_code)?.name.toLowerCase() ?? "";
+        const cName = countries.find((c: any) => c.code === b.country_code)?.name.toLowerCase() ?? "";
         if (
           !b.name.toLowerCase().includes(q) &&
           !indName.includes(q) &&
@@ -87,7 +98,7 @@ function HomePage() {
       }
       return true;
     });
-  }, [industry, country, search, t]);
+  }, [industry, country, search, t, businesses, countries]);
 
   function scrollToExplore() {
     document.getElementById("explore-panel")?.scrollIntoView({ behavior: "smooth", block: "start" });
@@ -112,7 +123,7 @@ function HomePage() {
               {t("home.heroTitlePrefix")} <span className="text-gradient">{t("home.heroTitleGradient")}</span>
             </h1>
             <p className="mt-4 text-white/80 text-base sm:text-lg max-w-2xl mx-auto">
-              {t("home.heroSubtitle", { count: COUNTRY_LIST.length })}
+              {t("home.heroSubtitle", { count: countries.length })}
             </p>
             <div className="mt-6 flex flex-wrap gap-3 justify-center pointer-events-auto">
               <button
@@ -216,7 +227,7 @@ function HomePage() {
             </h2>
 
             <p className="text-white/60 text-sm mb-5">
-              {t("home.searchFilterDesc", { count: DEMO_BUSINESSES.length })}
+              {t("home.searchFilterDesc", { count: businesses.length })}
             </p>
 
             <div className="grid grid-cols-1 md:grid-cols-12 gap-2 p-2 bg-white/10 backdrop-blur-xl border border-white/15 rounded-2xl shadow-glow">
@@ -236,7 +247,7 @@ function HomePage() {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">{t("common.allIndustries")}</SelectItem>
-                    {INDUSTRY_LIST.map((i) => (
+                    {industries.map((i: any) => (
                       <SelectItem key={i.slug} value={i.slug}>{t("industry." + i.slug, { defaultValue: i.name })}</SelectItem>
                     ))}
                   </SelectContent>
@@ -249,7 +260,7 @@ function HomePage() {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">{t("common.allCountries")}</SelectItem>
-                    {COUNTRY_LIST.map((c) => (
+                    {countries.map((c: any) => (
                       <SelectItem key={c.code} value={c.code}>{c.name}</SelectItem>
                     ))}
                   </SelectContent>
@@ -278,7 +289,7 @@ function HomePage() {
               </div>
               <div>
                 <div className="text-xl font-bold text-white tabular-nums">
-                  {(stats?.businesses ?? DEMO_BUSINESSES.length).toLocaleString()}
+                  {(stats?.businesses ?? businesses.length).toLocaleString()}
                 </div>
                 <div className="text-xs text-white/60 uppercase tracking-wide">{t("home.statsBusinesses")}</div>
               </div>
@@ -300,7 +311,7 @@ function HomePage() {
               </div>
               <div>
                 <div className="text-xl font-bold text-white tabular-nums">
-                  {COUNTRY_LIST.length}+
+                  {countries.length}+
                 </div>
                 <div className="text-xs text-white/60 uppercase tracking-wide">{t("home.statsCountries")}</div>
               </div>
@@ -320,12 +331,12 @@ function HomePage() {
                   industry === "all" ? "text-primary-glow" : "text-white/60 hover:text-white"
                 }`}
               >
-                {t("home.showAll", { count: DEMO_BUSINESSES.length })}
+                {t("home.showAll", { count: businesses.length })}
               </button>
             </div>
 
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-8 gap-3">
-              {INDUSTRY_LIST.map((ind) => {
+              {industries.map((ind: any) => {
                 const Icon = INDUSTRY_ICONS[ind.slug] || MoreHorizontal;
                 const count = counts[ind.slug] || 0;
                 const active = industry === ind.slug;

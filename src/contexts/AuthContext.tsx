@@ -1,0 +1,80 @@
+import { createContext, useContext, useEffect, useState } from "react";
+import type { Session, User } from "@supa/business/ase/supabase-js";
+import { supabase } from "@/integrations/supabase/client";
+
+interface AuthContextType {
+  user: User | null;
+  session: Session | null;
+  accountType: "personal" | "business" | null;
+  loading: boolean;
+}
+
+const AuthContext = createContext<AuthContextType>({
+  user: null,
+  session: null,
+  accountType: null,
+  loading: true,
+});
+
+export function AuthProvider({ children }: { children: React.ReactNode }) {
+  const [user, setUser] = useState<User | null>(null);
+  const [session, setSession] = useState<Session | null>(null);
+  const [accountType, setAccountType] = useState<"personal" | "business" | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    let active = true;
+    let subscription: { unsubscribe: () => void } | null = null;
+
+    async function fetchAccountType(userId: string) {
+      try {
+        const { data } = await supabase
+          .from("profiles")
+          .select("account_type")
+          .eq("id", userId)
+          .maybeSingle();
+        if (active) {
+          setAccountType(data?.account_type ?? "personal");
+        }
+      } catch {
+        if (active) setAccountType("personal");
+      }
+    }
+
+    try {
+      // CRITICAL: set up the listener BEFORE getSession to avoid races.
+      const { data } = supabase.auth.onAuthStateChange((_evt, s) => {
+        setSession(s);
+        setUser(s?.user ?? null);
+        if (s?.user) fetchAccountType(s.user.id);
+        else if (active) setAccountType(null);
+      });
+      subscription = data.subscription;
+
+      supabase.auth.getSession().then(({ data: { session: s } }) => {
+        setSession(s);
+        setUser(s?.user ?? null);
+        if (s?.user) fetchAccountType(s.user.id).then(() => { if (active) setLoading(false); });
+        else if (active) { setAccountType(null); setLoading(false); }
+      }).catch(() => {
+        if (active) { setAccountType(null); setLoading(false); }
+      });
+    } catch (err) {
+      console.warn("[AuthProvider] Supabase not initialized, running unauthenticated:", err);
+      if (active) { setAccountType(null); setLoading(false); }
+    }
+
+    return () => {
+      active = false;
+      subscription?.unsubscribe();
+    };
+  }, []);
+
+  return (
+    <AuthContext.Provider value={{ user, session, accountType, loading }}>
+      {children}
+    </AuthContext.Provider>
+  );
+}
+
+export const useAuth = () => useContext(AuthContext);

@@ -45,3 +45,12 @@ supabase/.temp/
 /blob-report/
 /playwright/.cache/
 /playwright/.auth/
+
+# Test files
+test_output.json
+test_scrape.mjs
+test_scraper.mjs
+scrape_output.txt
+vietnamplas_page1.html
+test_data.json
+

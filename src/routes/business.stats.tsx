@@ -148,7 +148,7 @@ function StatsPage() {
                           <p className="font-medium text-sm truncate">
                             {h.direction === "out" ? "Đã gửi tới " : "Nhận từ "}
                             {h.partner ? (
-                              <Link to="/b/$slug" params={{ slug: h.partner.slug }} className="text-primary hover:underline">
+                              <Link to="/business/$slug" params={{ slug: h.partner.slug }} className="text-primary hover:underline">
                                 {h.partner.name}
                               </Link>
                             ) : <span className="text-muted-foreground">đối tác đã xoá</span>}

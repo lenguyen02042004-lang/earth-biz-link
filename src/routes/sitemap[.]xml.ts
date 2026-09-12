@@ -1,101 +1,80 @@
 import { createFileRoute } from "@tanstack/react-router";
 import type {} from "@tanstack/react-start";
 import { COUNTRY_LIST } from "@/lib/constants";
-import { DEMO_BUSINESSES } from "@/lib/mock-businesses";
+import { supabase } from "@/integrations/supabase/client";
 
 const BASE_URL = "https://earth-biz-link.lovable.app";
 
 interface SitemapEntry {
-  path: string;
+  loc: string;
+  lastmod?: string;
   changefreq?: "always" | "hourly" | "daily" | "weekly" | "monthly" | "yearly" | "never";
-  priority?: string;
+  priority?: number;
 }
 
 export const Route = createFileRoute("/sitemap.xml")({
-  server: {
-    handlers: {
-      GET: async () => {
+  loader: async () => {
+    try {
         const entries: SitemapEntry[] = [
-          { path: "/", changefreq: "weekly", priority: "1.0" },
-          { path: "/explore", changefreq: "weekly", priority: "0.9" },
-          { path: "/countries", changefreq: "weekly", priority: "0.8" },
-          { path: "/pricing", changefreq: "monthly", priority: "0.7" },
-          { path: "/login", changefreq: "yearly", priority: "0.3" },
-          { path: "/signup", changefreq: "yearly", priority: "0.5" },
-          { path: "/blog/how-to-find-international-b2b-partners", changefreq: "monthly", priority: "0.7" },
+          { loc: "/", changefreq: "daily", priority: 1.0 },
+          { loc: "/explore", changefreq: "daily", priority: 0.9 },
+          { loc: "/pricing", changefreq: "weekly", priority: 0.7 },
+          { loc: "/support", changefreq: "monthly", priority: 0.5 },
+          { loc: "/login", changefreq: "monthly", priority: 0.4 },
+          { loc: "/countries", changefreq: "weekly", priority: 0.8 },
         ];
 
-        for (const c of COUNTRY_LIST) {
+        for (const country of COUNTRY_LIST) {
           entries.push({
-            path: `/country/${c.slug}`,
+            loc: `/country/${country.slug}`,
             changefreq: "weekly",
-            priority: "0.6",
+            priority: 0.7,
           });
         }
 
-        // Try to include published DB businesses; fall back silently to demos.
-        let businessSlugs: string[] = DEMO_BUSINESSES.map((b) => b.slug);
+        let businessSlugs: string[] = [];
         try {
-          const { createClient } = await import("@supabase/supabase-js");
-          const url = process.env.SUPABASE_URL;
-          const key = process.env.SUPABASE_PUBLISHABLE_KEY;
-          if (url && key) {
-            const client = createClient(url, key, {
-              auth: { persistSession: false, autoRefreshToken: false },
-              global: {
-                fetch: (input, init) => {
-                  const h = new Headers(init?.headers);
-                  if (key.startsWith("sb_") && h.get("Authorization") === `Bearer ${key}`) {
-                    h.delete("Authorization");
-                  }
-                  h.set("apikey", key);
-                  return fetch(input, { ...init, headers: h });
-                },
-              },
-            });
-            const { data } = await client
-              .from("businesses")
-              .select("slug")
-              .eq("status", "public")
-              .limit(1000);
-            if (data && data.length) {
-              businessSlugs = Array.from(new Set([...businessSlugs, ...data.map((r: any) => r.slug)]));
-            }
-          }
-        } catch {
-          // ignore — sitemap still serves static + demo entries
+          const { data: bizes } = await supabase.from('businesses').select('slug').eq('status', 'public');
+          if (bizes) businessSlugs = bizes.map(b => b.slug);
+        } catch (e) {
+          console.error('Failed to fetch businesses for sitemap', e);
         }
 
         for (const slug of businessSlugs) {
-          entries.push({ path: `/b/${slug}`, changefreq: "weekly", priority: "0.6" });
+          entries.push({
+            loc: `/business/${slug}`,
+            changefreq: "daily",
+            priority: 0.8,
+          });
         }
 
-        const urls = entries.map((e) =>
-          [
-            `  <url>`,
-            `    <loc>${BASE_URL}${e.path}</loc>`,
-            e.changefreq ? `    <changefreq>${e.changefreq}</changefreq>` : null,
-            e.priority ? `    <priority>${e.priority}</priority>` : null,
-            `  </url>`,
-          ]
-            .filter(Boolean)
-            .join("\n"),
-        );
+        const today = new Date().toISOString().split("T")[0];
+        
+        const xml = `<?xml version="1.0" encoding="UTF-8"?>
+          <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+            ${entries
+              .map(
+                (entry) => `
+              <url>
+                <loc>${BASE_URL}${entry.loc}</loc>
+                <lastmod>${entry.lastmod || today}</lastmod>
+                ${entry.changefreq ? `<changefreq>${entry.changefreq}</changefreq>` : ""}
+                ${entry.priority ? `<priority>${entry.priority}</priority>` : ""}
+              </url>
+            `,
+              )
+              .join("")}
+          </urlset>`;
 
-        const xml = [
-          `<?xml version="1.0" encoding="UTF-8"?>`,
-          `<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">`,
-          ...urls,
-          `</urlset>`,
-        ].join("\n");
-
-        return new Response(xml, {
+        return new Response(xml.trim(), {
           headers: {
             "Content-Type": "application/xml",
             "Cache-Control": "public, max-age=3600",
           },
         });
-      },
-    },
+    } catch (error) {
+        console.error("Sitemap generation error:", error);
+        return new Response("Internal Server Error", { status: 500 });
+    }
   },
 });

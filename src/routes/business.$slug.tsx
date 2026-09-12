@@ -1,28 +1,22 @@
 import { createFileRoute, notFound, useNavigate } from "@tanstack/react-router";
 import { Navbar } from "@/components/Navbar";
 import { BusinessCard } from "@/components/BusinessCard";
-import { DEMO_BUSINESSES } from "@/lib/mock-businesses";
-import { getBusinessBySlug } from "@/lib/business-public.functions";
 
-export const Route = createFileRoute("/b/$slug")({
+import { getBusinessBySlug } from "@/lib/business-public.functions";
+import { ArrowLeft } from "lucide-react";
+import { Button } from "@/components/ui/button";
+
+export const Route = createFileRoute("/business/$slug")({
   component: BusinessDetailPage,
   loader: async ({ params }) => {
-    // 1) Try database first (covers both demo-seeded and real businesses)
-    try {
-      const res = await getBusinessBySlug({ data: { slug: params.slug } });
-      if (res.business) return { business: res.business };
-    } catch {
-      // fall through to mock
-    }
-    // 2) Fallback to legacy mock so old links still work
-    const mock = DEMO_BUSINESSES.find((b) => b.slug === params.slug);
-    if (!mock) throw notFound();
-    return { business: mock };
+    const res = await getBusinessBySlug({ data: { slug: params.slug } });
+    if (!res.business) throw notFound();
+    return { business: res.business };
   },
   head: ({ loaderData, params }) => {
     if (!loaderData) return { meta: [] };
     const b: any = loaderData.business;
-    const url = `https://earth-biz-link.lovable.app/b/${params.slug}`;
+    const url = `https://bizconnect.one/business/${params.slug}`;
     const sameAs = Object.values(b.socials ?? {}).filter(Boolean) as string[];
     const jsonLd: Record<string, unknown> = {
       "@context": "https://schema.org",
@@ -86,11 +80,21 @@ function BusinessDetailPage() {
   const { business } = Route.useLoaderData();
   const navigate = useNavigate();
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background relative overflow-hidden">
+      {/* Animated Mesh-like Background */}
+      <div className="absolute top-0 left-0 w-[500px] h-[500px] bg-rose-500/20 rounded-full blur-[100px] -translate-x-1/2 -translate-y-1/2 animate-pulse" />
+      <div className="absolute bottom-0 right-0 w-[500px] h-[500px] bg-pink-500/20 rounded-full blur-[100px] translate-x-1/2 translate-y-1/2 animate-pulse" style={{ animationDelay: '2s' }} />
+      
       <Navbar />
-      <div className="pt-16">
-        <BusinessCard business={business as any} onClose={() => navigate({ to: "/" })} />
-      </div>
+      
+      <main className="relative pt-24 pb-16 px-4 z-10">
+        <div className="max-w-4xl mx-auto mb-4">
+          <Button variant="ghost" onClick={() => window.history.back()} className="gap-2 text-muted-foreground hover:text-foreground">
+            <ArrowLeft className="w-4 h-4" /> Quay lại
+          </Button>
+        </div>
+        <BusinessCard business={business as any} mode="inline" />
+      </main>
     </div>
   );
 }

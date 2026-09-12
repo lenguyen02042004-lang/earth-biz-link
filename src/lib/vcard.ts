@@ -1,10 +1,10 @@
-import type { DemoBusiness } from "./mock-businesses";
+import type { BusinessProfile } from "./mock-businesses";
 
 function esc(v: string) {
   return (v ?? "").replace(/\\/g, "\\\\").replace(/,/g, "\\,").replace(/;/g, "\\;").replace(/\n/g, "\\n");
 }
 
-export function buildVCard(b: DemoBusiness, profileUrl?: string): string {
+export function buildVCard(b: BusinessProfile, profileUrl?: string): string {
   const lines = [
     "BEGIN:VCARD",
     "VERSION:3.0",
@@ -24,7 +24,7 @@ export function buildVCard(b: DemoBusiness, profileUrl?: string): string {
   return lines.join("\r\n");
 }
 
-export function downloadVCard(b: DemoBusiness, profileUrl?: string) {
+export function downloadVCard(b: BusinessProfile, profileUrl?: string) {
   const vcf = buildVCard(b, profileUrl);
   const blob = new Blob([vcf], { type: "text/vcard;charset=utf-8" });
   const url = URL.createObjectURL(blob);

@@ -1,0 +1,214 @@
+import { chromium } from 'playwright';
+import { createClient } from '@supabase/supabase-js';
+
+const supabase = createClient(
+  process.env.SUPABASE_URL,
+  process.env.SUPABASE_SERVICE_ROLE_KEY
+);
+
+// Basic Country Code Mapper (ISO 2-letter)
+function getCountryCode(countryName) {
+  if (!countryName) return null;
+  const map = {
+    'China': 'CN',
+    'Vietnam': 'VN',
+    'Viet Nam': 'VN',
+    'Taiwan': 'TW',
+    'South Korea': 'KR',
+    'Korea': 'KR',
+    'Japan': 'JP',
+    'Singapore': 'SG',
+    'Malaysia': 'MY',
+    'Thailand': 'TH',
+    'India': 'IN',
+    'Hong Kong': 'HK',
+    'USA': 'US',
+    'United States': 'US',
+    'Germany': 'DE',
+    'Italy': 'IT',
+    'UK': 'GB',
+    'France': 'FR'
+  };
+  return map[countryName.trim()] || null;
+}
+
+function slugify(text) {
+  return text.toString().toLowerCase()
+    .replace(/\s+/g, '-')
+    .replace(/[^\w\-]+/g, '')
+    .replace(/\-\-+/g, '-')
+    .replace(/^-+/, '')
+    .replace(/-+$/, '');
+}
+
+async function setupSystemAccount() {
+  const email = 'system@bizconnect.one';
+  const { data: users, error: listError } = await supabase.auth.admin.listUsers();
+  if (listError) throw listError;
+  
+  let user = users.users.find(u => u.email === email);
+  if (!user) {
+    const { data: newUser, error } = await supabase.auth.admin.createUser({
+      email: email,
+      password: 'SystemPassword2026!',
+      email_confirm: true,
+      user_metadata: { name: 'BizConnect System' }
+    });
+    if (error) throw error;
+    user = newUser.user;
+  }
+  return user.id;
+}
+
+async function setupIndustry(industryName) {
+  const slug = slugify(industryName);
+  const { data: existing, error: findErr } = await supabase.from('industries').select('*').eq('slug', slug).single();
+  if (existing) return existing.id;
+  
+  const { data: newInd, error: insErr } = await supabase
+    .from('industries')
+    .insert([{ name: industryName, slug: slug, icon: 'Factory' }])
+    .select().single();
+  if (insErr) throw insErr;
+  return newInd.id;
+}
+
+(async () => {
+  try {
+    console.log("--- STARTING ENHANCED SCRAPER ---");
+    const ownerId = await setupSystemAccount();
+    const plasticIndustryId = await setupIndustry("Plastic");
+    
+    const browser = await chromium.launch({ headless: false, channel: 'chrome' });
+    const context = await browser.newContext();
+    const page = await context.newPage();
+    
+    for (let pageNum = 2; pageNum <= 31; pageNum++) {
+      console.log(`\n=== Navigating to Page ${pageNum} ===`);
+      await page.goto(`https://vietnamplas.chanchao.com.tw/VisitorExhibitor?page=${pageNum}`, { waitUntil: 'domcontentloaded' });
+      await page.waitForTimeout(4000); 
+
+    const companies = await page.evaluate(() => {
+      const linkNodes = Array.from(document.querySelectorAll('a[href*="/VisitorExhibitor/Detail"]'));
+      const uniqueHrefs = [...new Set(linkNodes.map(a => a.href))];
+      
+      const results = [];
+      for (const href of uniqueHrefs) {
+        const linksForHref = linkNodes.filter(a => a.href === href);
+        let cardElement = null;
+        if (linksForHref.length > 0) {
+           let curr = linksForHref[0].parentElement;
+           while(curr && curr.tagName !== 'BODY') {
+              if (curr.className.includes('item') || curr.classList.contains('col-md-12') || curr.classList.contains('row')) {
+                 if (curr.querySelector('img') && curr.innerText.trim().length > 10) {
+                    cardElement = curr;
+                    break;
+                 }
+              }
+              curr = curr.parentElement;
+           }
+        }
+        
+        if (!cardElement) continue;
+
+        const img = cardElement.querySelector('img');
+        const logo_url = img ? img.src : null;
+        
+        const nameEl = cardElement.querySelector('[itemprop="name"]') || linksForHref.find(l => l.innerText.trim().length > 3);
+        const name = nameEl ? nameEl.innerText.trim() : 'Unknown';
+        
+        const countryEl = cardElement.querySelector('[itemprop="addressCountry"]') || cardElement.querySelector('.fa-map-marker')?.parentElement;
+        const country = countryEl ? countryEl.innerText.trim() : '';
+        
+        const descEl = cardElement.querySelector('.ellipsis2') || cardElement.querySelector('.desc');
+        const short_intro = descEl ? descEl.innerText.trim() : null;
+
+        results.push({
+          name,
+          logo_url,
+          country,
+          short_intro,
+          detailUrl: href
+        });
+      }
+      return results;
+    });
+
+      console.log(`Found ${companies.length} companies on Page ${pageNum}. Extracting details...`);
+    
+    // Visit each detail page to get website
+    for(let i = 0; i < companies.length; i++) {
+        const comp = companies[i];
+        if(comp.detailUrl) {
+            console.log(`[${i+1}/${companies.length}] Getting details for ${comp.name}...`);
+            try {
+                await page.goto(comp.detailUrl, { waitUntil: 'domcontentloaded', timeout: 10000 });
+                // Extract Website from detail page
+                comp.website = await page.evaluate(() => {
+                    const links = Array.from(document.querySelectorAll('a'));
+                    for(let a of links) {
+                        if(a.innerText.toLowerCase().includes('website') || a.href.includes('http') && !a.href.includes('chanchao.com.tw')) {
+                            // usually it's in an info block
+                            if(a.parentElement && a.parentElement.innerText.includes('Website')) return a.href;
+                        }
+                    }
+                    // Try targeting hrefs in specific info sections
+                    const websiteIcon = document.querySelector('.fa-globe, .icon-globe, a[href^="http"]');
+                    if(websiteIcon && websiteIcon.href) return websiteIcon.href;
+                    return null;
+                });
+                
+                // If it wasn't found, try a broader search for links inside the company info area
+                if (!comp.website) {
+                   comp.website = await page.evaluate(() => {
+                      const allLinks = Array.from(document.querySelectorAll('a[target="_blank"]'));
+                      const extLink = allLinks.find(l => l.href.startsWith('http') && !l.href.includes('chanchao'));
+                      return extLink ? extLink.href : null;
+                   });
+                }
+            } catch(e) {
+                console.log(`Timeout getting details for ${comp.name}, skipping website...`);
+            }
+        }
+        
+        // Prepare DB Record
+        const cc = getCountryCode(comp.country);
+        const slug = slugify(comp.name);
+        
+        const record = {
+            owner_id: ownerId,
+            name: comp.name,
+            slug: slug,
+            logo_url: comp.logo_url,
+            country_code: cc,
+            industry_id: plasticIndustryId,
+            status: 'public', // Direct to public for demo
+            icon_tier: 'standard',
+            short_intro: comp.short_intro,
+            website: comp.website,
+            lat: null,
+            lng: null
+        };
+        
+        // Upsert by slug
+        const { error } = await supabase
+            .from('businesses')
+            .upsert(record, { onConflict: 'slug' });
+            
+        if (error) {
+            console.error(`Error saving ${comp.name}:`, error.message);
+        } else {
+            console.log(`Saved ${comp.name} successfully! (Country: ${cc}, Website: ${comp.website})`);
+        }
+    }
+    
+      } // end page loop
+      
+      await browser.close();
+      console.log("--- ALL BATCHES DONE ---");
+      process.exit(0);
+  } catch(e) {
+    console.error("FATAL ERROR:", e);
+    process.exit(1);
+  }
+})();

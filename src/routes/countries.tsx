@@ -1,8 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { Navbar } from "@/components/Navbar";
-import { COUNTRY_LIST } from "@/lib/constants";
-import { DEMO_BUSINESSES } from "@/lib/mock-businesses";
-import { useMemo } from "react";
+import { getGlobalLists } from "@/lib/business-public.functions";
 import { Building2, ArrowRight } from "lucide-react";
 import countriesOg from "@/assets/countries-og.jpg";
 
@@ -23,6 +21,10 @@ export const Route = createFileRoute("/countries")({
   }),
 
   component: CountriesPage,
+  loader: async () => {
+    const listRes = await getGlobalLists();
+    return { countries: listRes.countries };
+  }
 });
 
 // Region-based gradient for a distinctive thumbnail per country card.
@@ -42,15 +44,8 @@ const REGION_BY_CODE: Record<string, keyof typeof REGION_GRADIENTS> = {
 };
 
 function CountriesPage() {
-  const counts = useMemo(() => {
-    const m = new Map<string, number>();
-    DEMO_BUSINESSES.forEach((b) => m.set(b.country_code, (m.get(b.country_code) ?? 0) + 1));
-    return m;
-  }, []);
-
-  const sorted = [...COUNTRY_LIST].sort(
-    (a, b) => (counts.get(b.code) ?? 0) - (counts.get(a.code) ?? 0),
-  );
+  const { countries } = Route.useLoaderData();
+  const sorted = [...countries];
 
   return (
     <div className="min-h-screen bg-background">

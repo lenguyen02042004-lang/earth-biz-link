@@ -1,15 +1,15 @@
 import { useEffect, useRef, useState } from "react";
-import { DEMO_BUSINESSES, type DemoBusiness } from "@/lib/mock-businesses";
+import type { BusinessProfile } from "@/types/business";
 
 interface Props {
-  onSelect: (b: DemoBusiness) => void;
-  businesses?: DemoBusiness[];
+  onSelect: (b: BusinessProfile) => void;
+  businesses?: BusinessProfile[];
 }
 
 import { useTranslation } from "react-i18next";
 
 // Lazy import react-globe.gl on client only (uses WebGL / Three.js).
-export function Globe3D({ onSelect, businesses = DEMO_BUSINESSES }: Props) {
+export function Globe3D({ onSelect, businesses = [] }: Props) {
   const { t } = useTranslation();
   const containerRef = useRef<HTMLDivElement>(null);
   const globeRef = useRef<any>(null);

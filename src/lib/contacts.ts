@@ -1,9 +1,9 @@
 import { supabase } from "@/integrations/supabase/client";
-import type { DemoBusiness } from "./mock-businesses";
+import type { BusinessProfile } from "./mock-businesses";
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
-export async function saveBusinessContact(b: DemoBusiness) {
+export async function saveBusinessContact(b: BusinessProfile) {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return { ok: false, reason: "auth" as const };
 

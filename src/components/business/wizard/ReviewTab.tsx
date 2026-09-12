@@ -135,7 +135,7 @@ export function ReviewTab({
           {form.status === "public" ? "Cập nhật trang công khai" : "Xuất bản ngay"}
         </Button>
         {form.id && form.status === "public" && (
-          <Link to="/b/$slug" params={{ slug: form.slug }} className="flex-1">
+          <Link to="/business/$slug" params={{ slug: form.slug }} className="flex-1">
             <Button variant="outline" className="w-full h-11 gap-2"><Eye className="w-4 h-4" /> Xem trang công khai</Button>
           </Link>
         )}

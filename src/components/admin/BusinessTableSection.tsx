@@ -60,7 +60,7 @@ export function BusinessTableSection({ listFn }: { listFn: ReturnType<typeof use
                   <td className="p-2">{b.views_count}</td>
                   <td className="p-2">{b.followers_count}</td>
                   <td className="p-2 flex gap-1">
-                    <Link to="/b/$slug" params={{ slug: b.slug }} target="_blank" className="inline-flex items-center px-2 py-1 rounded hover:bg-accent" title="Xem">
+                    <Link to="/business/$slug" params={{ slug: b.slug }} target="_blank" className="inline-flex items-center px-2 py-1 rounded hover:bg-accent" title="Xem">
                       <ExternalLink className="w-3.5 h-3.5" />
                     </Link>
                     <Link to="/business/edit" search={{ id: b.id }} className="inline-flex items-center px-2 py-1 rounded hover:bg-accent" title="Sửa">
