@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { supa/business/ase } from "@/integrations/supabase/client";
+import { supabase } from "@/integrations/supabase/client";
 import { slugifyName } from "@/lib/personal-card";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";

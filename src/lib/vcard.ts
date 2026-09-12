@@ -1,4 +1,4 @@
-import type { BusinessProfile } from "./mock-businesses";
+import { BusinessProfile } from "@/types/business";
 
 function esc(v: string) {
   return (v ?? "").replace(/\\/g, "\\\\").replace(/,/g, "\\,").replace(/;/g, "\\;").replace(/\n/g, "\\n");

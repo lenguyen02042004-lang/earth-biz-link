@@ -83,10 +83,24 @@ async function setupIndustry(industryName) {
     const context = await browser.newContext();
     const page = await context.newPage();
     
-    for (let pageNum = 2; pageNum <= 31; pageNum++) {
+    for (let pageNum = 5; pageNum <= 31; pageNum++) {
       console.log(`\n=== Navigating to Page ${pageNum} ===`);
-      await page.goto(`https://vietnamplas.chanchao.com.tw/VisitorExhibitor?page=${pageNum}`, { waitUntil: 'domcontentloaded' });
-      await page.waitForTimeout(4000); 
+      let pageLoaded = false;
+      for (let retries = 0; retries < 3; retries++) {
+        try {
+          await page.goto(`https://vietnamplas.chanchao.com.tw/VisitorExhibitor?page=${pageNum}`, { waitUntil: 'domcontentloaded', timeout: 45000 });
+          await page.waitForTimeout(4000); 
+          pageLoaded = true;
+          break;
+        } catch (e) {
+          console.log(`Timeout loading page ${pageNum}, retrying (${retries+1}/3)...`);
+          await page.waitForTimeout(5000);
+        }
+      }
+      if (!pageLoaded) {
+         console.error(`Failed to load page ${pageNum} after 3 retries. Skipping page.`);
+         continue;
+      }
 
     const companies = await page.evaluate(() => {
       const linkNodes = Array.from(document.querySelectorAll('a[href*="/VisitorExhibitor/Detail"]'));
@@ -141,36 +155,37 @@ async function setupIndustry(industryName) {
         const comp = companies[i];
         if(comp.detailUrl) {
             console.log(`[${i+1}/${companies.length}] Getting details for ${comp.name}...`);
-            try {
-                await page.goto(comp.detailUrl, { waitUntil: 'domcontentloaded', timeout: 10000 });
-                // Extract Website from detail page
-                comp.website = await page.evaluate(() => {
-                    const links = Array.from(document.querySelectorAll('a'));
-                    for(let a of links) {
-                        if(a.innerText.toLowerCase().includes('website') || a.href.includes('http') && !a.href.includes('chanchao.com.tw')) {
-                            // usually it's in an info block
-                            if(a.parentElement && a.parentElement.innerText.includes('Website')) return a.href;
-                        }
-                    }
-                    // Try targeting hrefs in specific info sections
-                    const websiteIcon = document.querySelector('.fa-globe, .icon-globe, a[href^="http"]');
-                    if(websiteIcon && websiteIcon.href) return websiteIcon.href;
-                    return null;
-                });
-                
-                // If it wasn't found, try a broader search for links inside the company info area
-                if (!comp.website) {
-                   comp.website = await page.evaluate(() => {
-                      const allLinks = Array.from(document.querySelectorAll('a[target="_blank"]'));
-                      const extLink = allLinks.find(l => l.href.startsWith('http') && !l.href.includes('chanchao'));
-                      return extLink ? extLink.href : null;
-                   });
-                }
-            } catch(e) {
-                console.log(`Timeout getting details for ${comp.name}, skipping website...`);
+            for (let retries = 0; retries < 2; retries++) {
+               try {
+                 await page.goto(comp.detailUrl, { waitUntil: 'domcontentloaded', timeout: 20000 });
+                 const website = await page.evaluate(() => {
+                   const websiteIcon = document.querySelector('.fa-globe');
+                   let rawUrl = null;
+                   if (websiteIcon) {
+                     rawUrl = websiteIcon.parentElement.href;
+                   } else {
+                     const allLinks = Array.from(document.querySelectorAll('a'));
+                     const websiteLink = allLinks.find(a => a.innerText.toLowerCase().includes('website'));
+                     rawUrl = websiteLink ? websiteLink.href : null;
+                   }
+                   
+                   if (!rawUrl) return null;
+                   rawUrl = decodeURIComponent(rawUrl);
+                   // Split by ; or %20 if there are multiple
+                   if (rawUrl.includes(';')) rawUrl = rawUrl.split(';')[0].trim();
+                   // Reject chanchao internal links
+                   if (rawUrl.includes('chanchao.com.tw')) return null;
+                   
+                   return rawUrl;
+                 });
+                 comp.website = website;
+                 break; // success
+               } catch (e) {
+                 if (retries === 1) {
+                    console.log(`Timeout getting details for ${comp.name}, skipping website...`);
+                 }
+               }
             }
-        }
-        
         // Prepare DB Record
         const cc = getCountryCode(comp.country);
         const slug = slugify(comp.name);
@@ -199,6 +214,7 @@ async function setupIndustry(industryName) {
             console.error(`Error saving ${comp.name}:`, error.message);
         } else {
             console.log(`Saved ${comp.name} successfully! (Country: ${cc}, Website: ${comp.website})`);
+        }
         }
     }
     

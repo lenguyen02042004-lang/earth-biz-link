@@ -14,6 +14,7 @@ const exploreSearchSchema = z.object({
   industry: z.string().optional(),
   country: z.string().optional(),
   q: z.string().optional(),
+  biz: z.string().optional(),
 });
 
 export const Route = createFileRoute("/explore")({
@@ -45,11 +46,19 @@ export const Route = createFileRoute("/explore")({
 
 function ExplorePage() {
   const sp = Route.useSearch();
+  const navigate = Route.useNavigate();
   const { businesses, countries: dbCountries, industries: dbIndustries } = Route.useLoaderData();
-  const [selected, setSelected] = useState<any | null>(null);
+  
   const [country, setCountry] = useState(sp.country ?? "all");
   const [industry, setIndustry] = useState(sp.industry ?? "all");
   const [search, setSearch] = useState(sp.q ?? "");
+
+  const selectedSlug = sp.biz;
+  const selected = useMemo(() => businesses.find((b) => b.slug === selectedSlug) || null, [businesses, selectedSlug]);
+
+  const handleSelect = (b: any | null) => {
+    navigate({ search: (prev: any) => ({ ...prev, biz: b ? b.slug : undefined }), replace: true });
+  };
 
   const filtered = useMemo(() => businesses.filter((b) => {
     if (country !== "all" && b.country_code !== country) return false;
@@ -79,10 +88,10 @@ function ExplorePage() {
             {filtered.map((b) => (
               <div
                 key={b.id}
-                onClick={() => setSelected(b)}
+                onClick={() => handleSelect(b)}
                 role="button"
                 tabIndex={0}
-                onKeyDown={(e) => { if (e.key === "Enter") setSelected(b); }}
+                onKeyDown={(e) => { if (e.key === "Enter") handleSelect(b); }}
                 className="w-full text-left p-3 rounded-2xl bg-background hover:bg-accent transition-smooth border border-border/40 hover:border-primary/40 hover:shadow-soft flex gap-3 items-center cursor-pointer"
               >
                 <div className={b.icon_tier === "premium" ? "ring-premium flex-shrink-0" : "flex-shrink-0"}>
@@ -103,10 +112,10 @@ function ExplorePage() {
 
         {/* Map */}
         <main className="flex-1 relative">
-          <MapView businesses={filtered} onSelect={setSelected} />
+          <MapView businesses={filtered} onSelect={handleSelect} />
         </main>
       </div>
-      {selected && <BusinessCard business={selected} onClose={() => setSelected(null)} />}
+      {selected && <BusinessCard business={selected} onClose={() => handleSelect(null)} />}
     </div>
   );
 }

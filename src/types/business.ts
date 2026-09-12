@@ -6,7 +6,7 @@ export interface BusinessProfile {
   banner_url?: string;
   short_intro?: string;
   description?: string;
-  certifications?: string[];
+  certifications?: { name: string; year: number | null; icon?: string; issuer?: string }[];
   address?: string;
   country_code?: string;
   country_name?: string;

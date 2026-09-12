@@ -2,12 +2,13 @@ import { useEffect, useState } from "react";
 import QRCode from "qrcode";
 import {
   MapPin, Phone, Mail, Globe, Eye, Share2, X, Sparkles, Send, BookmarkPlus, BookmarkCheck,
-  Building2, Award, FileText, Lock, Handshake, Printer,
+  Building2, Award, FileText, Lock, Handshake, Printer, ExternalLink,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { SocialIconList } from "./SocialIconList";
 import { SendCardDialog } from "./SendCardDialog";
+import { PrintableQRModal } from "@/components/PrintableQRModal";
 import { FollowButton } from "./FollowButton";
 import { formatCount } from "@/lib/format";
 import type { BusinessProfile } from "@/types/business";
@@ -23,12 +24,14 @@ const viewedThisSession = new Set<string>();
 
 interface Props {
   business: BusinessProfile;
-  onClose: () => void;
+  onClose?: () => void;
+  mode?: "modal" | "inline";
 }
 
-export function BusinessCard({ business, onClose }: Props) {
+export function BusinessCard({ business, onClose, mode = "modal" }: Props) {
   const [qrUrl, setQrUrl] = useState<string>("");
   const [showSend, setShowSend] = useState(false);
+  const [showQR, setShowQR] = useState(false);
   const [saved, setSaved] = useState(false);
   const [saving, setSaving] = useState(false);
   const [unlocked, setUnlocked] = useState(false);
@@ -36,7 +39,7 @@ export function BusinessCard({ business, onClose }: Props) {
   const profileUrl = typeof window !== "undefined" ? `${window.location.origin}/b/${business.slug}` : "";
 
   const description = business.description || business.short_intro || "";
-  const certifications = business.certifications?.length > 0 ? business.certifications : [];
+  const certifications = business.certifications || [];
 
   useEffect(() => {
     if (profileUrl) {
@@ -110,16 +113,18 @@ export function BusinessCard({ business, onClose }: Props) {
 
   const isPremium = business.icon_tier === "premium";
 
-  return (
-    <div className="fixed inset-0 z-[1000] flex items-center justify-center p-3 sm:p-4 animate-fade-up">
-      <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
-
+  const innerContent = (
+    <>
       <div
-        className="relative w-full max-w-md md:max-w-3xl lg:max-w-4xl
-                   max-h-[calc(100dvh-1.5rem)] sm:max-h-[calc(100dvh-2rem)]
-                   rounded-2xl sm:rounded-3xl bg-card shadow-glow border border-border/40
-                   flex flex-col overflow-hidden"
-      >
+        className={
+        mode === "modal"
+          ? "relative w-full max-w-md md:max-w-3xl lg:max-w-4xl max-h-[calc(100dvh-1.5rem)] sm:max-h-[calc(100dvh-2rem)] rounded-2xl sm:rounded-3xl bg-card shadow-glow border border-border/40 flex flex-col overflow-hidden"
+          : "relative w-full max-w-md md:max-w-3xl lg:max-w-4xl min-h-[80vh] mx-auto rounded-2xl sm:rounded-3xl bg-card shadow-glow border border-border/40 flex flex-col overflow-hidden"
+      }
+    >
+      
+      {/* Close button - only show in modal mode */}
+      {mode === "modal" && onClose && (
         <button
           onClick={onClose}
           aria-label="Đóng"
@@ -127,6 +132,7 @@ export function BusinessCard({ business, onClose }: Props) {
         >
           <X className="w-4 h-4" />
         </button>
+      )}
 
         {/* HEADER */}
         <div className="relative bg-gradient-vivid shrink-0">
@@ -135,11 +141,17 @@ export function BusinessCard({ business, onClose }: Props) {
           )}
           <div className="relative px-4 sm:px-6 pt-4 pb-4 sm:pb-5 flex gap-3 sm:gap-4 items-start text-white">
             <div className={`${isPremium ? "ring-premium" : ""} shrink-0`}>
-              <img
-                src={business.logo_url}
-                alt={business.name}
-                className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-white border-2 border-white/80 object-cover shadow-pink"
-              />
+              {business.logo_url ? (
+                <img
+                  src={business.logo_url}
+                  alt={business.name}
+                  className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-white border-2 border-white/80 object-cover shadow-pink"
+                />
+              ) : (
+                <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-muted/80 border-2 border-white/80 shadow-pink flex items-center justify-center">
+                  <Building2 className="w-8 h-8 text-muted-foreground/60" />
+                </div>
+              )}
             </div>
 
             <div className="flex-1 min-w-0">
@@ -153,11 +165,16 @@ export function BusinessCard({ business, onClose }: Props) {
                   <Building2 className="w-2.5 h-2.5 mr-1" /> {business.industry}
                 </Badge>
               </div>
-              <h1 className="text-lg sm:text-2xl font-bold leading-tight mt-1 truncate">{business.name}</h1>
+              <h1 className="text-lg sm:text-2xl font-bold leading-tight mt-1 truncate">
+                <a href={profileUrl} target="_blank" rel="noopener noreferrer" className="hover:underline flex items-center gap-1.5" title="Mở trang riêng của doanh nghiệp">
+                  {business.name}
+                  <ExternalLink className="w-4 h-4 opacity-70" />
+                </a>
+              </h1>
               <p className="text-[11px] sm:text-xs text-white/85 mt-0.5 line-clamp-2">{business.short_intro}</p>
 
               <div className="flex items-center gap-3 text-[10px] sm:text-xs text-white/80 mt-1.5">
-                <span className="flex items-center gap-1"><Eye className="w-3 h-3" />{formatCount(business.views_count)}</span>
+                <span className="flex items-center gap-1"><Eye className="w-3 h-3" />{formatCount(business.views_count || 0)}</span>
                 <span className="truncate">
                   {[business.province, business.country_name].filter(Boolean).join(", ")}
                 </span>
@@ -174,17 +191,18 @@ export function BusinessCard({ business, onClose }: Props) {
             </div>
 
             {qrUrl && (
-              <a
-                href={profileUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                title="Mở trang doanh nghiệp"
-                className="shrink-0 hidden sm:block"
+              <button
+                onClick={() => setShowQR(true)}
+                title="Mở mã QR In Ấn"
+                className="shrink-0 hidden sm:block text-left"
               >
-                <div className="w-20 h-20 lg:w-24 lg:h-24 rounded-xl bg-white p-1.5 shadow-pink hover:scale-105 transition-smooth">
+                <div className="w-20 h-20 lg:w-24 lg:h-24 rounded-xl bg-white p-1.5 shadow-pink hover:scale-105 transition-smooth relative group">
                   <img src={qrUrl} alt={`Mã QR danh thiếp doanh nghiệp ${business.name}`} className="w-full h-full" />
+                  <div className="absolute inset-0 bg-black/20 rounded-xl opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
+                    <ExternalLink className="w-6 h-6 text-white" />
+                  </div>
                 </div>
-              </a>
+              </button>
             )}
           </div>
         </div>
@@ -192,14 +210,15 @@ export function BusinessCard({ business, onClose }: Props) {
         {/* BODY */}
         <div className="flex-1 overflow-y-auto px-4 sm:px-6 py-4 space-y-5">
           {qrUrl && (
-            <a href={profileUrl} target="_blank" rel="noopener noreferrer"
-               className="sm:hidden flex items-center gap-3 p-3 rounded-xl bg-accent/40 border border-border">
+            <button onClick={() => setShowQR(true)}
+               className="w-full sm:hidden flex items-center gap-3 p-3 rounded-xl bg-accent/40 border border-border text-left hover:bg-accent/60 transition-colors">
               <img src={qrUrl} alt={`Mã QR danh thiếp doanh nghiệp ${business.name}`} className="w-16 h-16 rounded-lg bg-white p-1" />
-              <div className="text-xs">
-                <p className="font-semibold">Quét QR để mở danh thiếp</p>
+              <div className="text-xs flex-1 min-w-0">
+                <p className="font-semibold">Mã QR In Ấn & Chia Sẻ</p>
                 <p className="text-muted-foreground truncate">{profileUrl.replace(/^https?:\/\//, "")}</p>
               </div>
-            </a>
+              <ExternalLink className="w-4 h-4 text-muted-foreground shrink-0" />
+            </button>
           )}
 
           {/* Contact grid */}
@@ -295,11 +314,11 @@ export function BusinessCard({ business, onClose }: Props) {
             </div>
           )}
 
-          {business.gallery.length > 0 && (
+          {(business.gallery?.length || 0) > 0 && (
             <div>
               <p className="text-[10px] sm:text-xs font-semibold tracking-wider text-muted-foreground mb-1.5">THƯ VIỆN</p>
               <div className="grid grid-cols-5 gap-1.5">
-                {business.gallery.slice(0, 5).map((src, i) => (
+                {business.gallery!.slice(0, 5).map((src, i) => (
                   <div key={i} className="aspect-square rounded-lg overflow-hidden bg-muted">
                     <img src={src} alt="" className="w-full h-full object-cover hover:scale-110 transition-smooth" />
                   </div>
@@ -344,14 +363,31 @@ export function BusinessCard({ business, onClose }: Props) {
           toId={business.id} 
           toName={business.name} 
           toType="business" 
-          onClose={() => {
-            setShowSend(false);
-            // Optionally set unlocked true if they successfully send? 
-            // The dialog closes regardless of success/fail, but if it succeeded, it shows a toast.
-            // Ideally we check if it sent successfully, but for now just leave it.
-          }} 
+          onClose={() => setShowSend(false)} 
         />
       )}
-    </div>
+
+      {showQR && (
+        <PrintableQRModal
+          business={business}
+          qrUrl={qrUrl}
+          isOpen={showQR}
+          onClose={() => setShowQR(false)}
+        />
+      )}
+    </>
+  );
+
+  return (
+    <>
+      {mode === "modal" ? (
+        <div className="fixed inset-0 z-[1000] flex items-center justify-center p-3 sm:p-4 animate-fade-up">
+          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
+          {innerContent}
+        </div>
+      ) : (
+        innerContent
+      )}
+    </>
   );
 }
